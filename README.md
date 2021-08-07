@@ -1,5 +1,5 @@
-# gofiber-skelton
-Skelton for GO Fiber
+# gofiber-skeleton
+Skeleton for GO Fiber
 
 ## quick start
 ```shell
