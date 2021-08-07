@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -15,15 +17,16 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/storage/redis"
 	"github.com/joho/godotenv"
 	helpers "github.com/zercle/gofiber-helpers"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/internal/routes"
 )
 
-// PrdMode from GO_ENV
+// prdMode from GO_ENV
 var (
-	PrdMode    bool
+	prdMode    bool
 	version    string
 	build      string
 	sessConfig session.Config
@@ -39,16 +42,67 @@ func main() {
 		log.Fatalf("error while loading the env:\n %+v", err)
 	}
 
-	PrdMode = (os.Getenv("GO_ENV") == "production")
+	prdMode = (os.Getenv("GO_ENV") == "production")
 
+	maxDBConn := 8
+	maxDBIdle := 4
 	// Pre config by env
-	if PrdMode {
+	if prdMode {
 	} else {
+		maxDBConn = 2
+		maxDBIdle = 1
+	}
+
+	// Init database connection
+	// Create connection to database
+	datasources.MainDB, err = datasources.MariadbConfig{
+		Username:     os.Getenv("DB_USER"),
+		Password:     os.Getenv("DB_PASSWORD"),
+		Host:         os.Getenv("DB_HOST"),
+		Port:         os.Getenv("DB_PORT"),
+		UnixSocket:   "",
+		MaxIdleConns: maxDBIdle,
+		MaxOpenConns: maxDBConn,
+		ParseTime:    true,
+	}.NewMariadbDB(os.Getenv("DB_NAME"))
+	if err != nil {
+		log.Fatalf("Error Connect to database:\n %+v", err)
+	}
+
+	// close the database connection if application errored.
+	defer datasources.MainDB.Close()
+
+	// Create connection to redis
+	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
+	if err != nil {
+		redisPort = 6379
+		err = nil
+	}
+	redisDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	if err != nil {
+		redisDB = 0
+		err = nil
+	}
+	datasources.RedisStore = redis.New(redis.Config{
+		Host:     os.Getenv("REDIS_HOST"),
+		Port:     redisPort,
+		Password: os.Getenv("REDIS_PASSWORD"),
+		Database: redisDB,
+	})
+
+	// close the redis connection if application errored.
+	defer datasources.RedisStore.Close()
+
+	// Init JWT Key
+	err = datasources.JTWLocalKey()
+	if err != nil {
+		log.Fatalf("Error Init JWT Keys:\n %+v", err)
 	}
 
 	// Init Client
 	datasources.FasthttpClient = datasources.InitFasthttpClient()
 	datasources.HttpClient = datasources.InitHttpClient()
+	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
 
 	// Init app
 	app := fiber.New(fiber.Config{
@@ -59,7 +113,7 @@ func main() {
 	})
 
 	// Post config by env
-	if PrdMode {
+	if prdMode {
 		sessConfig = session.Config{
 			Expiration:     8 * time.Hour,
 			KeyLookup:      fmt.Sprintf("%s:%s", "cookie", os.Getenv("SESS_ID")),

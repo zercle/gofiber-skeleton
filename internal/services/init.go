@@ -1,19 +1,19 @@
-package routes
+package services
 
 import (
 	"github.com/valyala/fastjson"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 )
 
-// RouterResources DB handler
-type RouterResources struct {
+// ServiceResources DB handler
+type ServiceResources struct {
 	jsonParserPool *fastjson.ParserPool
 	mainDB         *datasources.MariadbConfig
 }
 
-// InitRouterResources returns a new DBHandler
-func InitRouterResources(mainDB *datasources.MariadbConfig) *RouterResources {
-	return &RouterResources{
+// InitServiceResources returns a new DBHandler
+func InitServiceResources(mainDB *datasources.MariadbConfig) *ServiceResources {
+	return &ServiceResources{
 		jsonParserPool: new(fastjson.ParserPool),
 		mainDB:         mainDB,
 	}
