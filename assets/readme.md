@@ -1,0 +1,1 @@
+global pubilc assets
