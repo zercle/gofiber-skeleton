@@ -43,12 +43,12 @@ func ReqAuthHandler(c *fiber.Ctx) (err error) {
 	if err != nil {
 		return fiber.NewError(http.StatusUnauthorized, err.Error())
 	}
-	if _, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
-		c.Locals("token", jwtToken)
+	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
+		c.Locals("claims", claims)
 	} else {
 		// debug
+		log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), claims)
 		log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), jwtToken)
-		log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), jwtToken.Claims)
 		return fiber.NewError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
 	}
 	return c.Next()
