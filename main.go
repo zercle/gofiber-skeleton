@@ -30,6 +30,7 @@ var (
 	version    string
 	build      string
 	sessConfig session.Config
+	logConfig  logger.Config
 )
 
 func main() {
@@ -94,7 +95,7 @@ func main() {
 	defer datasources.RedisStore.Close()
 
 	// Init JWT Key
-	err = datasources.JTWLocalKey()
+	datasources.JWTSignKey, datasources.JWTVerifyKey, err = datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
 	if err != nil {
 		log.Fatalf("Error Init JWT Keys:\n %+v", err)
 	}
@@ -123,10 +124,20 @@ func main() {
 			Storage:        datasources.RedisStore,
 			CookiePath:     "/",
 		}
+		logConfig = logger.Config{
+			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${url}	${red}${error}${reset}\n",
+			TimeFormat: "2006-01-02 15:04:05",
+		}
 	} else {
 		sessConfig = session.ConfigDefault
-		app.Use(logger.New())
+		logConfig = logger.Config{
+			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${url}	${red}${error}${reset}\n",
+			TimeFormat: "2006-01-02 15:04:05",
+		}
 	}
+
+	// Logger middleware for Fiber that logs HTTP request/response details.
+	app.Use(logger.New(logConfig))
 
 	// Recover middleware for Fiber that recovers from panics anywhere in the stack chain and handles the control to the centralized ErrorHandler.
 	app.Use(recover.New())
