@@ -125,15 +125,13 @@ func main() {
 			CookiePath:     "/",
 		}
 		logConfig = logger.Config{
-			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${url}	${red}${error}${reset}\n",
+			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${method} ${url}	${red}${error}${reset}\n",
 			TimeFormat: "2006-01-02 15:04:05",
 		}
 	} else {
 		sessConfig = session.ConfigDefault
-		logConfig = logger.Config{
-			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${url}	${red}${error}${reset}\n",
-			TimeFormat: "2006-01-02 15:04:05",
-		}
+		logConfig = logger.ConfigDefault
+		logConfig.TimeFormat = "2006-01-02 15:04:05"
 	}
 
 	// Logger middleware for Fiber that logs HTTP request/response details.
