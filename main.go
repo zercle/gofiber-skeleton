@@ -125,13 +125,13 @@ func main() {
 			CookiePath:     "/",
 		}
 		logConfig = logger.Config{
-			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}	UserAgent: ${ua}	Authorization: ${header:Authorization}	RequestBody: ${body}	ResponseBody: ${resBody}	Error: ${red}${error}${reset}\n",
+			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}	UserAgent: ${ua}	Referer: ${referer}	Authorization: ${header:Authorization}	BytesReceived: ${bytesReceived}	BytesSent: ${bytesSent}	Error: ${red}${error}${reset}\n",
 			TimeFormat: "2006-01-02 15:04:05",
 		}
 	} else {
 		sessConfig = session.ConfigDefault
 		logConfig = logger.Config{
-			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}\nUserAgent:	${ua}\nAuthorization:	${header:Authorization}\nRequestBody:	${body}\nResponseBody:	${resBody}\nError:	${red}${error}${reset}\n",
+			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}\nUserAgent:	${ua}\nReferer:	${referer}\nAuthorization:	${header:Authorization}\nRequestBody:	${body}\nResponseBody:	${resBody}\nError:	${red}${error}${reset}\n",
 			TimeFormat: "2006-01-02 15:04:05",
 		}
 	}
