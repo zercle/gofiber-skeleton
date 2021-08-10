@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/form3tech-oss/jwt-go"
@@ -32,24 +34,55 @@ func ExtractSocketToken(authHeader string) (token string, err error) {
 	return
 }
 
-// ReqLineAuthHandler check session
-func ReqAuthHandler(c *fiber.Ctx) (err error) {
-	tokenStr, err := ExtractBearerToken(c.Get(fiber.HeaderAuthorization))
-	if err != nil {
-		return fiber.NewError(http.StatusUnauthorized, err.Error())
+func ExtractLevel(aud []string) (level int, err error) {
+	if len(aud) < 1 {
+		err = fiber.NewError(http.StatusBadRequest, "aud field missmatch")
+		return
+	}
+	levels := strings.Split(aud[0], ":")
+	if len(levels) < 1 {
+		err = fiber.NewError(http.StatusBadRequest, "levels field missmatch")
+		return
 	}
 
-	jwtToken, err := jwt.Parse(tokenStr, datasources.ValidationJWT)
-	if err != nil {
-		return fiber.NewError(http.StatusUnauthorized, err.Error())
+	return strconv.Atoi(levels[1])
+}
+
+// ReqLineAuthHandler check session
+func ReqAuthHandler(reqLevels ...int) fiber.Handler {
+	reqLevel := 4
+	if len(reqLevels) != 0 {
+		reqLevel = reqLevels[0]
 	}
-	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
-		c.Locals("claims", claims)
-	} else {
-		// debug
-		log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), claims)
-		log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), jwtToken)
-		return fiber.NewError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+
+	// Return new handler
+	return func(c *fiber.Ctx) (err error) {
+		tokenStr, err := ExtractBearerToken(c.Get(fiber.HeaderAuthorization))
+		if err != nil {
+			return fiber.NewError(http.StatusUnauthorized, err.Error())
+		}
+
+		claims := new(jwt.StandardClaims)
+		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, datasources.ValidationJWT)
+		if err != nil {
+			return fiber.NewError(http.StatusUnauthorized, err.Error())
+		}
+		if jwtToken != nil && jwtToken.Valid {
+			if level, err := ExtractLevel(claims.Audience); err != nil {
+				return fiber.NewError(http.StatusUnauthorized, err.Error())
+			} else if level < reqLevel {
+				return fiber.NewError(http.StatusForbidden, fmt.Sprintf("%s need permission level %d", c.Route().Path, reqLevel))
+			} else {
+				c.Locals("level", level)
+			}
+			c.Locals("claims", claims)
+			c.Locals("token", jwtToken)
+		} else {
+			// debug
+			log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), claims)
+			log.Printf("%+v\nvalue: %+v", helpers.WhereAmI(), jwtToken)
+			return fiber.NewError(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		}
+		return c.Next()
 	}
-	return c.Next()
 }

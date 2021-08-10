@@ -95,7 +95,7 @@ func main() {
 	defer datasources.RedisStore.Close()
 
 	// Init JWT Key
-	datasources.JWTSignKey, datasources.JWTVerifyKey, err = datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
+	datasources.JWTSignKey, datasources.JWTVerifyKey, datasources.JWTSigningMethod, err = datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
 	if err != nil {
 		log.Fatalf("Error Init JWT Keys:\n %+v", err)
 	}

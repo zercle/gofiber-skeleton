@@ -13,8 +13,9 @@ import (
 
 var (
 	// JWTVerifyKey JWT public key
-	JWTVerifyKey *ecdsa.PublicKey
-	JWTSignKey   *ecdsa.PrivateKey
+	JWTVerifyKey     *ecdsa.PublicKey
+	JWTSignKey       *ecdsa.PrivateKey
+	JWTSigningMethod *jwt.SigningMethodECDSA
 )
 
 // ValidationJWT JWT validation func
@@ -25,7 +26,7 @@ var ValidationJWT jwt.Keyfunc = func(token *jwt.Token) (publicKey interface{}, e
 	return JWTVerifyKey, err
 }
 
-func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey, err error) {
+func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey, signingMethod *jwt.SigningMethodECDSA, err error) {
 
 	if len(privateKeyPath) == 0 {
 		privateKeyPath = os.Getenv("JWT_PRIVATE")
@@ -41,6 +42,15 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey *ecdsa.Privat
 		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 		err = fiber.NewError(http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	switch privateKey.Curve.Params().BitSize {
+	case 256:
+		signingMethod = jwt.SigningMethodES256
+	case 384:
+		signingMethod = jwt.SigningMethodES384
+	case 512:
+		signingMethod = jwt.SigningMethodES512
 	}
 
 	if len(publicKeyPath) == 0 {
