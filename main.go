@@ -56,7 +56,7 @@ func main() {
 
 	// Init database connection
 	// Create connection to database
-	datasources.MainDB, err = datasources.MariadbConfig{
+	datasources.MariaDB, err = datasources.MariadbConfig{
 		Username:     os.Getenv("DB_USER"),
 		Password:     os.Getenv("DB_PASSWORD"),
 		Host:         os.Getenv("DB_HOST"),
@@ -71,7 +71,7 @@ func main() {
 	}
 
 	// close the database connection if application errored.
-	defer datasources.MainDB.Close()
+	defer datasources.MariaDB.Close()
 
 	// Create connection to redis
 	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
@@ -149,7 +149,7 @@ func main() {
 	datasources.SessStore = session.New(sessConfig)
 
 	// set api router
-	routersV1DBHandler := routes.InitRouterResources(datasources.MainDB)
+	routersV1DBHandler := routes.InitRouterResources(datasources.MariaDB)
 	routersV1DBHandler.SetRouters(app)
 
 	// Log GO_ENV
