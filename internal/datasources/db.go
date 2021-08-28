@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	MainDB *MariadbConfig
+	MariaDB    *MariadbConfig
+	PostgreSQL *PostgreSQLConfig
 	// RedisStore for session store
 	RedisStore *redis.Storage
 	// SessStore obj
