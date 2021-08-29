@@ -110,7 +110,7 @@ func main() {
 		ErrorHandler:   customErrorHandler,
 		ReadTimeout:    60 * time.Second,
 		ReadBufferSize: 8190,
-		// Prefork:      PrdMode,
+		// Prefork:      prdMode,
 	})
 
 	// Post config by env
