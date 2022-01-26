@@ -6,6 +6,8 @@ ENV GITHUB_USER $GITHUB_USER_BUILD
 ENV GITHUB_TOKEN $GITHUB_TOKEN_BUILD
 WORKDIR /src/app
 RUN go env -w GOPRIVATE=github.com/zercle
+RUN go get -d -v -u
+# RUN git config --global url."git@github.com:".insteadOf "https://github.com"
 # RUN git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
 COPY . .
 RUN go mod tidy && go mod vendor
@@ -23,8 +25,8 @@ ENV	TZ $timezone
 # Add config repositories
 RUN	echo 'https://download.nus.edu.sg/mirror/alpine/latest-stable/main' > /etc/apk/repositories \
     && echo 'https://download.nus.edu.sg/mirror/alpine/latest-stable/community' >> /etc/apk/repositories \
-    && echo '@edge https://download.nus.edu.sg/mirror/alpine/edge/main' >> /etc/apk/repositories \
-    && echo '@testing https://download.nus.edu.sg/mirror/alpine/edge/testing' >> /etc/apk/repositories \
+    # && echo '@edge https://download.nus.edu.sg/mirror/alpine/edge/main' >> /etc/apk/repositories \
+    # && echo '@testing https://download.nus.edu.sg/mirror/alpine/edge/testing' >> /etc/apk/repositories \
     && mkdir /run/openrc \
     && touch /run/openrc/softlevel
 
