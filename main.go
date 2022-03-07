@@ -124,9 +124,11 @@ func main() {
 			Storage:        datasources.RedisStore,
 			CookiePath:     "/",
 		}
+		logFileWriter := &datasources.LogFileWriter{LogPath: "/var/log/gofiber-skelton", PrintConsole: true}
 		logConfig = logger.Config{
 			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}\tUserAgent:	${ua}\tReferer: ${referer}\tAuthorization: ${header:Authorization}\tBytesReceived: ${bytesReceived}\nBytesSent: ${bytesSent}\tError: ${red}${error}${reset}\t",
 			TimeFormat: "2006-01-02 15:04:05",
+			Output:     logFileWriter,
 		}
 	} else {
 		sessConfig = session.ConfigDefault
