@@ -120,7 +120,7 @@ func main() {
 			KeyLookup:      fmt.Sprintf("%s:%s", "cookie", os.Getenv("SESS_ID")),
 			CookieSecure:   true,
 			CookieHTTPOnly: true,
-			CookieSameSite: "Strict ",
+			CookieSameSite: "Strict",
 			Storage:        datasources.RedisStore,
 			CookiePath:     "/",
 		}
