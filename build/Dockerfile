@@ -22,10 +22,8 @@ ENV	LC_ALL en_US.UTF-8
 ENV	TZ $timezone
 
 # Add config repositories
-RUN	echo 'https://download.nus.edu.sg/mirror/alpine/latest-stable/main' > /etc/apk/repositories \
-    && echo 'https://download.nus.edu.sg/mirror/alpine/latest-stable/community' >> /etc/apk/repositories \
-    # && echo '@edge https://download.nus.edu.sg/mirror/alpine/edge/main' >> /etc/apk/repositories \
-    # && echo '@testing https://download.nus.edu.sg/mirror/alpine/edge/testing' >> /etc/apk/repositories \
+RUN	echo 'https://mirror.kku.ac.th/alpine/latest-stable/main' > /etc/apk/repositories \
+    && echo 'https://mirror.kku.ac.th/alpine/latest-stable/community' >> /etc/apk/repositories \
     && mkdir /run/openrc \
     && touch /run/openrc/softlevel
 
