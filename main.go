@@ -70,9 +70,6 @@ func main() {
 		log.Fatalf("Error Connect to database:\n %+v", err)
 	}
 
-	// close the database connection if application errored.
-	defer datasources.MariaDB.Close()
-
 	// Create connection to redis
 	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	if err != nil {

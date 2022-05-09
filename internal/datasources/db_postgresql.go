@@ -15,7 +15,6 @@ import (
 // PostgreSQL for init connection
 type PostgreSQLConfig struct {
 	// Database connection
-	ConnObj *gorm.DB
 	ConnStr string
 
 	// Database name
@@ -77,33 +76,30 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 }
 
 // NewPostgreSQL creates a new database connection backed by a given postgres server.
-func (c PostgreSQLConfig) NewPostgreSQL(dbname string) (conn *PostgreSQLConfig, err error) {
+func (config PostgreSQLConfig) NewPostgreSQL(dbname string) (dbConn *gorm.DB, err error) {
 	// Use system default database if empty
 	if len(dbname) == 0 {
 		dbname = os.Getenv("DB_NAME")
 	}
 
-	// Init conn
-	conn = &c
+	config.DBName = dbname
 
-	conn.DBName = dbname
-
-	conn.ConnStr = conn.postgresDStoreString()
+	config.ConnStr = config.postgresDStoreString()
 	// +07:00
-	conn.ConnStr = conn.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
+	config.ConnStr = config.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
 	// Asia/Bangkok
 	// conn.ConnStr = conn.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27Asia%2FBangkok%27"
-	conn.ConnStr = conn.ConnStr + "&charset=utf8mb4,utf8"
-	if conn.ParseTime {
-		conn.ConnStr = conn.ConnStr + "&parseTime=true"
+	config.ConnStr = config.ConnStr + "&charset=utf8mb4,utf8"
+	if config.ParseTime {
+		config.ConnStr = config.ConnStr + "&parseTime=true"
 	}
 
 	// Use system default database if empty
-	if len(conn.ConnStr) == 0 {
+	if len(config.ConnStr) == 0 {
 		return nil, fmt.Errorf("MariaDB: connStr needed")
 	}
 	// Open connection to database
-	conn.ConnObj, err = gorm.Open(mysql.Open(conn.ConnStr), &gorm.Config{
+	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), &gorm.Config{
 		PrepareStmt: true,
 		// DisableForeignKeyConstraintWhenMigrating: true,
 	})
@@ -112,7 +108,7 @@ func (c PostgreSQLConfig) NewPostgreSQL(dbname string) (conn *PostgreSQLConfig, 
 		return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)
 	}
 
-	err = conn.ApplyConnOption()
+	err = config.ApplyConnOption(dbConn)
 	if err != nil {
 		log.Printf("NewMariadbDB: \n%+v", err)
 		return nil, fmt.Errorf("MariaDB: could not config connection: %v", err)
@@ -122,8 +118,8 @@ func (c PostgreSQLConfig) NewPostgreSQL(dbname string) (conn *PostgreSQLConfig, 
 }
 
 // ApplyConnOption to current db connection
-func (c *PostgreSQLConfig) ApplyConnOption() (err error) {
-	dbObj, err := c.ConnObj.DB()
+func (c *PostgreSQLConfig) ApplyConnOption(dbConn *gorm.DB) (err error) {
+	dbObj, err := dbConn.DB()
 
 	// Set max open connection at time
 	if c.MaxOpenConns != 0 {
@@ -149,35 +145,5 @@ func (c *PostgreSQLConfig) ApplyConnOption() (err error) {
 		dbObj.SetConnMaxLifetime(5 * time.Minute)
 	}
 
-	return
-}
-
-// GetCurrentConn get db connection
-func (c *PostgreSQLConfig) GetCurrentConn() (conn *gorm.DB, err error) {
-	dbObj, err := c.ConnObj.DB()
-	checkPing := dbObj.Ping()
-	if checkPing != nil {
-		log.Printf("GetCurrentConn: \n%+v", checkPing)
-		c.ConnObj, err = gorm.Open(mysql.Open(c.ConnStr), &gorm.Config{PrepareStmt: true})
-		if err != nil {
-			log.Printf("GetCurrentConn: \n%+v", err)
-			return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)
-		}
-		err = c.ApplyConnOption()
-		if err != nil {
-			log.Printf("GetCurrentConn: \n%+v", err)
-			return nil, fmt.Errorf("MariaDB: could not config connection: %v", err)
-		}
-	}
-	return c.ConnObj, err
-}
-
-// Close close current db connection.  If database connection is not an io.Closer, returns an error.
-func (c *PostgreSQLConfig) Close() (err error) {
-	dbObj, err := c.ConnObj.DB()
-	if err != nil {
-		return err
-	}
-	err = dbObj.Close()
 	return
 }
