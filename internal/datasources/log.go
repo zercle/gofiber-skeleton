@@ -2,7 +2,6 @@ package datasources
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 )
@@ -15,7 +14,7 @@ type LogFileWriter struct {
 
 func (c *LogFileWriter) Write(body []byte) (n int, err error) {
 	if c.PrintConsole {
-		log.Printf("%+s", body)
+		fmt.Printf("%+s", body)
 	}
 
 	var logPath string
