@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/gofiber/fiber/v2 v2.33.0
-	github.com/gofiber/storage/redis v0.0.0-20220504053447-663d7da0e717
+	github.com/gofiber/storage/redis v0.0.0-20220513171026-6ea9ef03b554
 	github.com/joho/godotenv v1.4.0
 	github.com/kamva/mgm/v3 v3.4.1
 	github.com/valyala/fasthttp v1.36.0
