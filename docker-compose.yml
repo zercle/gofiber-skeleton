@@ -1,0 +1,10 @@
+services:
+  # docker-compose run --rm app go run main.go
+  app:
+    image: golang:alpine
+    volumes:
+      - .:/go/src/app
+    working_dir: /go/src/app
+    ports:
+      - 8080:8080
+      - 8443:8443

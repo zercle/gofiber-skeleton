@@ -26,7 +26,7 @@ func Index(c *fiber.Ctx) (err error) {
 	return c.JSON(responseForm)
 }
 
-func (r *RouterResources) SetRouters(app *fiber.App) {
+func SetRouters(app *fiber.App) {
 	apiLimiter := limiter.New(limiter.Config{
 		Max:        20,
 		Expiration: 30 * time.Second,

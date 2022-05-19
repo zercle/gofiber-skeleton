@@ -102,6 +102,7 @@ func main() {
 	// Init Client
 	datasources.FasthttpClient = datasources.InitFasthttpClient()
 	datasources.HttpClient = datasources.InitHttpClient()
+	datasources.JsonParserPool = datasources.InitJsonParserPool()
 	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
 
 	// Init app
@@ -150,8 +151,7 @@ func main() {
 	datasources.SessStore = session.New(sessConfig)
 
 	// set api router
-	routersV1DBHandler := routes.InitRouterResources(datasources.ConnMariaDB)
-	routersV1DBHandler.SetRouters(app)
+	routes.SetRouters(app)
 
 	// Log GO_ENV
 	log.Printf("Runtime ENV: %s", os.Getenv("GO_ENV"))
