@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/form3tech-oss/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	helpers "github.com/zercle/gofiber-helpers"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 )
@@ -62,7 +62,7 @@ func ReqAuthHandler(reqLevels ...int) fiber.Handler {
 			return fiber.NewError(http.StatusUnauthorized, err.Error())
 		}
 
-		claims := new(jwt.StandardClaims)
+		claims := new(jwt.RegisteredClaims)
 		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, datasources.ValidationJWT)
 		if err != nil {
 			return fiber.NewError(http.StatusUnauthorized, err.Error())

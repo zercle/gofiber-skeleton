@@ -7,11 +7,13 @@ import (
 	"time"
 
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fastjson"
 )
 
 var (
 	FasthttpClient *fasthttp.Client
 	HttpClient     *http.Client
+	JsonParserPool *fastjson.ParserPool
 )
 
 func InitFasthttpClient() (client *fasthttp.Client) {
@@ -34,5 +36,10 @@ func InitHttpClient() (client *http.Client) {
 			},
 		},
 	}
+	return
+}
+
+func InitJsonParserPool() (jsonParserPool *fastjson.ParserPool) {
+	jsonParserPool = new(fastjson.ParserPool)
 	return
 }

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	jwt "github.com/form3tech-oss/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	jwt "github.com/golang-jwt/jwt/v4"
 	helpers "github.com/zercle/gofiber-helpers"
 )
 
