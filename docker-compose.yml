@@ -1,5 +1,5 @@
 services:
-  # docker-compose run --rm app go run main.go
+  # docker-compose run --service-ports --rm app go run main.go
   app:
     image: golang:alpine
     volumes:
