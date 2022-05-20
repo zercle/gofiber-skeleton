@@ -1,5 +1,9 @@
 # JTW credentials
 ```shell
-openssl ecparam -name prime256v1 -genkey -noout -out privkey.pem
-openssl ec -in privkey.pem -pubout -out pubkey.pem
+# EdDSA private key
+openssl genpkey -algorithm Ed25519 -out privkey.pem
+# ECDSA private key
+openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:prime256v1 -out privkey.pem
+# public key from private key
+openssl pkey -in privkey.pem -pubout -out pubkey.pem
 ```
