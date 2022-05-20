@@ -56,6 +56,7 @@ func main() {
 
 	// Init database connection
 	// Create connection to database
+	log.Printf("connecting to %s/%s", os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
 	connMariaDB, err := datasources.MariadbConfig{
 		Username:     os.Getenv("DB_USER"),
 		Password:     os.Getenv("DB_PASSWORD"),
@@ -69,10 +70,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error Connect to database:\n %+v", err)
 	}
+	log.Printf("connected to %s/%s", os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
 
 	datasources.ConnMariaDB = &datasources.MariaDB{DB: connMariaDB}
 
 	// Create connection to redis
+	log.Printf("connecting to %s/%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_DB"))
 	redisPort, err := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	if err != nil {
 		redisPort = 6379
@@ -86,26 +89,33 @@ func main() {
 	datasources.RedisStore = redis.New(redis.Config{
 		Host:     os.Getenv("REDIS_HOST"),
 		Port:     redisPort,
+		Username: os.Getenv("REDIS_USER"),
 		Password: os.Getenv("REDIS_PASSWORD"),
 		Database: redisDB,
 	})
+	log.Printf("connected to %s/%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_DB"))
 
 	// close the redis connection if application errored.
 	defer datasources.RedisStore.Close()
 
 	// Init JWT Key
+	log.Printf("init JWT")
 	datasources.JWTSignKey, datasources.JWTVerifyKey, datasources.JWTSigningMethod, err = datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
 	if err != nil {
 		log.Fatalf("Error Init JWT Keys:\n %+v", err)
 	}
+	log.Printf("init JWT %s done", datasources.JWTSigningMethod.Name)
 
 	// Init Client
+	log.Printf("init client")
 	datasources.FasthttpClient = datasources.InitFasthttpClient()
 	datasources.HttpClient = datasources.InitHttpClient()
 	datasources.JsonParserPool = datasources.InitJsonParserPool()
 	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
+	log.Printf("init client done")
 
 	// Init app
+	log.Printf("init app")
 	app := fiber.New(fiber.Config{
 		ErrorHandler:   customErrorHandler,
 		ReadTimeout:    60 * time.Second,
