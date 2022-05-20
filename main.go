@@ -100,11 +100,15 @@ func main() {
 
 	// Init JWT Key
 	log.Printf("init JWT")
-	datasources.JWTSignKey, datasources.JWTVerifyKey, datasources.JWTSigningMethod, err = datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
+	jwtSignKey, jwtVerifyKey, jwtSigningMethod, err := datasources.JTWLocalKey(os.Getenv("JWT_PRIVATE"), os.Getenv("JWT_PUBLIC"))
 	if err != nil {
 		log.Fatalf("Error Init JWT Keys:\n %+v", err)
 	}
-	log.Printf("init JWT %s done", datasources.JWTSigningMethod.Name)
+	log.Printf("init JWT %s done", jwtSigningMethod.Alg())
+
+	datasources.JWTSignKey = &jwtSignKey
+	datasources.JWTVerifyKey = &jwtVerifyKey
+	datasources.JWTSigningMethod = &jwtSigningMethod
 
 	// Init Client
 	log.Printf("init client")
