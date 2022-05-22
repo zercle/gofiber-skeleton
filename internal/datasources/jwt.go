@@ -70,7 +70,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 			err = fiber.NewError(http.StatusInternalServerError, err.Error())
 			return
 		}
-		switch privateKey.(ecdsa.PrivateKey).Curve.Params().BitSize {
+		switch privateKey.(*ecdsa.PrivateKey).Curve.Params().BitSize {
 		case 256:
 			signingMethod = jwt.SigningMethodES256
 		case 384:
@@ -88,7 +88,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 			err = fiber.NewError(http.StatusInternalServerError, err.Error())
 			return
 		}
-		switch privateKey.(rsa.PrivateKey).N.BitLen() {
+		switch privateKey.(*rsa.PrivateKey).N.BitLen() {
 		case 256:
 			signingMethod = jwt.SigningMethodRS256
 		case 384:
