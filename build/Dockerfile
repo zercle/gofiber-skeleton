@@ -44,6 +44,8 @@ RUN echo $timezone > /etc/timezone \
     && cp /usr/share/zoneinfo/$timezone /etc/localtime
 
 # Create app dir
+RUN mkdir -p /app
+WORKDIR /app
 COPY --from=builder /src/app/app-dist /app/
 COPY *.env /app/
 COPY build/docker/ /app/
@@ -51,10 +53,10 @@ COPY assets /app/assets
 COPY internal/assets /app/internal/assets
 RUN ln -sf /app/app-dist /usr/local/bin/app \
     && chmod +x /app/docker-entrypoint.sh
-WORKDIR /app
-
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
-
-CMD ["app", "env=dev"]
 
 EXPOSE 8080 8443
+
+# startup script
+ENTRYPOINT ["bash", "/app/docker-entrypoint.sh"]
+# fallback
+CMD ["app", "env=dev"]
