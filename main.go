@@ -24,9 +24,9 @@ import (
 	"github.com/zercle/gofiber-skelton/internal/routes"
 )
 
-// prdMode from GO_ENV
+// PrdMode from GO_ENV
 var (
-	prdMode    bool
+	PrdMode    bool
 	version    string
 	build      string
 	sessConfig session.Config
@@ -43,12 +43,12 @@ func main() {
 		log.Fatalf("error while loading the env:\n %+v", err)
 	}
 
-	prdMode = (os.Getenv("GO_ENV") == "production")
+	PrdMode = (os.Getenv("GO_ENV") == "production")
 
 	maxDBConn := 8
 	maxDBIdle := 4
 	// Pre config by env
-	if prdMode {
+	if PrdMode {
 	} else {
 		maxDBConn = 2
 		maxDBIdle = 1
@@ -72,7 +72,7 @@ func main() {
 	}
 	log.Printf("connected to %s/%s", os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
 
-	datasources.ConnMariaDB = &datasources.MariaDB{DB: connMariaDB}
+	datasources.ConnMariaDb = connMariaDB
 
 	// Create connection to redis
 	log.Printf("connecting to %s/%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_DB"))
@@ -112,7 +112,7 @@ func main() {
 
 	// Init Client
 	log.Printf("init client")
-	datasources.FasthttpClient = datasources.InitFasthttpClient()
+	datasources.FastHttpClient = datasources.InitFasthttpClient()
 	datasources.HttpClient = datasources.InitHttpClient()
 	datasources.JsonParserPool = datasources.InitJsonParserPool()
 	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
@@ -128,7 +128,7 @@ func main() {
 	})
 
 	// Post config by env
-	if prdMode {
+	if PrdMode {
 		sessConfig = session.Config{
 			Expiration:     8 * time.Hour,
 			KeyLookup:      fmt.Sprintf("%s:%s", "cookie", os.Getenv("SESS_ID")),
@@ -138,7 +138,7 @@ func main() {
 			Storage:        datasources.RedisStore,
 			CookiePath:     "/",
 		}
-		logFileWriter := &datasources.LogFileWriter{LogPath: "/var/log/gofiber-skelton", PrintConsole: true}
+		logFileWriter := &datasources.LogFileWriter{LogPath: "./log/gofiber-skelton", PrintConsole: true}
 		logConfig = logger.Config{
 			Format: "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}\tUserAgent:	${ua}\tReferer: ${referer}\tAuthorization: ${header:Authorization}\tBytesReceived: ${bytesReceived}\tBytesSent: ${bytesSent}\tError: ${red}${error}${reset}\n",
 			TimeFormat: "2006-01-02 15:04:05",
@@ -156,7 +156,7 @@ func main() {
 	app.Use(logger.New(logConfig))
 
 	// Recover middleware for Fiber that recovers from panics anywhere in the stack chain and handles the control to the centralized ErrorHandler.
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{EnableStackTrace: !PrdMode}))
 
 	// CORS middleware for Fiber that that can be used to enable Cross-Origin Resource Sharing with various options.
 	app.Use(cors.New())
@@ -173,11 +173,6 @@ func main() {
 	log.Printf("Build: %s", build)
 
 	// Listen from a different goroutine
-	// go func() {
-	// 	if err := app.Listen(os.Getenv("HTTP_PORT")); err != nil {
-	// 		log.Panic(err)
-	// 	}
-	// }()
 	go func() {
 		if err := app.ListenTLS(os.Getenv("HTTPS_PORT"), os.Getenv("CERT_PATH"), os.Getenv("PRIV_PATH")); err != nil {
 			log.Panic(err)
@@ -185,7 +180,7 @@ func main() {
 	}()
 
 	// Create channel to signify a signal being sent
-	ch := make(chan os.Signal, 2)
+	ch := make(chan os.Signal, 1)
 	// When an interrupt or termination signal is sent, notify the channel
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 

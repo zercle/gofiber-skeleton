@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	FasthttpClient *fasthttp.Client
+	FastHttpClient *fasthttp.Client
 	HttpClient     *http.Client
 	JsonParserPool *fastjson.ParserPool
 )
