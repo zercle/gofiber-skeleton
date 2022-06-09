@@ -21,6 +21,11 @@ const DateFormat = "2006-02-01"
 // TimeFormat Time mysql format
 const TimeFormat = "15:04:05"
 
+var DefaultMariaDbConfig = &gorm.Config{
+	PrepareStmt: true,
+	// DisableForeignKeyConstraintWhenMigrating: true,
+}
+
 // MariadbConfig for init connection
 type MariadbConfig struct {
 	// Database connection
@@ -108,10 +113,7 @@ func (config MariadbConfig) NewMariadbDB(dbname string) (dbConn *gorm.DB, err er
 		return nil, fmt.Errorf("MariaDB: connStr needed")
 	}
 	// Open connection to database
-	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), &gorm.Config{
-		PrepareStmt: true,
-		// DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), DefaultMariaDbConfig)
 	if err != nil {
 		log.Printf("NewMariadbDB: \n%+v", err)
 		return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)

@@ -8,23 +8,13 @@ import (
 )
 
 var (
-	ConnMariaDB    *MariaDB
-	ConnPostgreSQL *PostgreSQL
-	ConnMongoDB    *MongoDB
+	ConnMariaDb *gorm.DB
+	// ConnPostgreSql *gorm.DB
+	// ConnSqlServer  *gorm.DB
+	// ConnSqlLite    *gorm.DB
+	ConnMongoDb *mongo.Database
 	// RedisStore for session store
 	RedisStore *redis.Storage
 	// SessStore obj
 	SessStore *session.Store
 )
-
-type MariaDB struct {
-	*gorm.DB
-}
-
-type PostgreSQL struct {
-	*gorm.DB
-}
-
-type MongoDB struct {
-	*mongo.Database
-}
