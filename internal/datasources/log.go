@@ -20,7 +20,7 @@ func (c *LogFileWriter) Write(body []byte) (n int, err error) {
 	var logPath string
 	var logFileName string
 
-	if len(c.FileName) == 0 {
+	if len(c.LogPath) == 0 {
 		logPath = "./log"
 	} else {
 		logPath = c.LogPath
