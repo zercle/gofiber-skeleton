@@ -25,7 +25,7 @@ func (c *LogFileWriter) Write(body []byte) (n int, err error) {
 	} else {
 		logPath = c.LogPath
 	}
-	err = os.MkdirAll(c.LogPath, 0755)
+	err = os.MkdirAll(logPath, 0755)
 	if err != nil {
 		return
 	}
