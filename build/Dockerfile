@@ -19,7 +19,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -buildvcs=false -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)Z'" -o app-dist .
 
-FROM alpine
+FROM debian:stable-slim
 LABEL maintainer="Kawin Viriyaprasopsook <kawin.vir@zercle.tech>"
 
 ARG	timezone=Asia/Bangkok
@@ -28,23 +28,8 @@ ENV	LANG en_US.UTF-8
 ENV	LC_ALL en_US.UTF-8
 ENV	TZ $timezone
 
-# Add config repositories
-RUN	echo 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/main' > /etc/apk/repositories \
-    && echo 'https://dl-cdn.alpinelinux.org/alpine/latest-stable/community' >> /etc/apk/repositories \
-    && mkdir /run/openrc \
-    && touch /run/openrc/softlevel
-
 # Update OS
-RUN	apk update && apk upgrade \
-    && apk add --no-cache \
-    openrc \
-    tzdata \
-    bash \
-    bash-completion \
-    net-tools \
-    bind-tools \
-    mtr \
-    ca-certificates
+RUN	apt update && apt -y full-upgrade
 
 # Change locale
 RUN echo $timezone > /etc/timezone \
