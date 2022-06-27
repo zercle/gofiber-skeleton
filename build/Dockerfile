@@ -8,7 +8,11 @@ WORKDIR /usr/src/app
 
 # for CI/CD with private repo
 # RUN go env -w GOPRIVATE=github.com/zercle
+
+# use ssh instead of https
 # RUN git config --global url."git@github.com:".insteadOf "https://github.com"
+
+# use https with github token
 # RUN git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
