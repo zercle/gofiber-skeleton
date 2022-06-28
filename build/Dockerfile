@@ -28,12 +28,13 @@ LABEL maintainer="Kawin Viriyaprasopsook <kawin.vir@zercle.tech>"
 
 ARG	timezone=Asia/Bangkok
 
-ENV	LANG en_US.UTF-8
-ENV	LC_ALL en_US.UTF-8
+ENV	LANG C.UTF-8
+ENV	LC_ALL C.UTF-8
 ENV	TZ $timezone
 
 # Update OS
-RUN	apt update && apt -y full-upgrade
+RUN	apt update && apt -y full-upgrade \
+    apt -y install locales tzdata net-tools bash-completion
 
 # Change locale
 RUN echo $timezone > /etc/timezone \
