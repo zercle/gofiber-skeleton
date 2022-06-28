@@ -34,7 +34,7 @@ ENV	TZ $timezone
 
 # Update OS
 RUN	apt update && apt -y full-upgrade \
-    apt -y install locales tzdata net-tools bash-completion
+    && apt -y install locales tzdata net-tools bash-completion
 
 # Change locale
 RUN echo $timezone > /etc/timezone \
