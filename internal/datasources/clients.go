@@ -8,6 +8,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fastjson"
+	"gorm.io/gorm"
 )
 
 var (
@@ -15,6 +16,16 @@ var (
 	HttpClient     *http.Client
 	JsonParserPool *fastjson.ParserPool
 )
+
+type Resources struct {
+	MainDbConn *gorm.DB
+}
+
+func InitResources(mainDbConn *gorm.DB) *Resources {
+	return &Resources{
+		MainDbConn: mainDbConn,
+	}
+}
 
 func InitFasthttpClient() (client *fasthttp.Client) {
 	client = &fasthttp.Client{

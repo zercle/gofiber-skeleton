@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/spf13/viper"
 	helpers "github.com/zercle/gofiber-helpers"
 )
 
@@ -33,7 +34,7 @@ var ValidationJWT jwt.Keyfunc = func(token *jwt.Token) (publicKey interface{}, e
 func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.PrivateKey, publicKey crypto.PublicKey, signingMethod jwt.SigningMethod, err error) {
 
 	if len(privateKeyPath) == 0 {
-		privateKeyPath = os.Getenv("JWT_PRIVATE")
+		privateKeyPath = viper.GetString("jwt.private")
 	}
 	privateKeyFile, err := os.ReadFile(privateKeyPath)
 	if err != nil {
@@ -43,7 +44,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 	}
 
 	if len(publicKeyPath) == 0 {
-		publicKeyPath = os.Getenv("JWT_PUBLIC")
+		publicKeyPath = viper.GetString("jwt.public")
 	}
 	publicKeyFile, err := os.ReadFile(publicKeyPath)
 	if err != nil {

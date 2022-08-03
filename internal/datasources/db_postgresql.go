@@ -3,10 +3,10 @@ package datasources
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	// Import postgres driver
@@ -75,11 +75,11 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok", c.Host, c.Username, c.Password, c.DBName, c.Port, "disable")
 }
 
-// NewPostgreSQL creates a new database connection backed by a given postgres server.
+// New PostgreSQL creates a new database connection backed by a given postgres server.
 func (config PostgreSQLConfig) NewPostgreSQL(dbname string) (dbConn *gorm.DB, err error) {
 	// Use system default database if empty
 	if len(dbname) == 0 {
-		dbname = os.Getenv("DB_NAME")
+		dbname = viper.GetString("db.main.db_name")
 	}
 
 	config.DBName = dbname

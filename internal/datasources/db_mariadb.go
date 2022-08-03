@@ -3,10 +3,10 @@ package datasources
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/spf13/viper"
 	"gorm.io/gorm"
 	// Import mysql driver
 	"gorm.io/driver/mysql"
@@ -89,11 +89,11 @@ func (c MariadbConfig) mariadbDStoreString() string {
 	return fmt.Sprintf("%stcp([%s]:%s)/%s", cred, c.Host, c.Port, c.DBName)
 }
 
-// NewMariadbDB creates a new database connection backed by a given mariadb server.
-func (config MariadbConfig) NewMariadbDB(dbname string) (dbConn *gorm.DB, err error) {
+// New MariaDB creates a new database connection backed by a given mariadb server.
+func (config MariadbConfig) NewMariaDB(dbname string) (dbConn *gorm.DB, err error) {
 	// Use system default database if empty
 	if len(dbname) == 0 {
-		dbname = os.Getenv("DB_NAME")
+		dbname = viper.GetString("db.main.db_name")
 	}
 
 	config.DBName = dbname
@@ -115,13 +115,13 @@ func (config MariadbConfig) NewMariadbDB(dbname string) (dbConn *gorm.DB, err er
 	// Open connection to database
 	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), DefaultMariaDbConfig)
 	if err != nil {
-		log.Printf("NewMariadbDB: \n%+v", err)
+		log.Printf("NewMariaDB: \n%+v", err)
 		return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)
 	}
 
 	err = config.ApplyConnOption(dbConn)
 	if err != nil {
-		log.Printf("NewMariadbDB: \n%+v", err)
+		log.Printf("NewMariaDB: \n%+v", err)
 		return nil, fmt.Errorf("MariaDB: could not config connection: %v", err)
 	}
 

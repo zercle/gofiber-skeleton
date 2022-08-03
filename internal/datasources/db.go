@@ -1,20 +1,28 @@
 package datasources
 
 import (
-	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/gofiber/storage/redis"
-	"go.mongodb.org/mongo-driver/mongo"
 	"gorm.io/gorm"
 )
 
 var (
-	ConnMariaDb *gorm.DB
-	// ConnPostgreSql *gorm.DB
-	// ConnSqlServer  *gorm.DB
-	// ConnSqlLite    *gorm.DB
-	ConnMongoDb *mongo.Database
-	// RedisStore for session store
-	RedisStore *redis.Storage
-	// SessStore obj
-	SessStore *session.Store
+	// MariaDB connection
+	MariaDbConn *gorm.DB
+
+	// Postgre SQL connection
+	// PostgreSqlConn *gorm.DB
+
+	// SQL Server Connection
+	// SqlServerConn  *gorm.DB
+
+	// sqLite Connection
+	ConnSqlLite *gorm.DB
+
+	// MongoDB Connection
+	// MongoDbConn *mongo.Database
+
+	// Redis storage
+	// RedisStorage *redis.Storage
+
+	// Session storage
+	// SessStore *session.Store
 )
