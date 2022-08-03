@@ -3,9 +3,9 @@ package datasources
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/kamva/mgm/v3"
+	"github.com/spf13/viper"
 	// Import mongo driver
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -31,11 +31,11 @@ type MongoDBConfig struct {
 	Port string
 }
 
-// NewMongoDB creates a new database connection backed by a given mongodb server.
+// New MongoDB creates a new database connection backed by a given mongodb server.
 func (config MongoDBConfig) NewMongoDB(dbname string) (dbConn *mongo.Database, err error) {
 	// Use system default database if empty
 	if dbname == "" {
-		dbname = os.Getenv("DB_NAME")
+		dbname = viper.GetString("db.main.db_name")
 	}
 
 	// Create new client

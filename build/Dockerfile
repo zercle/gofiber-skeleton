@@ -21,7 +21,7 @@ RUN go mod download && go mod verify
 
 # let's build project
 COPY . .
-RUN go build -v -buildvcs=false -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)Z'" -o app-dist .
+RUN go build -v -buildvcs=false -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)'" -o app-dist .
 
 FROM debian:stable-slim
 LABEL maintainer="Kawin Viriyaprasopsook <kawin.vir@zercle.tech>"
@@ -44,7 +44,7 @@ RUN echo $timezone > /etc/timezone \
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder /usr/src/app/app-dist /app/
-COPY *.env /app/
+COPY configs /app/configs
 COPY build/docker/ /app/
 COPY assets /app/assets
 COPY internal/assets /app/internal/assets
