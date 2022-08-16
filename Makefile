@@ -17,3 +17,6 @@ docker-save:
 
 docker-clean:
 	docker image prune -f
+
+go-mod:
+	go get -v -u && go mod tidy
