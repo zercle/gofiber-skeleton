@@ -3,6 +3,7 @@ package datasources
 import (
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"log"
 	"net/http"
@@ -43,22 +44,21 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		return
 	}
 
-	if len(publicKeyPath) == 0 {
-		publicKeyPath = viper.GetString("jwt.public")
-	}
-	publicKeyFile, err := os.ReadFile(publicKeyPath)
-	if err != nil {
-		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-		err = fiber.NewError(http.StatusInternalServerError, err.Error())
-		return
+	var publicKeyFile []byte
+	if len(publicKeyPath) != 0 {
+		// publicKeyPath = viper.GetString("jwt.public")
+		publicKeyFile, err = os.ReadFile(publicKeyPath)
+		if err != nil {
+			log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
+			err = fiber.NewError(http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 
 	// EdDSA
 	if privateKey, err = jwt.ParseEdPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseEdPublicKeyFromPEM(publicKeyFile); err != nil {
-			log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-			err = fiber.NewError(http.StatusInternalServerError, err.Error())
-			return
+			publicKey = privateKey.(ed25519.PrivateKey).Public()
 		}
 		signingMethod = jwt.SigningMethodEdDSA
 		return
@@ -67,9 +67,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 	// ECDSA
 	if privateKey, err = jwt.ParseECPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseECPublicKeyFromPEM(publicKeyFile); err != nil {
-			log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-			err = fiber.NewError(http.StatusInternalServerError, err.Error())
-			return
+			publicKey = privateKey.(*ecdsa.PrivateKey).Public()
 		}
 		switch privateKey.(*ecdsa.PrivateKey).Curve.Params().BitSize {
 		case 256:
@@ -85,9 +83,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 	// RSA
 	if privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicKeyFile); err != nil {
-			log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-			err = fiber.NewError(http.StatusInternalServerError, err.Error())
-			return
+			publicKey = privateKey.(*rsa.PrivateKey).Public()
 		}
 		switch privateKey.(*rsa.PrivateKey).N.BitLen() {
 		case 256:
