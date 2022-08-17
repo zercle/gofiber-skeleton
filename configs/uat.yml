@@ -8,9 +8,11 @@ app:
     cert: "./internal/assets/tls/zercle-dev.crt"
     priv: "./internal/assets/tls/zercle-dev.key"
     ca: "./internal/assets/tls/rootCA.crt"
+    log: "./log"
 
 db:
   main:
+    sock: "/var/run/mysqld/mysqld.sock"
     host: "localhost"
     port: 3306
     username: ""

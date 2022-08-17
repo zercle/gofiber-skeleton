@@ -31,7 +31,7 @@ func (c *LogFileWriter) Write(body []byte) (n int, err error) {
 	}
 
 	if len(c.FileName) == 0 {
-		logFileName = fmt.Sprintf("access-%s.log", time.Now().Format("2006-02-01"))
+		logFileName = fmt.Sprintf("access-%s.log", time.Now().Format("2006-01-02"))
 	} else {
 		logFileName = c.FileName
 	}

@@ -170,16 +170,20 @@ func initDatasources() (err error) {
 	// Init database connection
 	// Create connection to database
 	// log.Printf("connecting to %s/%s", viper.GetString("db.main.host"), viper.GetString("db.main.db_name"))
-	// connMariaDB, err := datasources.MariadbConfig{
-	// Username:     viper.GetString("db.main.username"),
-	// Password:     viper.GetString("db.main.password"),
-	// Host:         viper.GetString("db.main.host"),
-	// Port:         viper.GetString("db.main.port"),
-	// 	UnixSocket:   "",
+	// dbConfig := datasources.MariadbConfig{
+	// 	Username:     viper.GetString("db.main.username"),
+	// 	Password:     viper.GetString("db.main.password"),
+	// 	Host:         viper.GetString("db.main.host"),
+	// 	Port:         viper.GetString("db.main.port"),
 	// 	MaxIdleConns: maxDBIdle,
 	// 	MaxOpenConns: maxDBConn,
 	// 	ParseTime:    true,
-	// }.NewMariadbDB(viper.GetString("db.main.db_name"))
+	// }
+	// if _, err := os.Stat(viper.GetString("db.main.sock")); err == nil {
+	// 	dbConfig.UnixSocket = viper.GetString("db.main.sock")
+	// 	log.Printf("connecting by %s", dbConfig.UnixSocket)
+	// }
+	// connMariaDB, err := dbConfig.NewMariaDB(viper.GetString("db.main.db_name"))
 	// if err != nil {
 	// 	log.Panicf("Error Connect to database:\n %+v", err)
 	// }
