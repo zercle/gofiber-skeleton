@@ -49,7 +49,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		// publicKeyPath = viper.GetString("jwt.public")
 		publicKeyFile, err = os.ReadFile(publicKeyPath)
 		if err != nil {
-			log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 			err = fiber.NewError(http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -59,15 +58,19 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 	if privateKey, err = jwt.ParseEdPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseEdPublicKeyFromPEM(publicKeyFile); err != nil {
 			publicKey = privateKey.(ed25519.PrivateKey).Public()
+			err = nil
 		}
 		signingMethod = jwt.SigningMethodEdDSA
 		return
 	}
+	// debug
+	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	// ECDSA
 	if privateKey, err = jwt.ParseECPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseECPublicKeyFromPEM(publicKeyFile); err != nil {
 			publicKey = privateKey.(*ecdsa.PrivateKey).Public()
+			err = nil
 		}
 		switch privateKey.(*ecdsa.PrivateKey).Curve.Params().BitSize {
 		case 256:
@@ -79,11 +82,14 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		}
 		return
 	}
+	// debug
+	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	// RSA
 	if privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKeyFile); err == nil {
 		if publicKey, err = jwt.ParseRSAPublicKeyFromPEM(publicKeyFile); err != nil {
 			publicKey = privateKey.(*rsa.PrivateKey).Public()
+			err = nil
 		}
 		switch privateKey.(*rsa.PrivateKey).N.BitLen() {
 		case 256:
@@ -95,6 +101,8 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		}
 		return
 	}
+	// debug
+	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	signingMethod = jwt.SigningMethodNone
 	return
