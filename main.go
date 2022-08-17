@@ -45,7 +45,7 @@ func main() {
 		runEnv = *flagEnv
 	}
 	if err := configs.LoadConfig(runEnv); err != nil {
-		log.Fatalf("error while loading the env:\n %+v", err)
+		log.Panicf("error while loading the env:\n %+v", err)
 	}
 
 	PrdMode = (viper.GetString("app.env") == "production")
@@ -53,7 +53,7 @@ func main() {
 	// Init datasources
 	err = initDatasources()
 	if err != nil {
-		log.Fatalf("error while init datasources:\n %+v", err)
+		log.Panicf("error while init datasources:\n %+v", err)
 	}
 
 	// datasource resources
@@ -74,7 +74,7 @@ func main() {
 	// Post config by env
 	err = configApp()
 	if err != nil {
-		log.Fatalf("error while config app:\n %+v", err)
+		log.Panicf("error while config app:\n %+v", err)
 	}
 
 	// Logger middleware for Fiber that logs HTTP request/response details.
@@ -101,7 +101,7 @@ func main() {
 	// Listen from a different goroutine
 	go func() {
 		if err := app.ListenTLS(":"+viper.GetString("app.port.https"), viper.GetString("app.path.cert"), viper.GetString("app.path.priv")); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}()
 
@@ -113,13 +113,13 @@ func main() {
 	// This blocks the main thread until an interrupt is received
 	<-quit
 	fmt.Println("Gracefully shutting down...")
-	if err = app.Shutdown(); err != nil {
-		log.Fatal(err)
-	}
+	_ = app.Shutdown()
 
 	fmt.Println("Running cleanup tasks...")
 	// Your cleanup tasks go here
-	// datasources.RedisStore.Close()
+	// if datasources.RedisStorage != nil {
+	// 	datasources.RedisStorage.Close()
+	// }
 	fmt.Println("Successful shutdown.")
 }
 
@@ -181,7 +181,7 @@ func initDatasources() (err error) {
 	// 	ParseTime:    true,
 	// }.NewMariadbDB(viper.GetString("db.main.db_name"))
 	// if err != nil {
-	// 	log.Fatalf("Error Connect to database:\n %+v", err)
+	// 	log.Panicf("Error Connect to database:\n %+v", err)
 	// }
 	// log.Printf("connected to %s/%s", viper.GetString("db.main.host"), viper.GetString("db.main.db_name"))
 
@@ -212,7 +212,7 @@ func initDatasources() (err error) {
 	log.Printf("init JWT")
 	jwtSignKey, jwtVerifyKey, jwtSigningMethod, err := datasources.JTWLocalKey(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
 	if err != nil {
-		log.Fatalf("Error Init JWT Keys:\n %+v", err)
+		log.Panicf("Error Init JWT Keys:\n %+v", err)
 	}
 	log.Printf("init JWT %s done", jwtSigningMethod.Alg())
 
@@ -223,7 +223,6 @@ func initDatasources() (err error) {
 	// Init Client
 	log.Printf("init client")
 	datasources.FastHttpClient = datasources.InitFasthttpClient()
-	datasources.HttpClient = datasources.InitHttpClient()
 	datasources.JsonParserPool = datasources.InitJsonParserPool()
 	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
 	log.Printf("init client done")

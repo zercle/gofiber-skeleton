@@ -2,7 +2,6 @@ package datasources
 
 import (
 	"crypto/tls"
-	"net/http"
 	"runtime"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 
 var (
 	FastHttpClient *fasthttp.Client
-	HttpClient     *http.Client
 	JsonParserPool *fastjson.ParserPool
 )
 
@@ -33,18 +31,6 @@ func InitFasthttpClient() (client *fasthttp.Client) {
 		ReadTimeout:     time.Second * 45,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: false,
-		},
-	}
-	return
-}
-
-func InitHttpClient() (client *http.Client) {
-	client = &http.Client{
-		Timeout: time.Second * 45,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: false,
-			},
 		},
 	}
 	return
