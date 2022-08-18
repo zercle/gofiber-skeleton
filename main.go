@@ -241,9 +241,7 @@ func configApp() (err error) {
 			KeyLookup:      fmt.Sprintf("%s:%s", "cookie", viper.GetString("app.name")),
 			CookieSecure:   true,
 			CookieHTTPOnly: true,
-			CookieSameSite: "Strict",
 			// Storage:        datasources.RedisStorage,
-			CookiePath: "/",
 		}
 		logFileWriter := &datasources.LogFileWriter{LogPath: "./log/gofiber-skelton", PrintConsole: true}
 		logConfig = logger.Config{
