@@ -63,8 +63,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		signingMethod = jwt.SigningMethodEdDSA
 		return
 	}
-	// debug
-	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	// ECDSA
 	if privateKey, err = jwt.ParseECPrivateKeyFromPEM(privateKeyFile); err == nil {
@@ -82,8 +80,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		}
 		return
 	}
-	// debug
-	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	// RSA
 	if privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(privateKeyFile); err == nil {
@@ -91,7 +87,7 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 			publicKey = privateKey.(*rsa.PrivateKey).Public()
 			err = nil
 		}
-		switch privateKey.(*rsa.PrivateKey).N.BitLen() {
+		switch privateKey.(*rsa.PrivateKey).Size() {
 		case 256:
 			signingMethod = jwt.SigningMethodRS256
 		case 384:
@@ -101,8 +97,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (privateKey crypto.Privat
 		}
 		return
 	}
-	// debug
-	// log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 
 	signingMethod = jwt.SigningMethodNone
 	return
