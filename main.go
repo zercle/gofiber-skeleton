@@ -86,9 +86,6 @@ func main() {
 	// CORS middleware for Fiber that that can be used to enable Cross-Origin Resource Sharing with various options.
 	app.Use(cors.New())
 
-	// Init session
-	// datasources.SessStore = session.New(sessConfig)
-
 	// set apiV1 router
 	routerResources := routes.InitRouterResources(resources)
 	routerResources.SetupRoutes(app)
@@ -256,5 +253,9 @@ func configApp() (err error) {
 			TimeFormat: "2006-01-02 15:04:05",
 		}
 	}
+
+	// Init session
+	// datasources.SessStore = session.New(sessConfig)
+
 	return
 }
