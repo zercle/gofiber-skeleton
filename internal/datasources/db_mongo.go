@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/kamva/mgm/v3"
-	"github.com/spf13/viper"
+
 	// Import mongo driver
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,10 +15,10 @@ import (
 // MongoDBConfig for init connection
 type MongoDBConfig struct {
 	// Database connection
-	ConnStr string
+	connStr string
 
 	// Database name
-	DBName string
+	DbName string
 
 	// Optional.
 	Username, Password string
@@ -32,22 +33,23 @@ type MongoDBConfig struct {
 }
 
 // New MongoDB creates a new database connection backed by a given mongodb server.
-func (config MongoDBConfig) NewMongoDB(dbname string) (dbConn *mongo.Database, err error) {
-	// Use system default database if empty
-	if dbname == "" {
-		dbname = viper.GetString("db.main.db_name")
+func (config MongoDBConfig) NewMongoDB(dbName string) (dbConn *mongo.Database, err error) {
+	if len(dbName) == 0 {
+		return nil, fiber.NewError(fiber.StatusServiceUnavailable, "need: dbName")
 	}
 
+	config.DbName = dbName
+
 	// Create new client
-	config.ConnStr = fmt.Sprintf("mongodb://%s:%s@%s:%s", config.Username, config.Password, config.Host, config.Port)
-	client, err := mgm.NewClient(options.Client().ApplyURI(config.ConnStr))
+	config.connStr = fmt.Sprintf("mongodb://%s:%s@%s:%s", config.Username, config.Password, config.Host, config.Port)
+	client, err := mgm.NewClient(options.Client().ApplyURI(config.connStr))
 	if err != nil {
 		log.Printf("NewMongoDB: \n%+v", err)
 		return nil, fmt.Errorf("MongoDB: could not get a connection: %v", err)
 	}
 
 	// Get the model's db
-	dbConn = client.Database(dbname)
+	dbConn = client.Database(dbName)
 
 	return
 }
