@@ -6,29 +6,30 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/spf13/viper"
-	"gorm.io/driver/mysql"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
 	// Import postgres driver
+	"gorm.io/driver/postgres"
 )
 
 // PostgreSQL for init connection
 type PostgreSQLConfig struct {
 	// Database connection
-	ConnStr string
+	connStr string
 
 	// Database name
-	DBName string
+	DbName string
 
 	// Optional.
 	Username, Password string
 
-	// Host of the mariadb instance.
+	// Host of the PostgreSQL instance.
 	//
 	// If set, UnixSocket should be unset.
 	Host string
 
-	// Port of the mariadb instance.
+	// Port of the PostgreSQL instance.
 	//
 	// If set, UnixSocket should be unset.
 	Port string
@@ -70,48 +71,47 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 	}
 
 	if c.UnixSocket != "" {
-		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DBName)
+		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
 	}
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok", c.Host, c.Username, c.Password, c.DBName, c.Port, "disable")
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok", c.Host, c.Username, c.Password, c.DbName, c.Port, "disable")
 }
 
 // New PostgreSQL creates a new database connection backed by a given postgres server.
-func (config PostgreSQLConfig) NewPostgreSQL(dbname string) (dbConn *gorm.DB, err error) {
-	// Use system default database if empty
-	if len(dbname) == 0 {
-		dbname = viper.GetString("db.main.db_name")
+func (config PostgreSQLConfig) NewPostgreSQL(dbName string) (dbConn *gorm.DB, err error) {
+	if len(dbName) == 0 {
+		return nil, fiber.NewError(fiber.StatusServiceUnavailable, "need: dbName")
 	}
 
-	config.DBName = dbname
+	config.DbName = dbName
 
-	config.ConnStr = config.postgresDStoreString()
+	config.connStr = config.postgresDStoreString()
 	// +07:00
-	config.ConnStr = config.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
+	config.connStr = config.connStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
 	// Asia/Bangkok
 	// conn.ConnStr = conn.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27Asia%2FBangkok%27"
-	config.ConnStr = config.ConnStr + "&charset=utf8mb4,utf8"
+	config.connStr = config.connStr + "&charset=utf8mb4,utf8"
 	if config.ParseTime {
-		config.ConnStr = config.ConnStr + "&parseTime=true"
+		config.connStr = config.connStr + "&parseTime=true"
 	}
 
 	// Use system default database if empty
-	if len(config.ConnStr) == 0 {
-		return nil, fmt.Errorf("MariaDB: connStr needed")
+	if len(config.connStr) == 0 {
+		return nil, fmt.Errorf("PostgreSQL: connStr needed")
 	}
 	// Open connection to database
-	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), &gorm.Config{
+	dbConn, err = gorm.Open(postgres.Open(config.connStr), &gorm.Config{
 		PrepareStmt: true,
 		// DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
-		log.Printf("NewMariadbDB: \n%+v", err)
-		return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)
+		log.Printf("NewPostgreSQLDB: \n%+v", err)
+		return nil, fmt.Errorf("PostgreSQL: could not get a connection: %v", err)
 	}
 
 	err = config.ApplyConnOption(dbConn)
 	if err != nil {
-		log.Printf("NewMariadbDB: \n%+v", err)
-		return nil, fmt.Errorf("MariaDB: could not config connection: %v", err)
+		log.Printf("NewPostgreSQLDB: \n%+v", err)
+		return nil, fmt.Errorf("PostgreSQL: could not config connection: %v", err)
 	}
 
 	return
@@ -125,7 +125,7 @@ func (c *PostgreSQLConfig) ApplyConnOption(dbConn *gorm.DB) (err error) {
 	if c.MaxOpenConns != 0 {
 		dbObj.SetMaxOpenConns(c.MaxOpenConns)
 	} else {
-		// Default value follow mariadb.js pool
+		// Default value follow PostgreSQL.js pool
 		dbObj.SetMaxOpenConns(10)
 	}
 
@@ -133,7 +133,7 @@ func (c *PostgreSQLConfig) ApplyConnOption(dbConn *gorm.DB) (err error) {
 	if c.MaxIdleConns != 0 {
 		dbObj.SetMaxIdleConns(c.MaxIdleConns)
 	} else {
-		// Default value follow mariadb.js pool
+		// Default value follow PostgreSQL.js pool
 		dbObj.SetMaxIdleConns(5)
 	}
 
@@ -141,7 +141,7 @@ func (c *PostgreSQLConfig) ApplyConnOption(dbConn *gorm.DB) (err error) {
 	if c.ConnMaxLifetime != 0 {
 		dbObj.SetConnMaxLifetime(c.ConnMaxLifetime)
 	} else {
-		// Default value follow mariadb.js pool
+		// Default value follow PostgreSQL.js pool
 		dbObj.SetConnMaxLifetime(5 * time.Minute)
 	}
 

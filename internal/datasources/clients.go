@@ -15,12 +15,12 @@ var (
 	JsonParserPool *fastjson.ParserPool
 )
 
-type Resources struct {
+type Repositories struct {
 	MainDbConn *gorm.DB
 }
 
-func InitResources(mainDbConn *gorm.DB) *Resources {
-	return &Resources{
+func InitRepositories(mainDbConn *gorm.DB) *Repositories {
+	return &Repositories{
 		MainDbConn: mainDbConn,
 	}
 }

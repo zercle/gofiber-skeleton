@@ -6,20 +6,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
+
 	// Import mysql driver
 	"gorm.io/driver/mysql"
 )
 
-// DateTimeFormat Long date time mysql format
-const DateTimeFormat = "2006-02-01 15:04:05"
+// MariaDbDateTimeFmt Long date time mysql format
+const MariaDbDateTimeFmt = "2006-02-01 15:04:05"
 
-// DateFormat Date mysql format
-const DateFormat = "2006-02-01"
+// MariaDbDateFmt Date mysql format
+const MariaDbDateFmt = "2006-02-01"
 
-// TimeFormat Time mysql format
-const TimeFormat = "15:04:05"
+// MariaDbTimeFmt Time mysql format
+const MariaDbTimeFmt = "15:04:05"
 
 var DefaultMariaDbConfig = &gorm.Config{
 	PrepareStmt: true,
@@ -29,10 +30,10 @@ var DefaultMariaDbConfig = &gorm.Config{
 // MariadbConfig for init connection
 type MariadbConfig struct {
 	// Database connection
-	ConnStr string
+	connStr string
 
 	// Database name
-	DBName string
+	DbName string
 
 	// Optional.
 	Username, Password string
@@ -84,36 +85,35 @@ func (c MariadbConfig) mariadbDStoreString() string {
 	}
 
 	if c.UnixSocket != "" {
-		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DBName)
+		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
 	}
-	return fmt.Sprintf("%stcp([%s]:%s)/%s", cred, c.Host, c.Port, c.DBName)
+	return fmt.Sprintf("%stcp([%s]:%s)/%s", cred, c.Host, c.Port, c.DbName)
 }
 
 // New MariaDB creates a new database connection backed by a given mariadb server.
-func (config MariadbConfig) NewMariaDB(dbname string) (dbConn *gorm.DB, err error) {
-	// Use system default database if empty
-	if len(dbname) == 0 {
-		dbname = viper.GetString("db.main.db_name")
+func (config MariadbConfig) NewMariaDB(dbName string) (dbConn *gorm.DB, err error) {
+	if len(dbName) == 0 {
+		return nil, fiber.NewError(fiber.StatusServiceUnavailable, "need: dbName")
 	}
 
-	config.DBName = dbname
+	config.DbName = dbName
 
-	config.ConnStr = config.mariadbDStoreString()
+	config.connStr = config.mariadbDStoreString()
 	// +07:00
-	config.ConnStr = config.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
+	config.connStr = config.connStr + "?loc=Asia%2FBangkok&time_zone=%27%2B07%3A00%27"
 	// Asia/Bangkok
 	// conn.ConnStr = conn.ConnStr + "?loc=Asia%2FBangkok&time_zone=%27Asia%2FBangkok%27"
-	config.ConnStr = config.ConnStr + "&charset=utf8mb4,utf8"
+	config.connStr = config.connStr + "&charset=utf8mb4,utf8"
 	if config.ParseTime {
-		config.ConnStr = config.ConnStr + "&parseTime=true"
+		config.connStr = config.connStr + "&parseTime=true"
 	}
 
 	// Use system default database if empty
-	if len(config.ConnStr) == 0 {
+	if len(config.connStr) == 0 {
 		return nil, fmt.Errorf("MariaDB: connStr needed")
 	}
 	// Open connection to database
-	dbConn, err = gorm.Open(mysql.Open(config.ConnStr), DefaultMariaDbConfig)
+	dbConn, err = gorm.Open(mysql.Open(config.connStr), DefaultMariaDbConfig)
 	if err != nil {
 		log.Printf("NewMariaDB: \n%+v", err)
 		return nil, fmt.Errorf("MariaDB: could not get a connection: %v", err)

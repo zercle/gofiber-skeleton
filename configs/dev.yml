@@ -11,13 +11,28 @@ app:
     log: "./log"
 
 db:
-  main:
+  mariadb:
     sock: "/var/run/mysqld/mysqld.sock"
     host: "localhost"
     port: 3306
     username: ""
     password: ""
     db_name: ""
+    conn:
+      min: 1
+      max: 2
+  postgres:
+    sock: "/var/run/postgresql"
+    host: "localhost"
+    port: 5432
+    username: ""
+    password: ""
+    db_name: ""
+    conn:
+      min: 1
+      max: 2
+  sqlite:
+    db_name: "sqlite.db"
   redis:
     host: "localhost"
     port: 6379
