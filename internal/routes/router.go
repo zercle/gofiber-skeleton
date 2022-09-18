@@ -35,5 +35,5 @@ func (r *RouterResources) SetupRoutes(app *fiber.App) {
 	bookService := books.NewBookService(bookRepository)
 
 	// App Routes
-	books.NewBookHandler(app.Group("/api/v1/book"), bookService)
+	books.NewBookHandler(app.Group("/api/v1/books"), bookService)
 }
