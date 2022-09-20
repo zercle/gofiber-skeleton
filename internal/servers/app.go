@@ -51,10 +51,10 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 		return
 	}
 
-	server.RedisStorage, err = connectToRedis()
-	if err != nil {
-		return
-	}
+	// server.RedisStorage, err = connectToRedis()
+	// if err != nil {
+	// 	return
+	// }
 
 	// pre config server
 	err = server.configApp()
@@ -87,7 +87,7 @@ func (s *Server) Run() (err error) {
 
 	// App Handlers
 	routerResources := routes.NewRouterResources(s.DbConn)
-	
+
 	routerResources.SetupRoutes(app)
 
 	// Log GO_ENV
@@ -96,8 +96,14 @@ func (s *Server) Run() (err error) {
 	log.Printf("Build: %s", s.Build)
 
 	// Listen from a different goroutine
+	// go func() {
+	// 	if err := app.ListenTLS(":"+viper.GetString("app.port.https"), viper.GetString("app.path.cert"), viper.GetString("app.path.priv")); err != nil {
+	// 		log.Panic(err)
+	// 	}
+	// }()
+
 	go func() {
-		if err := app.ListenTLS(":"+viper.GetString("app.port.https"), viper.GetString("app.path.cert"), viper.GetString("app.path.priv")); err != nil {
+		if err := app.Listen(":" + viper.GetString("app.port.http")); err != nil {
 			log.Panic(err)
 		}
 	}()

@@ -2,6 +2,9 @@
 .vscode/
 .idea/
 
+# SQLite
+*.sqlite
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
