@@ -96,17 +96,20 @@ func (s *Server) Run() (err error) {
 	log.Printf("Build: %s", s.Build)
 
 	// Listen from a different goroutine
-	// go func() {
-	// 	if err := app.ListenTLS(":"+viper.GetString("app.port.https"), viper.GetString("app.path.cert"), viper.GetString("app.path.priv")); err != nil {
-	// 		log.Panic(err)
-	// 	}
-	// }()
 
+	// Listen HTTP
 	go func() {
 		if err := app.Listen(":" + viper.GetString("app.port.http")); err != nil {
 			log.Panic(err)
 		}
 	}()
+
+	// Listen HTTPS
+	// go func() {
+	// 	if err := app.ListenTLS(":"+viper.GetString("app.port.https"), viper.GetString("app.path.cert"), viper.GetString("app.path.priv")); err != nil {
+	// 		log.Panic(err)
+	// 	}
+	// }()
 
 	// Create channel to signify a signal being sent
 	quit := make(chan os.Signal, 1)
