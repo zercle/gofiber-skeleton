@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/gofiber/fiber/v2 v2.37.1
-	github.com/gofiber/storage/redis v0.0.0-20220916072033-9f14918a5a58
+	github.com/gofiber/storage/redis v0.0.0-20220921084501-87862b1ac6ad
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/kamva/mgm/v3 v3.4.1
 	github.com/segmentio/encoding v0.3.5
@@ -16,7 +16,7 @@ require (
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.3.10
 	gorm.io/driver/sqlite v1.3.6
-	gorm.io/gorm v1.23.9
+	gorm.io/gorm v1.23.10
 )
 
 require (
