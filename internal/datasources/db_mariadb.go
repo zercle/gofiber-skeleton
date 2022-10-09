@@ -3,6 +3,7 @@ package datasources
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -85,7 +86,9 @@ func (c MariadbConfig) mariadbDStoreString() string {
 	}
 
 	if c.UnixSocket != "" {
-		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
+		if _, err := os.Stat(c.UnixSocket); err == nil {
+			return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
+		}
 	}
 	return fmt.Sprintf("%stcp([%s]:%s)/%s", cred, c.Host, c.Port, c.DbName)
 }

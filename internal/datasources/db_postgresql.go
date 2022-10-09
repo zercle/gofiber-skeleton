@@ -3,6 +3,7 @@ package datasources
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -71,7 +72,9 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 	}
 
 	if c.UnixSocket != "" {
-		return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
+		if _, err := os.Stat(c.UnixSocket); err == nil {
+			return fmt.Sprintf("%sunix(%s)/%s", cred, c.UnixSocket, c.DbName)
+		}
 	}
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Bangkok", c.Host, c.Username, c.Password, c.DbName, c.Port, "disable")
 }
