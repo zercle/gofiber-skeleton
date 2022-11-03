@@ -3,33 +3,33 @@ package servers
 import (
 	"log"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/gofiber/storage/redis"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
+	"github.com/valyala/fasthttp"
+	"github.com/valyala/fastjson"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"gorm.io/gorm"
 )
 
-func initDatasources() (err error) {
+func initDatasources(insecureSkipVerify bool) (fastHttpClient *fasthttp.Client, jsonParserPool *fastjson.ParserPool, jwtResources datasources.JwtResources, err error) {
 	// Init JWT Key
 	log.Printf("init JWT")
-	jwtSignKey, jwtVerifyKey, jwtSigningMethod, err := datasources.JTWLocalKey(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
+	jwtResources, err = datasources.JTWLocalKey(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
 	if err != nil {
 		log.Panicf("Error Init JWT Keys:\n %+v", err)
 	}
-	log.Printf("init JWT %s done", jwtSigningMethod.Alg())
+	log.Printf("init JWT %s done", jwtResources.JwtSigningMethod.Alg())
 
-	datasources.JWTSignKey = &jwtSignKey
-	datasources.JWTVerifyKey = &jwtVerifyKey
-	datasources.JWTSigningMethod = &jwtSigningMethod
+	jwtResources.SetKeyfunc()
+	jwtResources.JwtParser = jwt.NewParser()
 
 	// Init Client
 	log.Printf("init client")
-	datasources.FastHttpClient = datasources.InitFasthttpClient()
-	datasources.JsonParserPool = datasources.InitJsonParserPool()
-	datasources.RegxNum = regexp.MustCompile(`[0-9]+`)
+	fastHttpClient = datasources.InitFastHttpClient(insecureSkipVerify)
+	jsonParserPool = datasources.InitJsonParserPool()
 	log.Printf("init client done")
 
 	return

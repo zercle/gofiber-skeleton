@@ -13,12 +13,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/gofiber/storage/redis"
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
-	"github.com/zercle/gofiber-skelton/internal/routes"
-	"gorm.io/gorm"
+	"github.com/zercle/gofiber-skelton/internal/routers"
 )
 
 type Server struct {
@@ -28,12 +26,7 @@ type Server struct {
 	RunEnv     string
 	SessConfig session.Config
 	LogConfig  logger.Config
-	// DB connection
-	DbConn *gorm.DB
-	// Redis storage
-	RedisStorage *redis.Storage
-	// Session storage
-	SessStore *session.Store
+	Resources  *datasources.Resources
 }
 
 func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
@@ -46,7 +39,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// connect to DB
-	server.DbConn, err = connectToSqLite()
+	mainDbConn, err := connectToSqLite()
 	if err != nil {
 		return
 	}
@@ -55,6 +48,18 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	// if err != nil {
 	// 	return
 	// }
+
+	fastHttpClient, jsonParserPool, jwtResources, err := initDatasources(true)
+	if err != nil {
+		return
+	}
+
+	// init app resources
+	resources := datasources.InitResources(fastHttpClient, jsonParserPool, mainDbConn, nil, nil, &jwtResources)
+
+	// something that use resources place here
+
+	server.Resources = resources
 
 	// pre config server
 	err = server.configApp()
@@ -86,7 +91,7 @@ func (s *Server) Run() (err error) {
 	app.Use(cors.New())
 
 	// App Handlers
-	routerResources := routes.NewRouterResources(s.DbConn)
+	routerResources := routers.NewRouterResources(s.Resources)
 
 	routerResources.SetupRoutes(app)
 
@@ -153,11 +158,11 @@ func (s *Server) configApp() (err error) {
 	}
 
 	// Use redis for session store if available
-	if s.RedisStorage != nil {
-		s.SessConfig.Storage = s.RedisStorage
+	if s.Resources.RedisStorage != nil {
+		s.SessConfig.Storage = s.Resources.RedisStorage
 	}
 
-	s.SessStore = session.New(s.SessConfig)
+	s.Resources.SessStore = session.New(s.SessConfig)
 
 	return
 }
