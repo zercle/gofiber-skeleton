@@ -1,4 +1,4 @@
-package routers
+package routes
 
 import (
 	"github.com/zercle/gofiber-skelton/internal/datasources"

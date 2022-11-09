@@ -1,4 +1,4 @@
-package users
+package user
 
 type UserRepository interface {
 	GetUsers(fullname string) (*[]User, error)

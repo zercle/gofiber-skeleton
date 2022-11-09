@@ -1,8 +1,8 @@
-package routers
+package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/zercle/gofiber-skelton/pkg/books"
+	"github.com/zercle/gofiber-skelton/pkg/book"
 )
 
 // SetupRoutes is the Router for GoFiber App
@@ -16,11 +16,11 @@ func (r *RouterResources) SetupRoutes(app *fiber.App) {
 	}
 
 	// App Repository
-	bookRepository := books.NewBookRepository(r.MainDbConn)
+	bookRepository := book.NewBookRepository(r.MainDbConn)
 
 	// App Services
-	bookService := books.NewBookService(bookRepository)
+	bookService := book.NewBookService(bookRepository)
 
 	// App Routes
-	books.NewBookHandler(app.Group("/api/v1/books"), bookService)
+	book.NewBookHandler(app.Group("/api/v1/books"), bookService)
 }

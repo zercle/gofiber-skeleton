@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/zercle/gofiber-skelton/configs"
-	servers "github.com/zercle/gofiber-skelton/internal/servers"
+	servers "github.com/zercle/gofiber-skelton/internal/infrastructure"
 )
 
 var (

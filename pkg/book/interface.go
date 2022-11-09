@@ -1,4 +1,4 @@
-package books
+package book
 
 type BookRepository interface {
 	GetBooks(title, author string) (*[]Book, error)
