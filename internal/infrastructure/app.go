@@ -1,4 +1,4 @@
-package servers
+package infrastructure
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
-	"github.com/zercle/gofiber-skelton/internal/routers"
+	"github.com/zercle/gofiber-skelton/internal/routes"
 )
 
 type Server struct {
@@ -91,7 +91,7 @@ func (s *Server) Run() (err error) {
 	app.Use(cors.New())
 
 	// App Handlers
-	routerResources := routers.NewRouterResources(s.Resources)
+	routerResources := routes.NewRouterResources(s.Resources)
 
 	routerResources.SetupRoutes(app)
 

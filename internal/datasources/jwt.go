@@ -27,7 +27,7 @@ type JwtResources struct {
 func (r *JwtResources) SetKeyfunc() {
 	r.Keyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
 		if r.JwtVerifyKey == nil {
-			err = fiber.NewError(http.StatusNotFound, "JWTVerifyKey not init yet")
+			err = fiber.NewError(http.StatusFailedDependency, "JWTVerifyKey not init yet")
 		}
 		// debug
 		// log.Printf("source: %+v\nvalue: %+v", helpers.WhereAmI(), *JWTVerifyKey)
@@ -108,6 +108,10 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResource
 }
 
 func (r *JwtResources) IsJwtActive(tokenStr string) (token *jwt.Token, isActive bool, err error) {
+	if r.JwtParser == nil {
+		err = fiber.NewError(http.StatusFailedDependency, "JwtParser not init yet")
+		return
+	}
 	claims := jwt.RegisteredClaims{}
 	token, _, err = r.JwtParser.ParseUnverified(tokenStr, &claims)
 	if err != nil {
