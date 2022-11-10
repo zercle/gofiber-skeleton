@@ -29,9 +29,9 @@ type Resources struct {
 	JwtResources *JwtResources
 }
 
-func InitResources(httpclient *fasthttp.Client, jsonParserPool *fastjson.ParserPool, mainDbConn *gorm.DB, logDbConn *mongo.Database, redisStorage *redis.Storage, jwtResources *JwtResources) *Resources {
+func InitResources(fasthttpClient *fasthttp.Client, jsonParserPool *fastjson.ParserPool, mainDbConn *gorm.DB, logDbConn *mongo.Database, redisStorage *redis.Storage, jwtResources *JwtResources) *Resources {
 	return &Resources{
-		FastHttpClient: httpclient,
+		FastHttpClient: fasthttpClient,
 		JsonParserPool: jsonParserPool,
 		MainDbConn:     mainDbConn,
 		LogDbConn:      logDbConn,
