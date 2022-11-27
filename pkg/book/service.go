@@ -36,6 +36,6 @@ func (s *bookService) GetBook(bookId uint) (book *Book, err error) {
 	return s.bookRepository.GetBook(bookId)
 }
 
-func (s *bookService) GetBooks(title, author string) (books *[]Book, err error) {
+func (s *bookService) GetBooks(title, author string) (books []Book, err error) {
 	return s.bookRepository.GetBooks(title, author)
 }

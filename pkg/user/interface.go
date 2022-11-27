@@ -1,7 +1,7 @@
 package user
 
 type UserRepository interface {
-	GetUsers(fullname string) (*[]User, error)
+	GetUsers(fullname string) ([]User, error)
 	GetUser(username string) (*User, error)
 	CreateUser(user *User) error
 	UpdateUser(username string, user *User) error
@@ -9,7 +9,7 @@ type UserRepository interface {
 }
 
 type UserService interface {
-	GetUsers(fullname string) (*[]User, error)
+	GetUsers(fullname string) ([]User, error)
 	GetUser(username string) (*User, error)
 	CreateUser(user *User) error
 	UpdateUser(username string, user *User) error

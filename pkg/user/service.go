@@ -124,6 +124,6 @@ func (s *userService) GetUser(username string) (user *User, err error) {
 	return s.userRepository.GetUser(username)
 }
 
-func (s *userService) GetUsers(fullname string) (users *[]User, err error) {
+func (s *userService) GetUsers(fullname string) (users []User, err error) {
 	return s.userRepository.GetUsers(fullname)
 }

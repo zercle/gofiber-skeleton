@@ -7,7 +7,7 @@ import (
 )
 
 type BooksResponse struct {
-	Books *[]Book `json:"books"`
+	Books []Book `json:"books"`
 }
 
 // Book Constructs your Book model under entities.

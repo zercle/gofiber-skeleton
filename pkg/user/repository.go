@@ -89,7 +89,7 @@ func (r *userReposiroty) GetUser(username string) (user *User, err error) {
 	return
 }
 
-func (r *userReposiroty) GetUsers(fullname string) (users *[]User, err error) {
+func (r *userReposiroty) GetUsers(fullname string) (users []User, err error) {
 	if r.DbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
@@ -101,7 +101,7 @@ func (r *userReposiroty) GetUsers(fullname string) (users *[]User, err error) {
 		dbTx = dbTx.Where("full_name LIKE ?", "%"+fullname+"%")
 	}
 
-	err = dbTx.Find(users).Error
+	err = dbTx.Find(&users).Error
 
 	return
 }
