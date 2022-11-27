@@ -89,7 +89,7 @@ func (r *bookReposiroty) GetBook(bookId uint) (book *Book, err error) {
 	return
 }
 
-func (r *bookReposiroty) GetBooks(title, author string) (books *[]Book, err error) {
+func (r *bookReposiroty) GetBooks(title, author string) (books []Book, err error) {
 	if r.DbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
@@ -105,7 +105,7 @@ func (r *bookReposiroty) GetBooks(title, author string) (books *[]Book, err erro
 		dbTx = dbTx.Where("author LIKE ?", "%"+author+"%")
 	}
 
-	err = dbTx.Find(books).Error
+	err = dbTx.Find(&books).Error
 
 	return
 }

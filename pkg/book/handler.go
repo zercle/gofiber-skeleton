@@ -31,7 +31,7 @@ func (h *BookHandler) getBooks() fiber.Handler {
 				})
 			}
 			responseForm.Data = BooksResponse{
-				Books: &[]Book{*book},
+				Books: []Book{*book},
 			}
 		} else {
 			title := c.FormValue("title")
@@ -84,7 +84,7 @@ func (h *BookHandler) createBook() fiber.Handler {
 				})
 			}
 			responseForm.Result = BooksResponse{
-				Books: &[]Book{*book},
+				Books: []Book{*book},
 			}
 		} else {
 			title := c.FormValue("title")
