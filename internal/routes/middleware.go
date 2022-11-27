@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/golang-jwt/jwt/v4"
 	helpers "github.com/zercle/gofiber-helpers"
+	"github.com/zercle/gofiber-skelton/internal/datasources"
 )
 
 var apiLimiter = limiter.New(limiter.Config{
@@ -75,7 +76,7 @@ func (r *RouterResources) ReqAuthHandler(reqLevels ...int) fiber.Handler {
 		}
 
 		claims := new(jwt.RegisteredClaims)
-		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, r.JwtResources.Keyfunc)
+		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, datasources.JwtKeyfunc)
 		if err != nil {
 			return fiber.NewError(http.StatusUnauthorized, err.Error())
 		}
