@@ -49,13 +49,16 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	// 	return
 	// }
 
-	fastHttpClient, jsonParserPool, jwtResources, err := initDatasources(true)
+	fastHttpClient, jwtResources, err := initDatasources(true)
 	if err != nil {
 		return
 	}
 
+	datasources.JsonParserPool = datasources.InitJsonParserPool()
+	datasources.JwtParser = datasources.InitJwtParser()
+
 	// init app resources
-	resources := datasources.InitResources(fastHttpClient, jsonParserPool, mainDbConn, nil, nil, &jwtResources)
+	resources := datasources.InitResources(fastHttpClient, mainDbConn, nil, nil, &jwtResources)
 
 	// something that use resources place here
 
@@ -162,7 +165,7 @@ func (s *Server) configApp() (err error) {
 		s.SessConfig.Storage = s.Resources.RedisStorage
 	}
 
-	s.Resources.SessStore = session.New(s.SessConfig)
+	datasources.SessStore = session.New(s.SessConfig)
 
 	return
 }

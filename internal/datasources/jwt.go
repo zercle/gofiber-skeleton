@@ -20,19 +20,6 @@ type JwtResources struct {
 	JwtVerifyKey     crypto.PublicKey
 	JwtSignKey       crypto.PrivateKey
 	JwtSigningMethod jwt.SigningMethod
-	JwtParser        *jwt.Parser
-	Keyfunc          jwt.Keyfunc
-}
-
-func (r *JwtResources) SetKeyfunc() {
-	r.Keyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
-		if r.JwtVerifyKey == nil {
-			err = fiber.NewError(http.StatusFailedDependency, "JWTVerifyKey not init yet")
-		}
-		// debug
-		// log.Printf("source: %+v\nvalue: %+v", helpers.WhereAmI(), *JWTVerifyKey)
-		return r.JwtVerifyKey, err
-	}
 }
 
 func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResources, err error) {
@@ -107,13 +94,28 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResource
 	return
 }
 
+func InitJwtParser() (*jwt.Parser) {
+	return jwt.NewParser()
+}
+
+func (r *JwtResources) SetKeyfunc() {
+	JwtKeyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
+		if r.JwtVerifyKey == nil {
+			err = fiber.NewError(http.StatusFailedDependency, "JWTVerifyKey not init yet")
+		}
+		// debug
+		// log.Printf("source: %+v\nvalue: %+v", helpers.WhereAmI(), *JWTVerifyKey)
+		return r.JwtVerifyKey, err
+	}
+}
+
 func (r *JwtResources) IsJwtActive(tokenStr string) (token *jwt.Token, isActive bool, err error) {
-	if r.JwtParser == nil {
+	if JwtParser == nil {
 		err = fiber.NewError(http.StatusFailedDependency, "JwtParser not init yet")
 		return
 	}
 	claims := jwt.RegisteredClaims{}
-	token, _, err = r.JwtParser.ParseUnverified(tokenStr, &claims)
+	token, _, err = JwtParser.ParseUnverified(tokenStr, &claims)
 	if err != nil {
 		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 		return
