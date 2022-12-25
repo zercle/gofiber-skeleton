@@ -79,7 +79,7 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 }
 
 // New PostgreSQL creates a new database connection backed by a given postgres server.
-func (config PostgreSQLConfig) NewPostgreSQL(dbName string) (dbConn *gorm.DB, err error) {
+func (config PostgreSQLConfig) InitPostgreSqlConn(dbName string) (dbConn *gorm.DB, err error) {
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("need: dbName")
 	}

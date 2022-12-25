@@ -23,7 +23,7 @@ type JwtResources struct {
 	JwtParser        *jwt.Parser
 }
 
-func NewJWT(privateKeyPath, publicKeyPath string) (jwtResources *JwtResources, err error) {
+func InitJwt(privateKeyPath, publicKeyPath string) (jwtResources *JwtResources, err error) {
 	resources, err := JTWLocalKey(privateKeyPath, publicKeyPath)
 	resources.JwtKeyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
 		if resources.JwtVerifyKey == nil {

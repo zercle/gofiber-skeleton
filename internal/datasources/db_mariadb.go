@@ -93,7 +93,7 @@ func (c MariadbConfig) mariadbDStoreString() string {
 }
 
 // New MariaDB creates a new database connection backed by a given mariadb server.
-func (config MariadbConfig) NewMariaDB(dbName string) (dbConn *gorm.DB, err error) {
+func (config MariadbConfig) InitMariaDbConn(dbName string) (dbConn *gorm.DB, err error) {
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("need: dbName")
 	}

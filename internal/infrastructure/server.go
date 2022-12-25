@@ -15,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
-	"github.com/valyala/fastjson"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/internal/routes"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
@@ -53,9 +52,9 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 
 	fastHttpClient := datasources.InitFastHttpClient(true)
 
-	utils.JsonParserPool = new(fastjson.ParserPool)
+	// utils.JsonParserPool = new(fastjson.ParserPool)
 
-	jwtResources, err := datasources.NewJWT(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
+	jwtResources, err := datasources.InitJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
 	if err != nil {
 		return
 	}

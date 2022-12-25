@@ -7,5 +7,5 @@ import (
 )
 
 func connectToSqLite() (dbConn *gorm.DB, err error) {
-	return datasources.NewSQLite(viper.GetString("db.sqlite.db_name"))
+	return datasources.InitSqLiteConn(viper.GetString("db.sqlite.db_name"))
 }
