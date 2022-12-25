@@ -5,9 +5,9 @@ app:
     http: 8080
     https: 8443
   path:
-    cert: "./internal/assets/tls/zercle-dev.crt"
-    priv: "./internal/assets/tls/zercle-dev.key"
-    ca: "./internal/assets/tls/rootCA.crt"
+    cert: "./internal/assets/dev/tls/zercle-dev.crt"
+    priv: "./internal/assets/dev/tls/zercle-dev.key"
+    ca: "./internal/assets/dev/tls/rootCA.crt"
     log: "./log"
 
 db:
@@ -42,6 +42,6 @@ db:
 
 jwt:
   # openssl ecparam -name prime256v1 -genkey -noout -out privkey.pem
-  private: "./internal/asset/jwt/dev/privkey.pem"
+  private: "./internal/assets/dev/jwt/privkey.pem"
   # openssl ec -in privkey.pem -pubout -out pubkey.pem
-  public: "./internal/asset/jwt/dev/pubkey.pem"
+  public: "./internal/assets/dev/jwt/pubkey.pem"
