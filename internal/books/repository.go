@@ -1,6 +1,8 @@
 package books
 
 import (
+	"runtime"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 	"gorm.io/gorm"
@@ -114,4 +116,23 @@ func (r *bookReposiroty) GetBooks(title, author string) (books []models.Book, er
 	err = dbTx.Find(&books).Error
 
 	return
+}
+
+func (r *bookReposiroty) ImportBooks(books []models.Book) (errs []error) {
+
+	errCh := make(chan error, (runtime.NumCPU()/2)+1)
+	defer close(errCh)
+
+	for _, book := range books {
+		go r.importBookChannel(book, errCh)
+		if err := <-errCh; err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	return
+}
+
+func (r *bookReposiroty) importBookChannel(book models.Book, errCh chan error) {
+	errCh <- r.CreateBook(&book)
 }

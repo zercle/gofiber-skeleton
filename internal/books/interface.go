@@ -12,6 +12,8 @@ type BookRepository interface {
 	CreateBook(book *models.Book) error
 	UpdateBook(bookID uint, book *models.Book) error
 	DeleteBook(bookID uint) error
+
+	ImportBooks(books []models.Book) (errs []error)
 }
 
 type BookService interface {
