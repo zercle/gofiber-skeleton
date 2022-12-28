@@ -5,12 +5,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
+	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/spf13/viper"
 	helpers "github.com/zercle/gofiber-helpers"
@@ -20,6 +19,20 @@ type JwtResources struct {
 	JwtVerifyKey     crypto.PublicKey
 	JwtSignKey       crypto.PrivateKey
 	JwtSigningMethod jwt.SigningMethod
+	JwtKeyfunc       jwt.Keyfunc
+	JwtParser        *jwt.Parser
+}
+
+func InitJwt(privateKeyPath, publicKeyPath string) (jwtResources *JwtResources, err error) {
+	resources, err := JTWLocalKey(privateKeyPath, publicKeyPath)
+	resources.JwtKeyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
+		if resources.JwtVerifyKey == nil {
+			err = fmt.Errorf("JWTVerifyKey not init yet")
+		}
+		return resources.JwtVerifyKey, err
+	}
+	resources.JwtParser = jwt.NewParser()
+	return &resources, err
 }
 
 func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResources, err error) {
@@ -30,7 +43,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResource
 	privateKeyFile, err := os.ReadFile(privateKeyPath)
 	if err != nil {
 		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-		err = fiber.NewError(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -40,7 +52,6 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResource
 	publicKeyFile, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
-		err = fiber.NewError(http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -94,28 +105,13 @@ func JTWLocalKey(privateKeyPath, publicKeyPath string) (jwtResources JwtResource
 	return
 }
 
-func InitJwtParser() (*jwt.Parser) {
-	return jwt.NewParser()
-}
-
-func (r *JwtResources) SetKeyfunc() {
-	JwtKeyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
-		if r.JwtVerifyKey == nil {
-			err = fiber.NewError(http.StatusFailedDependency, "JWTVerifyKey not init yet")
-		}
-		// debug
-		// log.Printf("source: %+v\nvalue: %+v", helpers.WhereAmI(), *JWTVerifyKey)
-		return r.JwtVerifyKey, err
-	}
-}
-
 func (r *JwtResources) IsJwtActive(tokenStr string) (token *jwt.Token, isActive bool, err error) {
-	if JwtParser == nil {
-		err = fiber.NewError(http.StatusFailedDependency, "JwtParser not init yet")
+	if r.JwtParser == nil {
+		err = fmt.Errorf("JwtParser not init yet")
 		return
 	}
 	claims := jwt.RegisteredClaims{}
-	token, _, err = JwtParser.ParseUnverified(tokenStr, &claims)
+	token, _, err = r.JwtParser.ParseUnverified(tokenStr, &claims)
 	if err != nil {
 		log.Printf("source: %+v\nerr: %+v", helpers.WhereAmI(), err)
 		return

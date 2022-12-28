@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/kamva/mgm/v3"
 
 	// Import mongo driver
@@ -33,12 +32,12 @@ type MongoDBConfig struct {
 }
 
 // New MongoDB creates a new database connection backed by a given mongodb server.
-func (config MongoDBConfig) NewMongoDB(dbName string) (dbConn *mongo.Database, err error) {
+func (config MongoDBConfig) InitMongoDbConn(dbName string) (dbConn *mongo.Database, err error) {
 	if len(dbName) == 0 {
-		return nil, fiber.NewError(fiber.StatusServiceUnavailable, "need: dbName")
+		return nil, fmt.Errorf("need: dbName")
 	}
 
-	config.DbName = dbName
+	// config.DbName = dbName
 
 	// Create new client
 	config.connStr = fmt.Sprintf("mongodb://%s:%s@%s:%s", config.Username, config.Password, config.Host, config.Port)

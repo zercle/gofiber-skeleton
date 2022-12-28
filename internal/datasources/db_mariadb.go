@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	// Import mysql driver
@@ -94,9 +93,9 @@ func (c MariadbConfig) mariadbDStoreString() string {
 }
 
 // New MariaDB creates a new database connection backed by a given mariadb server.
-func (config MariadbConfig) NewMariaDB(dbName string) (dbConn *gorm.DB, err error) {
+func (config MariadbConfig) InitMariaDbConn(dbName string) (dbConn *gorm.DB, err error) {
 	if len(dbName) == 0 {
-		return nil, fiber.NewError(fiber.StatusServiceUnavailable, "need: dbName")
+		return nil, fmt.Errorf("need: dbName")
 	}
 
 	config.DbName = dbName
