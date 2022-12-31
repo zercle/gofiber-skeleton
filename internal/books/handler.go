@@ -5,19 +5,20 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	helpers "github.com/zercle/gofiber-helpers"
+	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 )
 
 type BookHandler struct {
-	bookService BookService
+	bookUsecase domain.BookUsecase
 }
 
-func NewBookHandler(bookRoute fiber.Router, bs BookService) {
+func NewBookHandler(bookRoute fiber.Router, bookUsecase domain.BookUsecase) {
 	handler := &BookHandler{
-		bookService: bs,
+		bookUsecase: bookUsecase,
 	}
 
-	if err := bs.dbMigrator(); err != nil {
+	if err := bookUsecase.DbMigrator(); err != nil {
 		log.Panicf("error while migrate book DB:\n %+v", err)
 	}
 
@@ -30,7 +31,7 @@ func (h *BookHandler) getBooks() fiber.Handler {
 
 		bookId, _ := c.ParamsInt("bookId", 0)
 		if bookId != 0 {
-			book, err := h.bookService.GetBook(uint(bookId))
+			book, err := h.bookUsecase.GetBook(uint(bookId))
 			if err != nil {
 				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
 					Code:    fiber.StatusServiceUnavailable,
@@ -38,12 +39,13 @@ func (h *BookHandler) getBooks() fiber.Handler {
 				})
 			}
 			responseForm.Data = models.BooksResponse{
-				Books: []models.Book{*book},
+				Books: []models.Book{book},
 			}
 		} else {
-			title := c.FormValue("title")
-			author := c.FormValue("author")
-			books, err := h.bookService.GetBooks(title, author)
+			criteria := models.Book{}
+			criteria.Title = c.FormValue("title")
+			criteria.Author = c.FormValue("author")
+			books, err := h.bookUsecase.GetBooks(criteria)
 			if err != nil {
 				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
 					Code:    fiber.StatusServiceUnavailable,
@@ -51,60 +53,6 @@ func (h *BookHandler) getBooks() fiber.Handler {
 				})
 			}
 			responseForm.Data = models.BooksResponse{
-				Books: books,
-			}
-		}
-
-		if err == nil {
-			responseForm.Success = true
-		}
-		return c.JSON(responseForm)
-	}
-}
-
-func (h *BookHandler) createBook() fiber.Handler {
-	return func(c *fiber.Ctx) (err error) {
-		responseForm := helpers.ResponseForm{}
-
-		book := new(models.Book)
-
-		if err = c.BodyParser(book); err != nil {
-			c.Status(fiber.StatusUnprocessableEntity)
-			responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
-				Code:    fiber.StatusUnprocessableEntity,
-				Message: err.Error(),
-			})
-		}
-
-		if err != nil {
-			return c.JSON(responseForm)
-		}
-
-		bookId, _ := c.ParamsInt("bookId", 0)
-		if bookId != 0 {
-			book, err := h.bookService.GetBook(uint(bookId))
-			if err != nil {
-				c.Status(fiber.StatusServiceUnavailable)
-				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
-					Code:    fiber.StatusServiceUnavailable,
-					Message: err.Error(),
-				})
-			}
-			responseForm.Result = models.BooksResponse{
-				Books: []models.Book{*book},
-			}
-		} else {
-			title := c.FormValue("title")
-			author := c.FormValue("author")
-			books, err := h.bookService.GetBooks(title, author)
-			if err != nil {
-				c.Status(fiber.StatusServiceUnavailable)
-				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
-					Code:    fiber.StatusServiceUnavailable,
-					Message: err.Error(),
-				})
-			}
-			responseForm.Result = models.BooksResponse{
 				Books: books,
 			}
 		}

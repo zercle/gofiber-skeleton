@@ -4,32 +4,33 @@ import (
 	"runtime"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/zercle/gofiber-skelton/internal/datasources"
+	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
-	"gorm.io/gorm"
 )
 
 type bookReposiroty struct {
-	DbConn *gorm.DB
+	*datasources.Resources
 }
 
-func NewBookRepository(dbConn *gorm.DB) BookRepository {
+func NewBookRepository(resources *datasources.Resources) domain.BookRepository {
 	return &bookReposiroty{
-		DbConn: dbConn,
+		Resources: resources,
 	}
 }
 
-func (r *bookReposiroty) dbMigrator() (err error) {
-	err = r.DbConn.AutoMigrate(&models.Book{})
+func (r *bookReposiroty) DbMigrator() (err error) {
+	err = r.MainDbConn.AutoMigrate(&models.Book{})
 	return
 }
 
 func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
-	if r.DbConn == nil {
+	if r.MainDbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
 	}
 
-	dbTx := r.DbConn.Begin()
+	dbTx := r.MainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -42,13 +43,13 @@ func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
 	return
 }
 
-func (r *bookReposiroty) UpdateBook(bookId uint, book *models.Book) (err error) {
-	if r.DbConn == nil {
+func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
+	if r.MainDbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
 	}
 
-	dbTx := r.DbConn.Begin()
+	dbTx := r.MainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -64,12 +65,12 @@ func (r *bookReposiroty) UpdateBook(bookId uint, book *models.Book) (err error) 
 }
 
 func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
-	if r.DbConn == nil {
+	if r.MainDbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
 	}
 
-	dbTx := r.DbConn.Begin()
+	dbTx := r.MainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -84,33 +85,33 @@ func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
 	return
 }
 
-func (r *bookReposiroty) GetBook(bookId uint) (book *models.Book, err error) {
-	if r.DbConn == nil {
+func (r *bookReposiroty) GetBook(bookId uint) (book models.Book, err error) {
+	if r.MainDbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
 	}
 
-	dbTx := r.DbConn.Model(&models.Book{})
+	dbTx := r.MainDbConn.Model(&models.Book{})
 	dbTx = dbTx.Where(models.Book{Id: bookId})
 	err = dbTx.Take(book).Error
 
 	return
 }
 
-func (r *bookReposiroty) GetBooks(title, author string) (books []models.Book, err error) {
-	if r.DbConn == nil {
+func (r *bookReposiroty) GetBooks(criteria models.Book) (books []models.Book, err error) {
+	if r.MainDbConn == nil {
 		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
 		return
 	}
 
-	dbTx := r.DbConn.Model(&models.Book{})
+	dbTx := r.MainDbConn.Model(&models.Book{})
 
-	if len(title) != 0 {
-		dbTx = dbTx.Where("title LIKE ?", "%"+title+"%")
+	if len(criteria.Title) != 0 {
+		dbTx = dbTx.Where("title LIKE ?", "%"+criteria.Title+"%")
 	}
 
-	if len(author) != 0 {
-		dbTx = dbTx.Where("author LIKE ?", "%"+author+"%")
+	if len(criteria.Author) != 0 {
+		dbTx = dbTx.Where("author LIKE ?", "%"+criteria.Author+"%")
 	}
 
 	err = dbTx.Find(&books).Error

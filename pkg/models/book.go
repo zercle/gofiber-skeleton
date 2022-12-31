@@ -1,7 +1,7 @@
 package models
 
 import (
-	"time"
+	"database/sql"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +16,7 @@ type Book struct {
 	Title       string         `json:"title" gorm:"size:127;index"`
 	Author      string         `json:"author" gorm:"size:127;index"`
 	Description string         `json:"description" gorm:""`
-	CreatedAt   *time.Time     `json:"createdAt,omitempty" gorm:"autoCreateTime;index"`
-	UpdatedAt   *time.Time     `json:"updatedAt,omitempty" gorm:"autoUpdateTime;index"`
+	CreatedAt   sql.NullTime   `json:"createdAt,omitempty" gorm:"autoCreateTime;index"`
+	UpdatedAt   sql.NullTime   `json:"updatedAt,omitempty" gorm:"autoUpdateTime;index"`
 	DeletedAt   gorm.DeletedAt `json:"deletedAt,omitempty" gorm:"index"`
 }

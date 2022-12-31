@@ -18,7 +18,7 @@ func (r *RouterResources) SetupRoutes(app *fiber.App) {
 	}
 
 	// App Repository
-	bookRepository := books.NewBookRepository(r.MainDbConn)
+	bookRepository := books.NewBookRepository(r.Resources)
 
 	// App Services
 	bookService := books.NewBookService(bookRepository)
