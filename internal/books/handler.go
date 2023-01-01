@@ -33,12 +33,12 @@ func (h *BookHandler) getBooks() fiber.Handler {
 		if bookId != 0 {
 			book, err := h.bookUsecase.GetBook(uint(bookId))
 			if err != nil {
-				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
+				responseForm.Errors = append(responseForm.Errors, helpers.ResponseError{
 					Code:    fiber.StatusServiceUnavailable,
 					Message: err.Error(),
 				})
 			}
-			responseForm.Data = models.BooksResponse{
+			responseForm.Result = models.BooksResponse{
 				Books: []models.Book{book},
 			}
 		} else {
@@ -47,12 +47,12 @@ func (h *BookHandler) getBooks() fiber.Handler {
 			criteria.Author = c.FormValue("author")
 			books, err := h.bookUsecase.GetBooks(criteria)
 			if err != nil {
-				responseForm.Errors = append(responseForm.Errors, &helpers.ResposeError{
+				responseForm.Errors = append(responseForm.Errors, helpers.ResponseError{
 					Code:    fiber.StatusServiceUnavailable,
 					Message: err.Error(),
 				})
 			}
-			responseForm.Data = models.BooksResponse{
+			responseForm.Result = models.BooksResponse{
 				Books: books,
 			}
 		}

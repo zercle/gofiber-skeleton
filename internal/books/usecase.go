@@ -2,6 +2,7 @@ package books
 
 import (
 	"github.com/gofiber/fiber/v2"
+	helpers "github.com/zercle/gofiber-helpers"
 	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 )
@@ -23,11 +24,11 @@ func (u *bookUsecase) DbMigrator() (err error) {
 
 func (u *bookUsecase) CreateBook(book *models.Book) (err error) {
 	if len(book.Title) == 0 {
-		err = fiber.NewError(fiber.StatusBadRequest, "need: title")
+		err = helpers.NewError(fiber.StatusBadRequest, helpers.WhereAmI(), helpers.WhereAmI(), "need: title")
 		return
 	}
 	if len(book.Author) == 0 {
-		err = fiber.NewError(fiber.StatusBadRequest, "need: author")
+		err = helpers.NewError(fiber.StatusBadRequest, helpers.WhereAmI(), helpers.WhereAmI(), "need: author")
 		return
 	}
 	return u.bookRepository.CreateBook(book)

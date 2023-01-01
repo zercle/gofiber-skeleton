@@ -11,20 +11,17 @@ import (
 var customErrorHandler = func(c *fiber.Ctx, err error) error {
 	// Default 500 statuscode
 	code := http.StatusInternalServerError
+	var source string
 
-	if e, ok := err.(*fiber.Error); ok {
-		// Override status code if fiber.Error type
+	if e, ok := err.(*helpers.Error); ok {
+		// Override status code if helpers.Error type
 		code = e.Code
+		source, _ = e.Source.(string)
 	}
 
 	responseData := helpers.ResponseForm{
 		Success: false,
-		Errors: []*helpers.ResposeError{
-			{
-				Code:    code,
-				Message: err.Error(),
-			},
-		},
+		Errors:  []helpers.ResponseError{helpers.ResponseError(*helpers.NewError(code, source, err.Error()))},
 	}
 
 	// Return statuscode with error message

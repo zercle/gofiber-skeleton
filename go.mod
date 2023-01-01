@@ -11,12 +11,12 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/valyala/fasthttp v1.43.0
 	github.com/valyala/fastjson v1.6.4
-	github.com/zercle/gofiber-helpers v0.1.0
+	github.com/zercle/gofiber-helpers v0.1.6
 	go.mongodb.org/mongo-driver v1.11.1
 	gorm.io/driver/mysql v1.4.4
-	gorm.io/driver/postgres v1.4.5
-	gorm.io/driver/sqlite v1.4.3
-	gorm.io/gorm v1.24.2
+	gorm.io/driver/postgres v1.4.6
+	gorm.io/driver/sqlite v1.4.4
+	gorm.io/gorm v1.24.3
 )
 
 require (
@@ -39,6 +39,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.13.0 // indirect
 	github.com/jackc/pgx/v4 v4.17.2 // indirect
+	github.com/jackc/pgx/v5 v5.2.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.15.13 // indirect

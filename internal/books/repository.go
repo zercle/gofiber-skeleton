@@ -4,6 +4,7 @@ import (
 	"runtime"
 
 	"github.com/gofiber/fiber/v2"
+	helpers "github.com/zercle/gofiber-helpers"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
@@ -26,7 +27,7 @@ func (r *bookReposiroty) DbMigrator() (err error) {
 
 func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
 	if r.MainDbConn == nil {
-		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
+		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
@@ -45,7 +46,7 @@ func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
 
 func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
 	if r.MainDbConn == nil {
-		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
+		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
@@ -66,7 +67,7 @@ func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
 
 func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
 	if r.MainDbConn == nil {
-		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
+		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
@@ -87,7 +88,7 @@ func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
 
 func (r *bookReposiroty) GetBook(bookId uint) (book models.Book, err error) {
 	if r.MainDbConn == nil {
-		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
+		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
@@ -100,7 +101,7 @@ func (r *bookReposiroty) GetBook(bookId uint) (book models.Book, err error) {
 
 func (r *bookReposiroty) GetBooks(criteria models.Book) (books []models.Book, err error) {
 	if r.MainDbConn == nil {
-		err = fiber.NewError(fiber.StatusServiceUnavailable, "Database server has gone away")
+		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
