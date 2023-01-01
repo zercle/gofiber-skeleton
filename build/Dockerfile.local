@@ -1,0 +1,35 @@
+# syntax=docker/dockerfile:1
+FROM debian:stable-slim
+LABEL maintainer="Kawin Viriyaprasopsook <kawin.vir@zercle.tech>"
+
+ARG	timezone=Asia/Bangkok
+
+ENV	LANG C.UTF-8
+ENV	LC_ALL C.UTF-8
+ENV	TZ $timezone
+
+# Update OS
+RUN	apt update && apt -y full-upgrade \
+    && apt -y install locales tzdata net-tools bash-completion ca-certificates
+
+# Change locale
+RUN echo $timezone > /etc/timezone \
+    && cp /usr/share/zoneinfo/$timezone /etc/localtime
+
+# Create app dir
+RUN mkdir -p /app
+WORKDIR /app
+COPY dist/app-dist /app/
+COPY build/docker/ /app/
+COPY assets /app/assets
+COPY config /app/config
+COPY web /app/web
+COPY internal/assets /app/internal/assets
+RUN ln -sf /app/app-dist /usr/local/bin/app && chmod +x /app/docker-entrypoint.sh
+
+EXPOSE 8080 8443
+
+# startup script
+ENTRYPOINT ["bash", "/app/docker-entrypoint.sh"]
+# fallback
+CMD ["app", "env=dev"]
