@@ -14,7 +14,7 @@ type bookReposiroty struct {
 	*datasources.Resources
 }
 
-func NewBookRepository(resources *datasources.Resources) domain.BookRepository {
+func InitBookRepository(resources *datasources.Resources) domain.BookRepository {
 	return &bookReposiroty{
 		Resources: resources,
 	}
@@ -107,12 +107,16 @@ func (r *bookReposiroty) GetBooks(criteria models.Book) (books []models.Book, er
 
 	dbTx := r.MainDbConn.Model(&models.Book{})
 
-	if len(criteria.Title) != 0 {
-		dbTx = dbTx.Where("title LIKE ?", "%"+criteria.Title+"%")
-	}
+	if criteria.Id != 0 {
+		dbTx = dbTx.Where(models.Book{Id: criteria.Id})
+	} else {
+		if len(criteria.Title) != 0 {
+			dbTx = dbTx.Where("title LIKE ?", "%"+criteria.Title+"%")
+		}
 
-	if len(criteria.Author) != 0 {
-		dbTx = dbTx.Where("author LIKE ?", "%"+criteria.Author+"%")
+		if len(criteria.Author) != 0 {
+			dbTx = dbTx.Where("author LIKE ?", "%"+criteria.Author+"%")
+		}
 	}
 
 	err = dbTx.Find(&books).Error

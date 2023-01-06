@@ -11,7 +11,7 @@ type bookUsecase struct {
 	bookRepository domain.BookRepository
 }
 
-func NewBookService(r domain.BookRepository) domain.BookUsecase {
+func InitBookUsecase(r domain.BookRepository) domain.BookUsecase {
 	return &bookUsecase{
 		bookRepository: r,
 	}

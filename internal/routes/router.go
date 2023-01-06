@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skelton/internal/books"
+	"github.com/zercle/gofiber-skelton/internal/users"
 )
 
 // SetupRoutes is the Router for GoFiber App
@@ -18,13 +19,16 @@ func (r *RouterResources) SetupRoutes(app *fiber.App) {
 	}
 
 	// App Repository
-	bookRepository := books.NewBookRepository(r.Resources)
+	bookRepository := books.InitBookRepository(r.Resources)
+	userRepository := users.InitUserRepository(r.Resources)
 
 	// App Services
-	bookService := books.NewBookService(bookRepository)
+	bookUsecase := books.InitBookUsecase(bookRepository)
+	userUsecase := users.InitUserUsecase(userRepository)
 
 	// App Routes
-	books.NewBookHandler(app.Group("/api/v1/books"), bookService)
+	books.NewBookHandler(app.Group("/api/v1/books"), bookUsecase)
+	users.NewUserHandler(app.Group("/api/v1/users"), userUsecase)
 
 	// Prepare a fallback route to always serve the 'index.html', had there not be any matching routes.
 	app.Static("*", "./web/build/index.html")
