@@ -25,12 +25,12 @@ func main() {
 		runEnv = *flagEnv
 	}
 	if err := config.LoadConfig(runEnv); err != nil {
-		log.Panicf("error while loading the env:\n %+v", err)
+		log.Fatalf("error while loading the env:\n %+v", err)
 	}
 
 	server, err := server.NewServer(version, build, runEnv)
 	if err != nil {
-		log.Panicf("error while create server:\n %+v", err)
+		log.Fatalf("error while create server:\n %+v", err)
 	}
 
 	server.Run()
