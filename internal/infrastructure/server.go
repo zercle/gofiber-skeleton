@@ -16,7 +16,6 @@ import (
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
-	"github.com/zercle/gofiber-skelton/internal/routes"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
 )
 
@@ -96,9 +95,7 @@ func (s *Server) Run() (err error) {
 	app.Use(cors.New())
 
 	// App Handlers
-	routerResources := routes.NewRouterResources(s.Resources)
-
-	routerResources.SetupRoutes(app)
+	s.SetupRoutes(app)
 
 	// Log GO_ENV
 	log.Printf("Runtime ENV: %s", viper.GetString("app.env"))

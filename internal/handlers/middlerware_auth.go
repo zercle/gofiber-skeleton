@@ -1,4 +1,4 @@
-package routes
+package handlers
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	helpers "github.com/zercle/gofiber-helpers"
 )
 
-var apiLimiter = limiter.New(limiter.Config{
+var ApiLimiter = limiter.New(limiter.Config{
 	Max:        750,
 	Expiration: 30 * time.Second,
 	KeyGenerator: func(c *fiber.Ctx) string {

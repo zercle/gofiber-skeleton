@@ -1,26 +1,27 @@
-package routes
+package infrastructure
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skelton/internal/books"
 	"github.com/zercle/gofiber-skelton/internal/users"
+	"github.com/zercle/gofiber-skelton/internal/handlers"
 )
 
 // SetupRoutes is the Router for GoFiber App
-func (r *RouterResources) SetupRoutes(app *fiber.App) {
+func (s *Server) SetupRoutes(app *fiber.App) {
 
 	// Prepare a static middleware to serve the built React files.
 	app.Static("/", "./web/build")
 
 	// API routes group
-	groupApiV1 := app.Group("/api/v:version?", apiLimiter)
+	groupApiV1 := app.Group("/api/v:version?", handlers.ApiLimiter)
 	{
-		groupApiV1.Get("/", r.Index())
+		groupApiV1.Get("/", handlers.Index())
 	}
 
 	// App Repository
-	bookRepository := books.InitBookRepository(r.Resources)
-	userRepository := users.InitUserRepository(r.Resources)
+	bookRepository := books.InitBookRepository(s.Resources)
+	userRepository := users.InitUserRepository(s.Resources)
 
 	// App Services
 	bookUsecase := books.InitBookUsecase(bookRepository)

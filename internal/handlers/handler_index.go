@@ -1,11 +1,11 @@
-package routes
+package handlers
 
 import (
 	"github.com/gofiber/fiber/v2"
 	helpers "github.com/zercle/gofiber-helpers"
 )
 
-func (r *RouterResources) Index() fiber.Handler {
+func Index() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		responseForm := helpers.ResponseForm{
 			Success: true,
