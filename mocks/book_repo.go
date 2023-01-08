@@ -23,7 +23,7 @@ func (_m *BookRepository) GetBook(bookId uint) (book models.Book, err error) {
 	if rf, ok := ret.Get(1).(func(uint) error); ok {
 		r1 = rf(bookId)
 	} else {
-		r1 = ret.Get(1).(error)
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -42,7 +42,7 @@ func (_m *BookRepository) GetBooks(criteria models.Book) (books []models.Book, e
 	if rf, ok := ret.Get(1).(func(models.Book) error); ok {
 		r1 = rf(criteria)
 	} else {
-		r1 = ret.Get(1).(error)
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -55,7 +55,7 @@ func (_m *BookRepository) CreateBook(book *models.Book) (err error) {
 	if rf, ok := ret.Get(0).(func(*models.Book) error); ok {
 		r0 = rf(book)
 	} else {
-		r0 = ret.Get(0).(error)
+		r0 = ret.Error(0)
 	}
 	return r0
 }
@@ -67,7 +67,7 @@ func (_m *BookRepository) EditBook(bookId uint, book models.Book) (err error) {
 	if rf, ok := ret.Get(0).(func(uint, models.Book) error); ok {
 		r0 = rf(bookId, book)
 	} else {
-		r0 = ret.Get(0).(error)
+		r0 = ret.Error(0)
 	}
 	return r0
 }
@@ -79,7 +79,7 @@ func (_m *BookRepository) DeleteBook(bookId uint) (err error) {
 	if rf, ok := ret.Get(0).(func(uint) error); ok {
 		r0 = rf(bookId)
 	} else {
-		r0 = ret.Get(0).(error)
+		r0 = ret.Error(0)
 	}
 	return r0
 }

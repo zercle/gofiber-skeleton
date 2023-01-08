@@ -11,7 +11,7 @@ type UserHandler struct {
 }
 
 // NewPostHandler will initialize the post resource endpoint
-func NewUserHandler(router fiber.Router, userUsecase domain.UserUsecase) {
+func InitUserHandler(router fiber.Router, userUsecase domain.UserUsecase) {
 	handler := &UserHandler{
 		UserUsecase: userUsecase,
 	}
@@ -25,6 +25,14 @@ func NewUserHandler(router fiber.Router, userUsecase domain.UserUsecase) {
 func (h *UserHandler) GetUser() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		responseForm := helpers.ResponseForm{}
+
+		userId := c.Params("id")
+
+		user, err := h.UserUsecase.GetUser(userId)
+
+		responseForm.Result = map[string]interface{}{
+			"user": user,
+		}
 
 		if err == nil {
 			responseForm.Success = true
