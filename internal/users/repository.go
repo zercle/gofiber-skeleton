@@ -27,7 +27,7 @@ func (r *userRepository) GetUser(userId string) (user models.User, err error) {
 
 	dbTx := r.MainDbConn.Model(&models.User{})
 	dbTx = dbTx.Where(models.User{Id: userId})
-	err = dbTx.Take(user).Error
+	err = dbTx.Take(&user).Error
 
 	return
 }

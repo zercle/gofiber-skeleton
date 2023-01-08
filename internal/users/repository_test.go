@@ -26,11 +26,11 @@ func TestGetUserRepo(t *testing.T) {
 	}), &gorm.Config{})
 	assert.NoError(t, err)
 
-	rows := sqlmock.NewRows([]string{"id", "password", "full_name", "address", "create_at", "updated_at", "deleted_at"}).AddRow(mockUser.Id, mockUser.Password, mockUser.FullName, mockUser.Address, mockUser.CreatedAt, mockUser.UpdatedAt, mockUser.DeletedAt)
+	rows := sqlmock.NewRows([]string{"id", "password", "full_name", "address", "created_at", "updated_at", "deleted_at"}).AddRow(mockUser.Id, mockUser.Password, mockUser.FullName, mockUser.Address, mockUser.CreatedAt, mockUser.UpdatedAt, mockUser.DeletedAt)
 
-	query := "SELECT * FROM `users` WHERE `users`.`id` = ? AND `users`.`deleted_at` IS NULL LIMIT 1"
+	queryRegexp := "^SELECT (.+) FROM `users` (.+)$"
 
-	mock.ExpectQuery(query).WillReturnRows(rows)
+	mock.ExpectQuery(queryRegexp).WillReturnRows(rows)
 
 	mockRepo := users.InitUserRepository(&datasources.Resources{MainDbConn: gdb})
 
@@ -38,4 +38,5 @@ func TestGetUserRepo(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
+	assert.Equal(t, mockUser, result)
 }

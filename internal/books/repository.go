@@ -94,7 +94,7 @@ func (r *bookReposiroty) GetBook(bookId uint) (book models.Book, err error) {
 
 	dbTx := r.MainDbConn.Model(&models.Book{})
 	dbTx = dbTx.Where(models.Book{Id: bookId})
-	err = dbTx.Take(book).Error
+	err = dbTx.Take(&book).Error
 
 	return
 }
