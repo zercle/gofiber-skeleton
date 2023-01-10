@@ -59,11 +59,9 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// init app resources
-	resources := InitResources(fastHttpClient, mainDbConn, nil, nil, &jwtResources)
+	server.Resources = InitResources(fastHttpClient, mainDbConn, nil, nil, &jwtResources)
 
 	// something that use resources place here
-
-	server.Resources = resources
 
 	// pre config server
 	err = server.configApp()
@@ -160,8 +158,8 @@ func (s *Server) configApp() (err error) {
 	}
 
 	// Use redis for session store if available
-	if s.Resources.RedisStorage != nil {
-		s.SessConfig.Storage = s.Resources.RedisStorage
+	if s.RedisStorage != nil {
+		s.SessConfig.Storage = s.RedisStorage
 	}
 
 	utils.SessStore = session.New(s.SessConfig)

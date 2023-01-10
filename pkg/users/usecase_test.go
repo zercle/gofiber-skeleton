@@ -81,3 +81,99 @@ func TestGetUsersUsecase(t *testing.T) {
 	})
 
 }
+
+func TestCreateUserUsecase(t *testing.T) {
+	var mockUser models.User
+	gofakeit.Struct(&mockUser)
+
+	mockUserRepo := new(mocks.UserRepository)
+	mockUserUsecase := new(mocks.UserUsecase)
+
+	t.Run("success", func(t *testing.T) {
+		mockUserRepo.On("CreateUser", mock.Anything).Return(nil).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.CreateUser(&mockUser)
+
+		assert.NoError(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+	t.Run("error-failed", func(t *testing.T) {
+		mockUserRepo.On("CreateUser", mock.Anything).Return(errors.New("call error")).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.CreateUser(&mockUser)
+
+		assert.Error(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+
+}
+
+func TestEditUserUsecase(t *testing.T) {
+	var mockUser models.User
+	gofakeit.Struct(&mockUser)
+
+	mockUserRepo := new(mocks.UserRepository)
+	mockUserUsecase := new(mocks.UserUsecase)
+
+	t.Run("success", func(t *testing.T) {
+		mockUserRepo.On("EditUser", mock.AnythingOfType("string"), mock.Anything).Return(nil).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.EditUser(mockUser.Id, mockUser)
+
+		assert.NoError(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+	t.Run("error-failed", func(t *testing.T) {
+		mockUserRepo.On("EditUser", mock.AnythingOfType("string"), mock.Anything).Return(errors.New("call error")).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.EditUser(mockUser.Id, mockUser)
+
+		assert.Error(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+
+}
+
+func TestDeleteUserUsecase(t *testing.T) {
+	var mockUser models.User
+	gofakeit.Struct(&mockUser)
+
+	mockUserRepo := new(mocks.UserRepository)
+	mockUserUsecase := new(mocks.UserUsecase)
+
+	t.Run("success", func(t *testing.T) {
+		mockUserRepo.On("DeleteUser", mock.AnythingOfType("string")).Return(nil).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.DeleteUser(mockUser.Id)
+
+		assert.NoError(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+	t.Run("error-failed", func(t *testing.T) {
+		mockUserRepo.On("DeleteUser", mock.AnythingOfType("string")).Return(errors.New("call error")).Once()
+
+		usecase := users.InitUserUsecase(mockUserRepo)
+
+		err := usecase.DeleteUser(mockUser.Id)
+
+		assert.Error(t, err)
+
+		mockUserUsecase.AssertExpectations(t)
+	})
+
+}

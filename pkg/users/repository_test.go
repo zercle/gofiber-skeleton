@@ -37,11 +37,22 @@ func TestGetUserRepo(t *testing.T) {
 
 	mock.ExpectQuery(queryRegexp).WillReturnRows(rows)
 
-	mockRepo := users.InitUserRepository(gdb)
+	t.Run("success", func(t *testing.T) {
+		mockRepo := users.InitUserRepository(gdb)
 
-	result, err := mockRepo.GetUser(mockUser.Id)
+		result, err := mockRepo.GetUser(mockUser.Id)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, mockUser, result)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, result)
+		assert.Equal(t, mockUser, result)
+	})
+
+	t.Run("fail-db-conn", func(t *testing.T) {
+		mockRepo := users.InitUserRepository(nil)
+
+		result, err := mockRepo.GetUser(mockUser.Id)
+
+		assert.Error(t, err)
+		assert.Empty(t, result)
+	})
 }
