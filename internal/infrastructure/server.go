@@ -20,13 +20,11 @@ import (
 )
 
 type Server struct {
-	PrdMode    bool
-	Version    string
-	Build      string
-	RunEnv     string
-	SessConfig session.Config
-	LogConfig  logger.Config
-	*Resources
+	PrdMode bool
+	Version string
+	Build   string
+	RunEnv  string
+	Resources
 }
 
 func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
@@ -59,7 +57,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// init app resources
-	server.Resources = InitResources(fastHttpClient, mainDbConn, nil, nil, &jwtResources)
+	server.Resources = InitResources(fastHttpClient, mainDbConn, nil, nil, jwtResources)
 
 	// something that use resources place here
 

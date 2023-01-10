@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/storage/redis"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/valyala/fasthttp"
@@ -16,6 +18,8 @@ import (
 )
 
 type Resources struct {
+	SessConfig session.Config
+	LogConfig  logger.Config
 	// client
 	FastHttpClient *fasthttp.Client
 	// database
@@ -24,7 +28,7 @@ type Resources struct {
 	// Redis storage
 	RedisStorage *redis.Storage
 	// JWT
-	JwtResources *JwtResources
+	JwtResources JwtResources
 }
 
 type JwtResources struct {
@@ -35,8 +39,8 @@ type JwtResources struct {
 	JwtParser        *jwt.Parser
 }
 
-func InitResources(fasthttpClient *fasthttp.Client, mainDbConn *gorm.DB, logDbConn *mongo.Database, redisStorage *redis.Storage, jwtResources *JwtResources) *Resources {
-	return &Resources{
+func InitResources(fasthttpClient *fasthttp.Client, mainDbConn *gorm.DB, logDbConn *mongo.Database, redisStorage *redis.Storage, jwtResources JwtResources) Resources {
+	return Resources{
 		FastHttpClient: fasthttpClient,
 		MainDbConn:     mainDbConn,
 		LogDbConn:      logDbConn,
