@@ -26,7 +26,7 @@ type Server struct {
 	RunEnv     string
 	SessConfig session.Config
 	LogConfig  logger.Config
-	Resources  *datasources.Resources
+	*Resources
 }
 
 func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
@@ -53,13 +53,13 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 
 	// utils.JsonParserPool = new(fastjson.ParserPool)
 
-	jwtResources, err := datasources.InitJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
+	jwtResources, err := InitJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
 	if err != nil {
 		return
 	}
 
 	// init app resources
-	resources := datasources.InitResources(fastHttpClient, mainDbConn, nil, nil, jwtResources)
+	resources := InitResources(fastHttpClient, mainDbConn, nil, nil, &jwtResources)
 
 	// something that use resources place here
 

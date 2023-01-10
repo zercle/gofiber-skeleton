@@ -7,9 +7,9 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/zercle/gofiber-skelton/internal/users"
 	"github.com/zercle/gofiber-skelton/mocks"
 	"github.com/zercle/gofiber-skelton/pkg/models"
+	"github.com/zercle/gofiber-skelton/pkg/users"
 )
 
 func TestGetUserUsecase(t *testing.T) {

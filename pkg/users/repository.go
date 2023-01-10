@@ -4,18 +4,18 @@ import (
 	"fmt"
 
 	helpers "github.com/zercle/gofiber-helpers"
-	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
+	"gorm.io/gorm"
 )
 
 type userRepository struct {
-	*datasources.Resources
+	MainDbConn *gorm.DB
 }
 
-func InitUserRepository(resources *datasources.Resources) domain.UserReposiroty {
+func InitUserRepository(mainDbConn *gorm.DB) domain.UserReposiroty {
 	return &userRepository{
-		Resources: resources,
+		MainDbConn: mainDbConn,
 	}
 }
 

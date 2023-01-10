@@ -5,18 +5,18 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	helpers "github.com/zercle/gofiber-helpers"
-	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/domain"
 	"github.com/zercle/gofiber-skelton/pkg/models"
+	"gorm.io/gorm"
 )
 
 type bookReposiroty struct {
-	*datasources.Resources
+	MainDbConn *gorm.DB
 }
 
-func InitBookRepository(resources *datasources.Resources) domain.BookRepository {
+func InitBookRepository(mainDbConn *gorm.DB) domain.BookRepository {
 	return &bookReposiroty{
-		Resources: resources,
+		MainDbConn: mainDbConn,
 	}
 }
 

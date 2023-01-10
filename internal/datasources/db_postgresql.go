@@ -53,7 +53,7 @@ type PostgreSQLConfig struct {
 }
 
 // postgresDStoreString returns a connection string suitable for sql.Open.
-func (c PostgreSQLConfig) postgresDStoreString() string {
+func (c *PostgreSQLConfig) postgresDStoreString() string {
 
 	// Ensure postgres port
 	if port, err := strconv.Atoi(c.Port); err != nil || port > 65535 || port < 1 {
@@ -79,7 +79,7 @@ func (c PostgreSQLConfig) postgresDStoreString() string {
 }
 
 // New PostgreSQL creates a new database connection backed by a given postgres server.
-func (config PostgreSQLConfig) InitPostgreSqlConn(dbName string) (dbConn *gorm.DB, err error) {
+func (config *PostgreSQLConfig) InitPostgreSqlConn(dbName string) (dbConn *gorm.DB, err error) {
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("need: dbName")
 	}

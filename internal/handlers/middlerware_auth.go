@@ -75,7 +75,7 @@ func (r *RouterResources) ReqAuthHandler(reqLevels ...int) fiber.Handler {
 		}
 
 		claims := new(jwt.RegisteredClaims)
-		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, r.JwtResources.JwtKeyfunc)
+		jwtToken, err := jwt.ParseWithClaims(tokenStr, claims, r.JwtKeyfunc)
 		if err != nil {
 			return helpers.NewError(http.StatusUnauthorized, helpers.WhereAmI(), err.Error())
 		}

@@ -1,15 +1,15 @@
 package handlers
 
-import (
-	"github.com/zercle/gofiber-skelton/internal/datasources"
-)
+import "github.com/golang-jwt/jwt/v4"
 
 // RouterResources DB handler
 type RouterResources struct {
-	*datasources.Resources
+	JwtKeyfunc jwt.Keyfunc
 }
 
 // NewRouterResources returns a new DBHandler
-func NewRouterResources(resources *datasources.Resources) *RouterResources {
-	return &RouterResources{resources}
+func NewRouterResources(jwtKeyfunc jwt.Keyfunc) *RouterResources {
+	return &RouterResources{
+		JwtKeyfunc: jwtKeyfunc,
+	}
 }

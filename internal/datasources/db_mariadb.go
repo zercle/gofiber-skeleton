@@ -67,7 +67,7 @@ type MariadbConfig struct {
 }
 
 // mariadbDStoreString returns a connection string suitable for sql.Open.
-func (c MariadbConfig) mariadbDStoreString() string {
+func (c *MariadbConfig) mariadbDStoreString() string {
 
 	// Ensure mariadb port
 	if port, err := strconv.Atoi(c.Port); err != nil || port > 65535 || port < 1 {
@@ -93,7 +93,7 @@ func (c MariadbConfig) mariadbDStoreString() string {
 }
 
 // New MariaDB creates a new database connection backed by a given mariadb server.
-func (config MariadbConfig) InitMariaDbConn(dbName string) (dbConn *gorm.DB, err error) {
+func (config *MariadbConfig) InitMariaDbConn(dbName string) (dbConn *gorm.DB, err error) {
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("need: dbName")
 	}

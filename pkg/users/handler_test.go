@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	helpers "github.com/zercle/gofiber-helpers"
-	"github.com/zercle/gofiber-skelton/internal/users"
 	"github.com/zercle/gofiber-skelton/mocks"
 	"github.com/zercle/gofiber-skelton/pkg/models"
+	"github.com/zercle/gofiber-skelton/pkg/users"
 )
 
 func TestGetUserHandler(t *testing.T) {

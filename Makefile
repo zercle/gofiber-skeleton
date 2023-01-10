@@ -20,3 +20,9 @@ docker-clean:
 
 go-mod:
 	go get -v -u && go mod tidy
+
+go-test:
+	go test -v ./...
+
+go-run:
+	go run ./cmd/server/

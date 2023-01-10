@@ -2,9 +2,9 @@ package infrastructure
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/zercle/gofiber-skelton/internal/books"
 	"github.com/zercle/gofiber-skelton/internal/handlers"
-	"github.com/zercle/gofiber-skelton/internal/users"
+	"github.com/zercle/gofiber-skelton/pkg/books"
+	"github.com/zercle/gofiber-skelton/pkg/users"
 )
 
 // SetupRoutes is the Router for GoFiber App
@@ -20,8 +20,8 @@ func (s *Server) SetupRoutes(app *fiber.App) {
 	}
 
 	// App Repository
-	bookRepository := books.InitBookRepository(s.Resources)
-	userRepository := users.InitUserRepository(s.Resources)
+	bookRepository := books.InitBookRepository(s.MainDbConn)
+	userRepository := users.InitUserRepository(s.MainDbConn)
 
 	// App Services
 	bookUsecase := books.InitBookUsecase(bookRepository)

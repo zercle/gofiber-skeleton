@@ -32,7 +32,7 @@ type MongoDBConfig struct {
 }
 
 // New MongoDB creates a new database connection backed by a given mongodb server.
-func (config MongoDBConfig) InitMongoDbConn(dbName string) (dbConn *mongo.Database, err error) {
+func (config *MongoDBConfig) InitMongoDbConn(dbName string) (dbConn *mongo.Database, err error) {
 	if len(dbName) == 0 {
 		return nil, fmt.Errorf("need: dbName")
 	}

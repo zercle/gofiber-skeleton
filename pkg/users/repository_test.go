@@ -8,9 +8,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/stretchr/testify/assert"
-	"github.com/zercle/gofiber-skelton/internal/datasources"
-	"github.com/zercle/gofiber-skelton/internal/users"
 	"github.com/zercle/gofiber-skelton/pkg/models"
+	"github.com/zercle/gofiber-skelton/pkg/users"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -38,7 +37,7 @@ func TestGetUserRepo(t *testing.T) {
 
 	mock.ExpectQuery(queryRegexp).WillReturnRows(rows)
 
-	mockRepo := users.InitUserRepository(&datasources.Resources{MainDbConn: gdb})
+	mockRepo := users.InitUserRepository(gdb)
 
 	result, err := mockRepo.GetUser(mockUser.Id)
 
