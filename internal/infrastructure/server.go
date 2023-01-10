@@ -126,8 +126,8 @@ func (s *Server) Run() (err error) {
 
 	fmt.Println("Running cleanup tasks...")
 	// Your cleanup tasks go here
-	if s.Resources.RedisStorage != nil {
-		s.Resources.RedisStorage.Close()
+	if s.RedisStorage != nil {
+		s.RedisStorage.Close()
 	}
 	fmt.Println("Successful shutdown.")
 	return
