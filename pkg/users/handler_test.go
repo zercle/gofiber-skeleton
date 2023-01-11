@@ -3,6 +3,7 @@ package users_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"testing"
@@ -31,7 +32,7 @@ func TestGetUserHandler(t *testing.T) {
 
 	mockRepo := new(mocks.UserRepository)
 
-	mockRepo.On("GetUser", mockUser.Id).Return(mockUser, nil)
+	mockRepo.On("GetUser", mockUser.Id).Return(mockUser, errors.New("eiei"))
 
 	app := fiber.New()
 	req, err := http.NewRequest("GET", "/api/v1/user/"+mockUser.Id, nil)
