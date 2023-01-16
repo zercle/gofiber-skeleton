@@ -16,6 +16,7 @@ import (
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
+	"github.com/zercle/gofiber-skelton/pkg/models"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
 )
 
@@ -24,7 +25,7 @@ type Server struct {
 	Version string
 	Build   string
 	RunEnv  string
-	Resources
+	models.Resources
 }
 
 func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
