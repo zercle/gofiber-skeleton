@@ -80,6 +80,8 @@ func (s *Server) Run() (err error) {
 		// speed up json with segmentio/encoding
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
+		// behide reverse proxy
+		EnableTrustedProxyCheck: true,
 	})
 
 	// Logger middleware for Fiber that logs HTTP request/response details.
