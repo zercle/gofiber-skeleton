@@ -38,7 +38,7 @@ func TestGetUserRepo(t *testing.T) {
 	mock.ExpectQuery(queryRegexp).WillReturnRows(rows)
 
 	t.Run("success", func(t *testing.T) {
-		mockRepo := users.InitUserRepository(gdb)
+		mockRepo := users.NewUserRepository(gdb)
 
 		result, err := mockRepo.GetUser(mockUser.Id)
 
@@ -48,7 +48,7 @@ func TestGetUserRepo(t *testing.T) {
 	})
 
 	t.Run("fail-db-conn", func(t *testing.T) {
-		mockRepo := users.InitUserRepository(nil)
+		mockRepo := users.NewUserRepository(nil)
 
 		result, err := mockRepo.GetUser(mockUser.Id)
 

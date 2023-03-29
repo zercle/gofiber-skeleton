@@ -11,7 +11,8 @@ type UserHandler struct {
 }
 
 // NewPostHandler will initialize the post resource endpoint
-func InitUserHandler(router fiber.Router, userUsecase domain.UserUsecase) {
+func NewUserHandler(router fiber.Router, userUsecase domain.UserUsecase) {
+
 	handler := &UserHandler{
 		UserUsecase: userUsecase,
 	}

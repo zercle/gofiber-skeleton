@@ -1,8 +1,6 @@
 package books
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
 	helpers "github.com/zercle/gofiber-helpers"
 	"github.com/zercle/gofiber-skelton/pkg/domain"
@@ -14,12 +12,9 @@ type BookHandler struct {
 }
 
 func NewBookHandler(bookRoute fiber.Router, bookUsecase domain.BookUsecase) {
+
 	handler := &BookHandler{
 		bookUsecase: bookUsecase,
-	}
-
-	if err := bookUsecase.DbMigrator(); err != nil {
-		log.Panicf("error while migrate book DB:\n %+v", err)
 	}
 
 	bookRoute.Get("/:bookId?", handler.getBooks())

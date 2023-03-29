@@ -15,8 +15,8 @@ var (
 	runEnv  string
 )
 
-func main() {
-	// Running flag
+func init() {
+	// read running flag
 	if len(os.Getenv("ENV")) != 0 {
 		runEnv = os.Getenv("ENV")
 	} else {
@@ -24,10 +24,15 @@ func main() {
 		flag.Parse()
 		runEnv = *flagEnv
 	}
+	// load config by running flag
 	if err := config.LoadConfig(runEnv); err != nil {
 		log.Fatalf("error while loading the env:\n %+v", err)
 	}
+}
 
+func main() {
+
+	// init server
 	server, err := server.NewServer(version, build, runEnv)
 	if err != nil {
 		log.Fatalf("error while create server:\n %+v", err)

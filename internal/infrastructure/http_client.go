@@ -1,4 +1,4 @@
-package datasources
+package infrastructure
 
 import (
 	"crypto/tls"
@@ -8,7 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func InitFastHttpClient(insecureSkipVerify bool) (client *fasthttp.Client) {
+func NewFastHttpClient(insecureSkipVerify bool) (client *fasthttp.Client) {
 	client = &fasthttp.Client{
 		MaxConnsPerHost: (runtime.NumCPU() * 512) / 2,
 		ReadTimeout:     time.Second * 45,

@@ -14,7 +14,7 @@ type bookReposiroty struct {
 	MainDbConn *gorm.DB
 }
 
-func InitBookRepository(mainDbConn *gorm.DB) domain.BookRepository {
+func NewBookRepository(mainDbConn *gorm.DB) domain.BookRepository {
 	return &bookReposiroty{
 		MainDbConn: mainDbConn,
 	}

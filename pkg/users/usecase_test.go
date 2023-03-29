@@ -22,7 +22,7 @@ func TestGetUserUsecase(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockUserRepo.On("GetUser", mock.AnythingOfType("string")).Return(mockUser, nil).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		result, err := usecase.GetUser(mockUser.Id)
 
@@ -34,7 +34,7 @@ func TestGetUserUsecase(t *testing.T) {
 	t.Run("error-failed", func(t *testing.T) {
 		mockUserRepo.On("GetUser", mock.AnythingOfType("string")).Return(models.User{}, errors.New("call error")).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		result, err := usecase.GetUser(mockUser.Id)
 
@@ -58,7 +58,7 @@ func TestGetUsersUsecase(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockUserRepo.On("GetUsers", mock.Anything).Return(mockUsers, nil).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		result, err := usecase.GetUsers(mockUser)
 
@@ -70,7 +70,7 @@ func TestGetUsersUsecase(t *testing.T) {
 	t.Run("error-failed", func(t *testing.T) {
 		mockUserRepo.On("GetUsers", mock.Anything).Return([]models.User{}, errors.New("call error")).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		result, err := usecase.GetUsers(mockUser)
 
@@ -92,7 +92,7 @@ func TestCreateUserUsecase(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockUserRepo.On("CreateUser", mock.Anything).Return(nil).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.CreateUser(&mockUser)
 
@@ -103,7 +103,7 @@ func TestCreateUserUsecase(t *testing.T) {
 	t.Run("error-failed", func(t *testing.T) {
 		mockUserRepo.On("CreateUser", mock.Anything).Return(errors.New("call error")).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.CreateUser(&mockUser)
 
@@ -124,7 +124,7 @@ func TestEditUserUsecase(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockUserRepo.On("EditUser", mock.AnythingOfType("string"), mock.Anything).Return(nil).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.EditUser(mockUser.Id, mockUser)
 
@@ -135,7 +135,7 @@ func TestEditUserUsecase(t *testing.T) {
 	t.Run("error-failed", func(t *testing.T) {
 		mockUserRepo.On("EditUser", mock.AnythingOfType("string"), mock.Anything).Return(errors.New("call error")).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.EditUser(mockUser.Id, mockUser)
 
@@ -156,7 +156,7 @@ func TestDeleteUserUsecase(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockUserRepo.On("DeleteUser", mock.AnythingOfType("string")).Return(nil).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.DeleteUser(mockUser.Id)
 
@@ -167,7 +167,7 @@ func TestDeleteUserUsecase(t *testing.T) {
 	t.Run("error-failed", func(t *testing.T) {
 		mockUserRepo.On("DeleteUser", mock.AnythingOfType("string")).Return(errors.New("call error")).Once()
 
-		usecase := users.InitUserUsecase(mockUserRepo)
+		usecase := users.NewUserUsecase(mockUserRepo)
 
 		err := usecase.DeleteUser(mockUser.Id)
 

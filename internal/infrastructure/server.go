@@ -15,7 +15,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
-	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
 )
@@ -38,7 +37,10 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// connect to DB
-	mainDbConn, err := connectToSqLite()
+	mainDbConn, err := ConnectDb(DbConfig{
+		DbDriver: "sqlite",
+		DbName:   viper.GetString("db.sqlite.db_name"),
+	})
 	if err != nil {
 		return
 	}
@@ -48,17 +50,17 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	// 	return
 	// }
 
-	fastHttpClient := datasources.InitFastHttpClient(true)
+	fastHttpClient := NewFastHttpClient(true)
 
 	// utils.JsonParserPool = new(fastjson.ParserPool)
 
-	jwtResources, err := InitJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
+	jwtResources, err := NewJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
 	if err != nil {
 		return
 	}
 
 	// init app resources
-	server.Resources = InitResources(fastHttpClient, mainDbConn, nil, nil, jwtResources)
+	server.Resources = NewResources(fastHttpClient, mainDbConn, nil, nil, jwtResources)
 
 	// something that use resources place here
 

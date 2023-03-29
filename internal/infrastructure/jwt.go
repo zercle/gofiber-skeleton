@@ -1,4 +1,4 @@
-package datasources
+package infrastructure
 
 import (
 	"crypto"
@@ -12,7 +12,7 @@ import (
 	jwt "github.com/golang-jwt/jwt/v4"
 )
 
-func InitJwtLocalKey(privateKeyPath, publicKeyPath string) (jwtSignKey crypto.PrivateKey, jwtVerifyKey crypto.PrivateKey, jwtSigningMethod jwt.SigningMethod, err error) {
+func NewJwtLocalKey(privateKeyPath, publicKeyPath string) (jwtSignKey crypto.PrivateKey, jwtVerifyKey crypto.PrivateKey, jwtSigningMethod jwt.SigningMethod, err error) {
 
 	if len(privateKeyPath) == 0 {
 		err = fmt.Errorf("InitJwtLocalKey: %+s", "need privateKeyPath")

@@ -13,7 +13,7 @@ type userRepository struct {
 	MainDbConn *gorm.DB
 }
 
-func InitUserRepository(mainDbConn *gorm.DB) domain.UserReposiroty {
+func NewUserRepository(mainDbConn *gorm.DB) domain.UserReposiroty {
 	return &userRepository{
 		MainDbConn: mainDbConn,
 	}

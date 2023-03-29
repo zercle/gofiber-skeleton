@@ -9,7 +9,7 @@ type userUsecase struct {
 	userRepo domain.UserReposiroty
 }
 
-func InitUserUsecase(userRepo domain.UserReposiroty) domain.UserUsecase {
+func NewUserUsecase(userRepo domain.UserReposiroty) domain.UserUsecase {
 	return &userUsecase{
 		userRepo: userRepo,
 	}

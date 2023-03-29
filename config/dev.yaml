@@ -32,7 +32,7 @@ db:
       min: 1
       max: 2
   sqlite:
-    db_name: "db.sqlite"
+    db_name: "file:app.db?cache=shared"
   redis:
     host: "localhost"
     port: 6379

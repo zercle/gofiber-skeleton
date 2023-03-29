@@ -3,7 +3,6 @@ package domain
 import "github.com/zercle/gofiber-skelton/pkg/models"
 
 type BookUsecase interface {
-	DbMigrator() (err error)
 	GetBook(bookId uint) (book models.Book, err error)
 	GetBooks(criteria models.Book) (books []models.Book, err error)
 	CreateBook(book *models.Book) (err error)
