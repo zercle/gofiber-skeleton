@@ -58,7 +58,7 @@ func buildConnStr(config DbConfig) (dsn string, err error) {
 	case "clickhouse":
 		dsn = fmt.Sprintf("tcp://%s:%d?database=%s&username=%s&password=%s", config.Host, config.Port, config.DbName, config.Username, config.Password)
 	default:
-		err = errors.New("Not support DB_DRIVER")
+		err = errors.New("not support DB_DRIVER")
 		return
 	}
 	return
@@ -81,7 +81,7 @@ func ConnectDb(config DbConfig, opts ...gorm.Option) (dbConn *gorm.DB, err error
 	case "clickhouse":
 		dbConn, err = gorm.Open(clickhouse.Open(dsn), opts...)
 	default:
-		err = errors.New("Not support DB_DRIVER")
+		err = errors.New("not support DB_DRIVER")
 		return
 	}
 	if err != nil {
