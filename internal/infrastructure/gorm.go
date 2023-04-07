@@ -40,7 +40,7 @@ func buildConnStr(config DbConfig) (dsn string, err error) {
 		if len(config.DbName) == 0 {
 			config.DbName = "file::memory:?cache=shared"
 		}
-		dsn = fmt.Sprintf("%s", config.DbName)
+		dsn = fmt.Sprintf("%s?cache=shared", config.DbName)
 	case "mysql", "mariadb", "tidb":
 		// if unix socket avaliavle use it
 		_, err := os.Stat(config.Host)
