@@ -3,9 +3,12 @@ package infrastructure
 import (
 	"errors"
 	"fmt"
+	"log"
+	"net/url"
 	"os"
 	"time"
 
+	helpers "github.com/zercle/gofiber-helpers"
 	"gorm.io/driver/clickhouse"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -32,7 +35,7 @@ type DbConfig struct {
 func buildConnStr(config DbConfig) (dsn string, err error) {
 	// default timezone to lacal timezone
 	if len(config.Timezone) == 0 {
-		config.Timezone = time.Now().Location().String()
+		config.Timezone = url.QueryEscape(time.Now().Location().String())
 	}
 	switch config.DbDriver {
 	case "sqlite":
@@ -85,6 +88,9 @@ func ConnectDb(config DbConfig, opts ...gorm.Option) (dbConn *gorm.DB, err error
 		return
 	}
 	if err != nil {
+		log.Printf("%+v \nErr: %+v", helpers.WhereAmI(), err)
+		log.Printf("%+v \nDSN: %+v", helpers.WhereAmI(), dsn)
+		log.Printf("%+v \nopts: %+v", helpers.WhereAmI(), opts)
 		return
 	}
 	err = applyDbPoolConfig(dbConn, config)
