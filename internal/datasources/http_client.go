@@ -1,4 +1,4 @@
-package infrastructure
+package datasources
 
 import (
 	"crypto/tls"

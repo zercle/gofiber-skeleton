@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
+	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
 )
@@ -37,7 +38,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// connect to DB
-	mainDbConn, err := ConnectDb(DbConfig{
+	mainDbConn, err := datasources.ConnectDb(datasources.DbConfig{
 		DbDriver: "sqlite",
 		DbName:   viper.GetString("db.sqlite.db_name"),
 	})
@@ -50,7 +51,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	// 	return
 	// }
 
-	fastHttpClient := NewFastHttpClient(true)
+	fastHttpClient := datasources.NewFastHttpClient(true)
 
 	// utils.JsonParserPool = new(fastjson.ParserPool)
 
