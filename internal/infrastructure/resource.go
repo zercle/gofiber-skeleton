@@ -22,8 +22,8 @@ func NewResources(fasthttpClient *fasthttp.Client, mainDbConn *gorm.DB, logDbCon
 	}
 }
 
-func NewJwt(privateKeyPath, publicKeyPath string) (jwtResources models.JwtResources, err error) {
-	jwtResources.JwtSignKey, jwtResources.JwtVerifyKey, jwtResources.JwtSigningMethod, err = datasources.NewJwtLocalKey(privateKeyPath, publicKeyPath)
+func NewJwt(privateKeyPath string) (jwtResources models.JwtResources, err error) {
+	jwtResources.JwtSignKey, jwtResources.JwtVerifyKey, jwtResources.JwtSigningMethod, err = datasources.NewJwtLocalKey(privateKeyPath)
 	jwtResources.JwtKeyfunc = func(token *jwt.Token) (publicKey interface{}, err error) {
 		if jwtResources.JwtVerifyKey == nil {
 			err = fmt.Errorf("JWTVerifyKey not init yet")

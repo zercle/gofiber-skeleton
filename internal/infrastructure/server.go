@@ -55,7 +55,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 
 	// utils.JsonParserPool = new(fastjson.ParserPool)
 
-	jwtResources, err := NewJwt(viper.GetString("jwt.private"), viper.GetString("jwt.public"))
+	jwtResources, err := NewJwt(viper.GetString("jwt.private"))
 	if err != nil {
 		return
 	}
