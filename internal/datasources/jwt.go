@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -16,6 +17,8 @@ import (
 )
 
 func NewJwtLocalKey(privateKeyPath string) (jwtSignKey crypto.PrivateKey, jwtVerifyKey crypto.PublicKey, jwtSigningMethod jwt.SigningMethod, err error) {
+
+	jwtSigningMethod = jwt.SigningMethodNone
 
 	if len(privateKeyPath) == 0 {
 		err = fmt.Errorf("InitJwtLocalKey: %+s", "need privateKeyPath")
@@ -52,18 +55,18 @@ func NewJwtLocalKey(privateKeyPath string) (jwtSignKey crypto.PrivateKey, jwtVer
 	case *ecdsa.PrivateKey:
 		jwtSignKey = key
 		jwtVerifyKey = key.Public()
-		switch key.Curve.Params().BitSize {
-		case 256:
+		switch key.Curve {
+		case elliptic.P256():
 			jwtSigningMethod = jwt.SigningMethodES256
-		case 384:
+		case elliptic.P384():
 			jwtSigningMethod = jwt.SigningMethodES384
-		case 512:
+		case elliptic.P521():
 			jwtSigningMethod = jwt.SigningMethodES512
 		}
 	case *rsa.PrivateKey:
 		jwtSignKey = key
 		jwtVerifyKey = key.Public()
-		switch key.N.BitLen() {
+		switch key.Size() {
 		case 256:
 			jwtSigningMethod = jwt.SigningMethodRS256
 		case 384:
