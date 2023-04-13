@@ -37,9 +37,10 @@ func NewJwtLocalKey(privateKeyPath string) (jwtSignKey crypto.PrivateKey, jwtVer
 
 	// Parse the key
 	var parsedKey interface{}
-	if parsedKey, err = x509.ParsePKCS8PrivateKey(block.Bytes); err != nil {
-		log.Printf("InitJwtLocalKey: %+v", err)
-		return
+	if parsedKey, err = x509.ParseECPrivateKey(block.Bytes); err != nil {
+		if parsedKey, err = x509.ParsePKCS8PrivateKey(block.Bytes); err != nil {
+			return
+		}
 	}
 
 	// determind which signing method
