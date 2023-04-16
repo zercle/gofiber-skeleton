@@ -18,6 +18,7 @@ import (
 	"github.com/zercle/gofiber-skelton/internal/datasources"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
+	"github.com/zercle/gofiber-skelton/pkg/logs"
 )
 
 type Server struct {
@@ -147,7 +148,7 @@ func (s *Server) configApp() (err error) {
 			CookieSecure:   true,
 			CookieHTTPOnly: true,
 		}
-		logFileWriter := &utils.LogFileWriter{LogPath: "./log/gofiber-skelton", PrintConsole: true}
+		logFileWriter := &logs.LogFileWriter{LogPath: "./log/gofiber-skelton", PrintConsole: true}
 		s.LogConfig = logger.Config{
 			Format:     "[${blue}${time}${reset}] ${status} - ${ip},${ips} ${method} ${host} ${url}\tUserAgent:	${ua}\tReferer: ${referer}\tAuthorization: ${header:Authorization}\tBytesReceived: ${bytesReceived}\tBytesSent: ${bytesSent}\tError: ${red}${error}${reset}\n",
 			TimeFormat: "2006-01-02 15:04:05",
