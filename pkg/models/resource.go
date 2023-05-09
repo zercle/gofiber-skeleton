@@ -23,7 +23,7 @@ type Resources struct {
 	// Redis storage
 	RedisStorage *redis.Storage
 	// JWT
-	JwtResources JwtResources
+	JwtResources *JwtResources
 }
 
 type JwtResources struct {
