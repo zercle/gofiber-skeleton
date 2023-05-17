@@ -8,17 +8,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/session"
-	"github.com/segmentio/encoding/json"
 	"github.com/spf13/viper"
 	"github.com/zercle/gofiber-skelton/internal/datasources"
+	"github.com/zercle/gofiber-skelton/pkg/logs"
 	"github.com/zercle/gofiber-skelton/pkg/models"
 	"github.com/zercle/gofiber-skelton/pkg/utils"
-	"github.com/zercle/gofiber-skelton/pkg/logs"
 )
 
 type Server struct {

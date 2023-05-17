@@ -2,12 +2,12 @@ package users_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

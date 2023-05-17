@@ -5,10 +5,10 @@ go 1.20
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/brianvoe/gofakeit/v6 v6.20.2
+	github.com/goccy/go-json v0.9.6
 	github.com/gofiber/fiber/v2 v2.43.0
 	github.com/gofiber/storage/redis v1.3.4
 	github.com/golang-jwt/jwt/v4 v4.5.0
-	github.com/segmentio/encoding v0.3.6
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/valyala/fasthttp v1.45.0
@@ -66,6 +66,7 @@ require (
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
 	github.com/savsgio/gotils v0.0.0-20230208104028-c358bd845dee // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
+	github.com/segmentio/encoding v0.3.6 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
