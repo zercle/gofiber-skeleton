@@ -13,17 +13,13 @@ import (
 )
 
 type Resources struct {
-	SessConfig session.Config
-	LogConfig  logger.Config
-	// client
+	LogConfig      logger.Config
 	FastHttpClient *fasthttp.Client
-	// database
-	MainDbConn *gorm.DB
-	LogDbConn  *mongo.Database
-	// Redis storage
-	RedisStorage *redis.Storage
-	// JWT
-	JwtResources *JwtResources
+	MainDbConn     *gorm.DB
+	LogDbConn      *mongo.Database
+	RedisStorage   *redis.Storage
+	JwtResources   *JwtResources
+	SessConfig     session.Config
 }
 
 type JwtResources struct {

@@ -22,11 +22,11 @@ import (
 )
 
 type Server struct {
-	PrdMode bool
+	models.Resources
 	Version string
 	Build   string
 	RunEnv  string
-	models.Resources
+	PrdMode bool
 }
 
 func NewServer(version, buildTag, runEnv string) (server *Server, err error) {

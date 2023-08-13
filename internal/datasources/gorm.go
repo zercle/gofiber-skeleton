@@ -18,15 +18,13 @@ import (
 )
 
 type DbConfig struct {
-	// https://gorm.io/docs/connecting_to_the_database.html
-	DbDriver string
-	DbName   string
-	Host     string
-	Port     int
-	Username string
-	Password string
-	Timezone string
-	// https://gorm.io/docs/connecting_to_the_database.html#Connection-Pool
+	DbDriver        string
+	DbName          string
+	Host            string
+	Username        string
+	Password        string
+	Timezone        string
+	Port            int
 	MaxIdleConns    int
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration

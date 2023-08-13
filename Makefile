@@ -4,11 +4,16 @@ all: go-build \
 	docker-clean
 
 go-build:
-	go build -v -buildvcs=false -ldflags="-X 'main.version=$$(git rev-parse --short HEAD)' -X 'main.build=$$(date --iso-8601=seconds)'" -o ./dist/app-dist ./cmd/server
+	CGO_ENABLED=0 go build -v \
+	-buildvcs=false \
+	-installsuffix 'static' \
+	-ldflags="-X 'main.version=$$(git rev-parse --short HEAD)' -X 'main.build=$$(date --iso-8601=seconds)'" \
+	-o ./dist/server \
+	./cmd/server
 
 docker-build:
-	docker build -f ./build/Dockerfile.local \
-	-t zercle/gofiber-skeleton:latest \
+	docker build -f ./cmd/server/Dockerfile \
+	-t zercle/gofiber-skeleton \
 	--pull \
 	.
 
