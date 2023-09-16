@@ -53,7 +53,7 @@ func buildConnStr(config DbConfig) (dsn string, err error) {
 			dsn = fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4,utf8&parseTime=true&loc=%s", config.Username, config.Password, config.Host, config.DbName, config.Timezone)
 		}
 	case "postgres", "pgx":
-		dsn = fmt.Sprintf("config.Username=%s config.Passwordword=%s config.Host=%s config.Port=%d dbname=%s TimeZone=%s", config.Username, config.Password, config.Host, config.Port, config.DbName, config.Timezone)
+		dsn = fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=disable TimeZone=%s", config.Username, config.Password, config.Host, config.Port, config.DbName, config.Timezone)
 	case "sqlserver":
 		dsn = fmt.Sprintf("sqlserver://%s:%s@%s:%d?database=%s", config.Username, config.Password, config.Host, config.Port, config.DbName)
 	case "clickhouse":
