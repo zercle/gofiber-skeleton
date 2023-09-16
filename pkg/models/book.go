@@ -18,5 +18,5 @@ type Book struct {
 	Title       string         `json:"title" gorm:"size:127;index"`
 	Author      string         `json:"author" gorm:"size:127;index"`
 	Description string         `json:"description" gorm:""`
-	Id          uint           `json:"id" gorm:"primaryKey"`
+	ID          uint           `json:"id" gorm:"primaryKey"`
 }

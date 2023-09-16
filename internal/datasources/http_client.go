@@ -8,7 +8,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func NewFastHttpClient(insecureSkipVerify bool) (client *fasthttp.Client) {
+func NewFastHTTPClient(insecureSkipVerify bool) (client *fasthttp.Client) {
 	client = &fasthttp.Client{
 		MaxConnsPerHost: (runtime.NumCPU() * 512) / 2,
 		ReadTimeout:     time.Second * 45,

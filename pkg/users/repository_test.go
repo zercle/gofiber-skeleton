@@ -31,7 +31,7 @@ func TestGetUserRepo(t *testing.T) {
 	}), &gorm.Config{})
 	assert.NoError(t, err)
 
-	rows := sqlmock.NewRows([]string{"id", "password", "full_name", "address", "created_at", "updated_at", "deleted_at"}).AddRow(mockUser.Id, mockUser.Password, mockUser.FullName, mockUser.Address, mockUser.CreatedAt, mockUser.UpdatedAt, mockUser.DeletedAt)
+	rows := sqlmock.NewRows([]string{"id", "password", "full_name", "address", "created_at", "updated_at", "deleted_at"}).AddRow(mockUser.ID, mockUser.Password, mockUser.FullName, mockUser.Address, mockUser.CreatedAt, mockUser.UpdatedAt, mockUser.DeletedAt)
 
 	queryRegexp := "^SELECT (.+) FROM `users` (.+)$"
 
@@ -40,7 +40,7 @@ func TestGetUserRepo(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo := users.NewUserRepository(gdb)
 
-		result, err := mockRepo.GetUser(mockUser.Id)
+		result, err := mockRepo.GetUser(mockUser.ID)
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, result)
@@ -50,7 +50,7 @@ func TestGetUserRepo(t *testing.T) {
 	t.Run("fail-db-conn", func(t *testing.T) {
 		mockRepo := users.NewUserRepository(nil)
 
-		result, err := mockRepo.GetUser(mockUser.Id)
+		result, err := mockRepo.GetUser(mockUser.ID)
 
 		assert.Error(t, err)
 		assert.Empty(t, result)

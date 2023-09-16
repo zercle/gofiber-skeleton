@@ -15,8 +15,8 @@ func NewUserUsecase(userRepo domain.UserReposiroty) domain.UserUsecase {
 	}
 }
 
-func (u *userUsecase) GetUser(userId string) (user models.User, err error) {
-	return u.userRepo.GetUser(userId)
+func (u *userUsecase) GetUser(userID string) (user models.User, err error) {
+	return u.userRepo.GetUser(userID)
 }
 
 func (u *userUsecase) GetUsers(criteria models.User) (users []models.User, err error) {
@@ -27,10 +27,10 @@ func (u *userUsecase) CreateUser(user *models.User) (err error) {
 	return u.userRepo.CreateUser(user)
 }
 
-func (u *userUsecase) EditUser(userId string, user models.User) (err error) {
-	return u.userRepo.EditUser(userId, user)
+func (u *userUsecase) EditUser(userID string, user models.User) (err error) {
+	return u.userRepo.EditUser(userID, user)
 }
 
-func (u *userUsecase) DeleteUser(userId string) (err error) {
-	return u.userRepo.DeleteUser(userId)
+func (u *userUsecase) DeleteUser(userID string) (err error) {
+	return u.userRepo.DeleteUser(userID)
 }

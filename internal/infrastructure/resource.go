@@ -14,7 +14,7 @@ import (
 
 func NewResources(fasthttpClient *fasthttp.Client, mainDbConn *gorm.DB, logDbConn *mongo.Database, redisStorage *redis.Storage, jwtResources *models.JwtResources) models.Resources {
 	return models.Resources{
-		FastHttpClient: fasthttpClient,
+		FastHTTPClient: fasthttpClient,
 		MainDbConn:     mainDbConn,
 		LogDbConn:      logDbConn,
 		RedisStorage:   redisStorage,

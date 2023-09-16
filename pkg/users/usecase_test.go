@@ -24,7 +24,7 @@ func TestGetUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		result, err := usecase.GetUser(mockUser.Id)
+		result, err := usecase.GetUser(mockUser.ID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, mockUser, result)
@@ -36,7 +36,7 @@ func TestGetUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		result, err := usecase.GetUser(mockUser.Id)
+		result, err := usecase.GetUser(mockUser.ID)
 
 		assert.Error(t, err)
 		assert.Equal(t, models.User{}, result)
@@ -126,7 +126,7 @@ func TestEditUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		err := usecase.EditUser(mockUser.Id, mockUser)
+		err := usecase.EditUser(mockUser.ID, mockUser)
 
 		assert.NoError(t, err)
 
@@ -137,7 +137,7 @@ func TestEditUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		err := usecase.EditUser(mockUser.Id, mockUser)
+		err := usecase.EditUser(mockUser.ID, mockUser)
 
 		assert.Error(t, err)
 
@@ -158,7 +158,7 @@ func TestDeleteUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		err := usecase.DeleteUser(mockUser.Id)
+		err := usecase.DeleteUser(mockUser.ID)
 
 		assert.NoError(t, err)
 
@@ -169,7 +169,7 @@ func TestDeleteUserUsecase(t *testing.T) {
 
 		usecase := users.NewUserUsecase(mockUserRepo)
 
-		err := usecase.DeleteUser(mockUser.Id)
+		err := usecase.DeleteUser(mockUser.ID)
 
 		assert.Error(t, err)
 

@@ -31,10 +31,10 @@ func TestGetUserHandler(t *testing.T) {
 
 	mockRepo := new(mocks.UserRepository)
 
-	mockRepo.On("GetUser", mockUser.Id).Return(mockUser, nil)
+	mockRepo.On("GetUser", mockUser.ID).Return(mockUser, nil)
 
 	app := fiber.New()
-	req, err := http.NewRequest("GET", "/api/v1/user/"+mockUser.Id, nil)
+	req, err := http.NewRequest("GET", "/api/v1/user/"+mockUser.ID, nil)
 	assert.NoError(t, err)
 
 	mockUCase := users.NewUserUsecase(mockRepo)

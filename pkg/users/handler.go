@@ -27,9 +27,9 @@ func (h *UserHandler) GetUser() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		responseForm := helpers.ResponseForm{}
 
-		userId := c.Params("id")
+		userID := c.Params("id")
 
-		user, err := h.UserUsecase.GetUser(userId)
+		user, err := h.UserUsecase.GetUser(userID)
 
 		responseForm.Result = map[string]interface{}{
 			"user": user,

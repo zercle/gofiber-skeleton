@@ -52,7 +52,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	// 	return
 	// }
 
-	fastHttpClient := datasources.NewFastHttpClient(true)
+	fastHTTPClient := datasources.NewFastHTTPClient(true)
 
 	// utils.JsonParserPool = new(fastjson.ParserPool)
 
@@ -62,7 +62,7 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 	}
 
 	// init app resources
-	server.Resources = NewResources(fastHttpClient, mainDbConn, nil, nil, jwtResources)
+	server.Resources = NewResources(fastHTTPClient, mainDbConn, nil, nil, jwtResources)
 
 	// something that use resources place here
 

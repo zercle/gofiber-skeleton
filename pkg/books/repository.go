@@ -44,7 +44,7 @@ func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
 	return
 }
 
-func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
+func (r *bookReposiroty) EditBook(bookID uint, book models.Book) (err error) {
 	if r.MainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
@@ -54,7 +54,7 @@ func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
-	dbTx = dbTx.Where(models.Book{Id: bookId})
+	dbTx = dbTx.Where(models.Book{ID: bookID})
 
 	if err = dbTx.Updates(book).Error; err != nil {
 		return
@@ -65,7 +65,7 @@ func (r *bookReposiroty) EditBook(bookId uint, book models.Book) (err error) {
 	return
 }
 
-func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
+func (r *bookReposiroty) DeleteBook(bookID uint) (err error) {
 	if r.MainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
@@ -75,7 +75,7 @@ func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
-	dbTx = dbTx.Where(models.Book{Id: bookId})
+	dbTx = dbTx.Where(models.Book{ID: bookID})
 
 	if err = dbTx.Delete(&models.Book{}).Error; err != nil {
 		return
@@ -86,14 +86,14 @@ func (r *bookReposiroty) DeleteBook(bookId uint) (err error) {
 	return
 }
 
-func (r *bookReposiroty) GetBook(bookId uint) (book models.Book, err error) {
+func (r *bookReposiroty) GetBook(bookID uint) (book models.Book, err error) {
 	if r.MainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
 	dbTx := r.MainDbConn.Model(&models.Book{})
-	dbTx = dbTx.Where(models.Book{Id: bookId})
+	dbTx = dbTx.Where(models.Book{ID: bookID})
 	err = dbTx.Take(&book).Error
 
 	return
@@ -107,8 +107,8 @@ func (r *bookReposiroty) GetBooks(criteria models.Book) (books []models.Book, er
 
 	dbTx := r.MainDbConn.Model(&models.Book{})
 
-	if criteria.Id != 0 {
-		dbTx = dbTx.Where(models.Book{Id: criteria.Id})
+	if criteria.ID != 0 {
+		dbTx = dbTx.Where(models.Book{ID: criteria.ID})
 	} else {
 		if len(criteria.Title) != 0 {
 			dbTx = dbTx.Where("title LIKE ?", "%"+criteria.Title+"%")

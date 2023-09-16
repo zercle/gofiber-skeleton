@@ -19,14 +19,14 @@ func NewUserRepository(mainDbConn *gorm.DB) domain.UserReposiroty {
 	}
 }
 
-func (r *userRepository) GetUser(userId string) (user models.User, err error) {
+func (r *userRepository) GetUser(userID string) (user models.User, err error) {
 	if r.MainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
 	dbTx := r.MainDbConn.Model(&models.User{})
-	dbTx = dbTx.Where(models.User{Id: userId})
+	dbTx = dbTx.Where(models.User{ID: userID})
 	err = dbTx.Take(&user).Error
 
 	return
@@ -40,8 +40,8 @@ func (r *userRepository) GetUsers(criteria models.User) (users []models.User, er
 
 	dbTx := r.MainDbConn.Model(&models.User{})
 
-	if len(criteria.Id) != 0 {
-		dbTx = dbTx.Where(models.User{Id: criteria.Id})
+	if len(criteria.ID) != 0 {
+		dbTx = dbTx.Where(models.User{ID: criteria.ID})
 	} else {
 		if len(criteria.FullName) != 0 {
 			dbTx = dbTx.Where("title LIKE ?", "%"+criteria.FullName+"%")
@@ -73,7 +73,7 @@ func (r *userRepository) CreateUser(user *models.User) (err error) {
 	return
 }
 
-func (r *userRepository) EditUser(userId string, user models.User) (err error) {
+func (r *userRepository) EditUser(userID string, user models.User) (err error) {
 	if r.MainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
@@ -83,7 +83,7 @@ func (r *userRepository) EditUser(userId string, user models.User) (err error) {
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.User{})
-	dbTx = dbTx.Where(models.User{Id: userId})
+	dbTx = dbTx.Where(models.User{ID: userID})
 
 	if err = dbTx.Updates(user).Error; err != nil {
 		return
@@ -94,7 +94,7 @@ func (r *userRepository) EditUser(userId string, user models.User) (err error) {
 	return
 }
 
-func (r *userRepository) DeleteUser(userId string) (err error) {
+func (r *userRepository) DeleteUser(userID string) (err error) {
 	if r.MainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
@@ -104,7 +104,7 @@ func (r *userRepository) DeleteUser(userId string) (err error) {
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.User{})
-	dbTx = dbTx.Where(models.User{Id: userId})
+	dbTx = dbTx.Where(models.User{ID: userID})
 
 	if err = dbTx.Delete(&models.User{}).Error; err != nil {
 		return

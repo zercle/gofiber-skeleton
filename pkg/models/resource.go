@@ -14,7 +14,7 @@ import (
 
 type Resources struct {
 	LogConfig      logger.Config
-	FastHttpClient *fasthttp.Client
+	FastHTTPClient *fasthttp.Client
 	MainDbConn     *gorm.DB
 	LogDbConn      *mongo.Database
 	RedisStorage   *redis.Storage

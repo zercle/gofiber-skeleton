@@ -34,16 +34,16 @@ func (u *bookUsecase) CreateBook(book *models.Book) (err error) {
 	return u.bookRepository.CreateBook(book)
 }
 
-func (u *bookUsecase) EditBook(bookId uint, book models.Book) (err error) {
-	return u.bookRepository.EditBook(bookId, book)
+func (u *bookUsecase) EditBook(bookID uint, book models.Book) (err error) {
+	return u.bookRepository.EditBook(bookID, book)
 }
 
-func (u *bookUsecase) DeleteBook(bookId uint) (err error) {
-	return u.bookRepository.DeleteBook(bookId)
+func (u *bookUsecase) DeleteBook(bookID uint) (err error) {
+	return u.bookRepository.DeleteBook(bookID)
 }
 
-func (u *bookUsecase) GetBook(bookId uint) (book models.Book, err error) {
-	return u.bookRepository.GetBook(bookId)
+func (u *bookUsecase) GetBook(bookID uint) (book models.Book, err error) {
+	return u.bookRepository.GetBook(bookID)
 }
 
 func (u *bookUsecase) GetBooks(criteria models.Book) (books []models.Book, err error) {

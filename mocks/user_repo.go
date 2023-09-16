@@ -9,19 +9,19 @@ type UserRepository struct {
 	mock.Mock
 }
 
-func (_m *UserRepository) GetUser(userId string) (user models.User, err error) {
-	ret := _m.Called(userId)
+func (_m *UserRepository) GetUser(userID string) (user models.User, err error) {
+	ret := _m.Called(userID)
 
 	var r0 models.User
 	if rf, ok := ret.Get(0).(func(string) models.User); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Get(0).(models.User)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userId)
+		r1 = rf(userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -59,24 +59,24 @@ func (_m *UserRepository) CreateUser(user *models.User) (err error) {
 	return r0
 }
 
-func (_m *UserRepository) EditUser(userId string, user models.User) (err error) {
-	ret := _m.Called(userId)
+func (_m *UserRepository) EditUser(userID string, user models.User) (err error) {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}
 	return r0
 }
 
-func (_m *UserRepository) DeleteUser(userId string) (err error) {
-	ret := _m.Called(userId)
+func (_m *UserRepository) DeleteUser(userID string) (err error) {
+	ret := _m.Called(userID)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userId)
+		r0 = rf(userID)
 	} else {
 		r0 = ret.Error(0)
 	}

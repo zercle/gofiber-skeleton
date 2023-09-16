@@ -17,16 +17,16 @@ func NewBookHandler(bookRoute fiber.Router, bookUsecase domain.BookUsecase) {
 		bookUsecase: bookUsecase,
 	}
 
-	bookRoute.Get("/:bookId?", handler.getBooks())
+	bookRoute.Get("/:bookID?", handler.getBooks())
 }
 
 func (h *BookHandler) getBooks() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		responseForm := helpers.ResponseForm{}
 
-		bookId, _ := c.ParamsInt("bookId", 0)
-		if bookId != 0 {
-			book, err := h.bookUsecase.GetBook(uint(bookId))
+		bookID, _ := c.ParamsInt("bookID", 0)
+		if bookID != 0 {
+			book, err := h.bookUsecase.GetBook(uint(bookID))
 			if err != nil {
 				responseForm.Errors = append(responseForm.Errors, helpers.ResponseError{
 					Code:    fiber.StatusServiceUnavailable,
