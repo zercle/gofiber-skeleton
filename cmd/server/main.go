@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/zercle/gofiber-skelton/pkg/config"
 	server "github.com/zercle/gofiber-skelton/internal/infrastructure"
+	"github.com/zercle/gofiber-skelton/pkg/config"
 )
 
 var (

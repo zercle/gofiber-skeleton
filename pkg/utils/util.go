@@ -12,7 +12,7 @@ var (
 	JsonParserPool *fastjson.ParserPool
 )
 
-func init()  {
+func init() {
 	if JsonParserPool == nil {
 		JsonParserPool = new(fastjson.ParserPool)
 	}
