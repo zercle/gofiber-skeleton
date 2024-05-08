@@ -10,22 +10,22 @@ import (
 )
 
 type userRepository struct {
-	MainDbConn *gorm.DB
+	mainDbConn *gorm.DB
 }
 
 func NewUserRepository(mainDbConn *gorm.DB) domain.UserReposiroty {
 	return &userRepository{
-		MainDbConn: mainDbConn,
+		mainDbConn: mainDbConn,
 	}
 }
 
 func (r *userRepository) GetUser(userID string) (user models.User, err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
-	dbTx := r.MainDbConn.Model(&models.User{})
+	dbTx := r.mainDbConn.Model(&models.User{})
 	dbTx = dbTx.Where(models.User{ID: userID})
 	err = dbTx.Take(&user).Error
 
@@ -33,12 +33,12 @@ func (r *userRepository) GetUser(userID string) (user models.User, err error) {
 }
 
 func (r *userRepository) GetUsers(criteria models.User) (users []models.User, err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
-	dbTx := r.MainDbConn.Model(&models.User{})
+	dbTx := r.mainDbConn.Model(&models.User{})
 
 	if len(criteria.ID) != 0 {
 		dbTx = dbTx.Where(models.User{ID: criteria.ID})
@@ -54,12 +54,12 @@ func (r *userRepository) GetUsers(criteria models.User) (users []models.User, er
 }
 
 func (r *userRepository) CreateUser(user *models.User) (err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.User{})
@@ -74,12 +74,12 @@ func (r *userRepository) CreateUser(user *models.User) (err error) {
 }
 
 func (r *userRepository) EditUser(userID string, user models.User) (err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.User{})
@@ -95,12 +95,12 @@ func (r *userRepository) EditUser(userID string, user models.User) (err error) {
 }
 
 func (r *userRepository) DeleteUser(userID string) (err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = fmt.Errorf("%s \nErr: %+v", helpers.WhereAmI(), "database has gone away.")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.User{})

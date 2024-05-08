@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 
+	"github.com/oklog/ulid/v2"
 	"gorm.io/gorm"
 )
 
@@ -18,5 +19,12 @@ type Book struct {
 	Title       string         `json:"title" gorm:"size:127;index"`
 	Author      string         `json:"author" gorm:"size:127;index"`
 	Description string         `json:"description" gorm:""`
-	ID          uint           `json:"id" gorm:"primaryKey"`
+	ID          string         `json:"id" gorm:"size:32;primaryKey"`
+}
+
+func (b *Book) BeforeCreate(tx *gorm.DB) (err error) {
+	if len(b.ID) == 0 {
+		b.ID = ulid.Make().String()
+	}
+	return
 }

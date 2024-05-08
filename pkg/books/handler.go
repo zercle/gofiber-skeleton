@@ -24,9 +24,9 @@ func (h *BookHandler) getBooks() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		responseForm := helpers.ResponseForm{}
 
-		bookID, _ := c.ParamsInt("bookID", 0)
-		if bookID != 0 {
-			book, err := h.bookUsecase.GetBook(uint(bookID))
+		bookID := c.Params("bookID")
+		if len(bookID) != 0 {
+			book, err := h.bookUsecase.GetBook(bookID)
 			if err != nil {
 				responseForm.Errors = append(responseForm.Errors, helpers.ResponseError{
 					Code:    fiber.StatusServiceUnavailable,

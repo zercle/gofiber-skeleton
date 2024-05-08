@@ -8,9 +8,9 @@ ENV GITHUB_TOKEN $GITHUB_TOKEN_BUILD
 ENV TZ $timezone
 WORKDIR /app
 
-# install dumb-init
+# install tini
 RUN apt-get update && \
-    apt-get -y install dumb-init && \
+    apt-get -y install tini && \
     apt-get -y clean
 
 # for CI/CD with private repo
@@ -28,8 +28,8 @@ RUN go mod download && go mod verify
 
 # let's build project
 COPY . .
-RUN CGO_ENABLED=0 go build -v \
-    -buildvcs=false \
+RUN go test -v ./... && \
+    CGO_ENABLED=0 go build -v \
     -installsuffix 'static' \
     -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)'" \
     -o dist/server ./cmd/server
@@ -46,7 +46,7 @@ ENV TZ $timezone
 
 # Create app dir
 WORKDIR /app
-COPY --from=builder /usr/bin/dumb-init /usr/bin/dumb-init
+COPY --from=builder /usr/bin/tini-static /usr/bin/tini
 COPY --from=builder /app/dist/server /app/server
 COPY ./configs /app/configs
 COPY ./internal/assets /app/internal/assets
@@ -55,5 +55,5 @@ COPY ./web /app/web
 EXPOSE 8080 8443
 
 # default run entrypoint
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/server"]
+ENTRYPOINT ["dumb-init", "--", "/app/server"]
 CMD ["--env=prd"]

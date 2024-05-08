@@ -11,27 +11,27 @@ import (
 )
 
 type bookReposiroty struct {
-	MainDbConn *gorm.DB
+	mainDbConn *gorm.DB
 }
 
 func NewBookRepository(mainDbConn *gorm.DB) domain.BookRepository {
 	return &bookReposiroty{
-		MainDbConn: mainDbConn,
+		mainDbConn: mainDbConn,
 	}
 }
 
 func (r *bookReposiroty) DbMigrator() (err error) {
-	err = r.MainDbConn.AutoMigrate(&models.Book{})
+	err = r.mainDbConn.AutoMigrate(&models.Book{})
 	return
 }
 
 func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -44,13 +44,13 @@ func (r *bookReposiroty) CreateBook(book *models.Book) (err error) {
 	return
 }
 
-func (r *bookReposiroty) EditBook(bookID uint, book models.Book) (err error) {
-	if r.MainDbConn == nil {
+func (r *bookReposiroty) EditBook(bookID string, book models.Book) (err error) {
+	if r.mainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -65,13 +65,13 @@ func (r *bookReposiroty) EditBook(bookID uint, book models.Book) (err error) {
 	return
 }
 
-func (r *bookReposiroty) DeleteBook(bookID uint) (err error) {
-	if r.MainDbConn == nil {
+func (r *bookReposiroty) DeleteBook(bookID string) (err error) {
+	if r.mainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
-	dbTx := r.MainDbConn.Begin()
+	dbTx := r.mainDbConn.Begin()
 	defer dbTx.Rollback()
 
 	dbTx = dbTx.Model(&models.Book{})
@@ -86,13 +86,13 @@ func (r *bookReposiroty) DeleteBook(bookID uint) (err error) {
 	return
 }
 
-func (r *bookReposiroty) GetBook(bookID uint) (book models.Book, err error) {
-	if r.MainDbConn == nil {
+func (r *bookReposiroty) GetBook(bookID string) (book models.Book, err error) {
+	if r.mainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
-	dbTx := r.MainDbConn.Model(&models.Book{})
+	dbTx := r.mainDbConn.Model(&models.Book{})
 	dbTx = dbTx.Where(models.Book{ID: bookID})
 	err = dbTx.Take(&book).Error
 
@@ -100,14 +100,14 @@ func (r *bookReposiroty) GetBook(bookID uint) (book models.Book, err error) {
 }
 
 func (r *bookReposiroty) GetBooks(criteria models.Book) (books []models.Book, err error) {
-	if r.MainDbConn == nil {
+	if r.mainDbConn == nil {
 		err = helpers.NewError(fiber.StatusServiceUnavailable, helpers.WhereAmI(), "Database server has gone away")
 		return
 	}
 
-	dbTx := r.MainDbConn.Model(&models.Book{})
+	dbTx := r.mainDbConn.Model(&models.Book{})
 
-	if criteria.ID != 0 {
+	if len(criteria.ID) != 0 {
 		dbTx = dbTx.Where(models.Book{ID: criteria.ID})
 	} else {
 		if len(criteria.Title) != 0 {

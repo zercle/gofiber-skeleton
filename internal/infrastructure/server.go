@@ -77,11 +77,12 @@ func NewServer(version, buildTag, runEnv string) (server *Server, err error) {
 
 func (s *Server) Run() (err error) {
 	app := fiber.New(fiber.Config{
-		ErrorHandler:   customErrorHandler,
-		ReadTimeout:    60 * time.Second,
-		ReadBufferSize: 8 * 1024,
-		Prefork:        s.PrdMode,
-		// speed up json with segmentio/encoding
+		ErrorHandler:      customErrorHandler,
+		IdleTimeout:       60 * time.Second,
+		ReadBufferSize:    8 * 1024,
+		Prefork:           s.PrdMode,
+		StreamRequestBody: true,
+		// speed up json with goccy/go-json
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 		// behide reverse proxy
