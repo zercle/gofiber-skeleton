@@ -55,5 +55,5 @@ COPY ./web /app/web
 EXPOSE 8080 8443
 
 # default run entrypoint
-ENTRYPOINT ["dumb-init", "--", "/app/server"]
+ENTRYPOINT ["tini", "--", "/app/server"]
 CMD ["--env=prd"]
