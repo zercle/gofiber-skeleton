@@ -1,6 +1,6 @@
 module github.com/zercle/gofiber-skelton
 
-go 1.22
+go 1.23.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
