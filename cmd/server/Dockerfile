@@ -3,9 +3,9 @@ FROM golang AS builder
 ARG GITHUB_USER_BUILD
 ARG GITHUB_TOKEN_BUILD
 ARG timezone=Asia/Bangkok
-ENV GITHUB_USER $GITHUB_USER_BUILD
-ENV GITHUB_TOKEN $GITHUB_TOKEN_BUILD
-ENV TZ $timezone
+ENV GITHUB_USER=${GITHUB_USER_BUILD}
+ENV GITHUB_TOKEN=${GITHUB_TOKEN_BUILD}
+ENV TZ=${timezone}
 WORKDIR /app
 
 # install tini
@@ -40,9 +40,9 @@ LABEL maintainer="Kawin Viriyaprasopsook <kawin.vir@zercle.tech>"
 
 ARG timezone=Asia/Bangkok
 
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV TZ $timezone
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV TZ=${timezone}
 
 # Create app dir
 WORKDIR /app
