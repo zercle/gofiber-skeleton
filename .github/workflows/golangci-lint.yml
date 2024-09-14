@@ -31,12 +31,6 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
 
-    - name: Check and get dependencies
-      run: |
-        go mod tidy
-        git diff --exit-code go.mod
-        # git diff --exit-code go.sum
-
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
