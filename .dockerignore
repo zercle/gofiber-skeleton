@@ -1,9 +1,0 @@
-# IDE
-.vscode/
-.idea/
-
-# Dependency directories
-vendor/
-
-# SQLite
-*.sqlite
