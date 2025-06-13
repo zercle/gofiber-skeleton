@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupApp(svc usecase.BookingService) *fiber.App {
+func setupApp(svc usecase.BookingUsecase) *fiber.App {
 	app := fiber.New()
 	handler.RegisterRoutes(app, svc)
 	return app

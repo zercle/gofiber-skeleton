@@ -11,14 +11,14 @@ import (
 )
 
 type BookingHandler struct {
-	uc usecase.BookingService
+	uc usecase.BookingUsecase
 }
 
-func NewBookingHandler(uc usecase.BookingService) *BookingHandler {
+func NewBookingHandler(uc usecase.BookingUsecase) *BookingHandler {
 	return &BookingHandler{uc: uc}
 }
 
-func RegisterRoutes(app *fiber.App, uc usecase.BookingService) {
+func RegisterRoutes(app *fiber.App, uc usecase.BookingUsecase) {
 	h := NewBookingHandler(uc)
 	app.Post("/bookings", h.CreateBooking)
 	app.Get("/bookings/:id", h.GetBooking)
