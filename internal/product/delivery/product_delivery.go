@@ -7,6 +7,7 @@ import (
 	"gofiber-skeleton/internal/product/usecase"
 
 	"github.com/gofiber/fiber/v2"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/grpc"
 )
 
@@ -76,7 +77,7 @@ func (s *GrpcProductServer) UpdateProduct(ctx context.Context, req *product.Upda
 	return &product.Product{Id: req.Id, Name: req.Name, Price: req.Price}, nil
 }
 
-func (s *GrpcProductServer) DeleteProduct(ctx context.Context, req *product.DeleteProductRequest) (*product.DeleteProductRequest, error) {
+func (s *GrpcProductServer) DeleteProduct(ctx context.Context, req *product.DeleteProductRequest) (*emptypb.Empty, error) {
 	// TODO: Implement logic to delete product
-	return &product.DeleteProductRequest{Id: req.Id}, nil
+	return &emptypb.Empty{}, nil
 }

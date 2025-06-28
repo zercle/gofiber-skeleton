@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package order;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "gofiber-skeleton/api/order";
 
 message Order {
@@ -39,5 +41,5 @@ service OrderService {
   rpc GetOrder(GetOrderRequest) returns (Order);
   rpc CreateOrder(CreateOrderRequest) returns (Order);
   rpc UpdateOrder(UpdateOrderRequest) returns (Order);
-  rpc DeleteOrder(DeleteOrderRequest) returns (DeleteOrderRequest);
+  rpc DeleteOrder(DeleteOrderRequest) returns (google.protobuf.Empty);
 }

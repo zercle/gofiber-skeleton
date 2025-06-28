@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package product;
 
+import "google/protobuf/empty.proto";
+
 option go_package = "gofiber-skeleton/api/product";
 
 message Product {
@@ -39,5 +41,5 @@ service ProductService {
   rpc GetProduct(GetProductRequest) returns (Product);
   rpc CreateProduct(CreateProductRequest) returns (Product);
   rpc UpdateProduct(UpdateProductRequest) returns (Product);
-  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductRequest);
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
 }

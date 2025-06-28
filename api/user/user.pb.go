@@ -9,6 +9,7 @@ package user
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -293,7 +294,7 @@ var File_api_user_user_proto protoreflect.FileDescriptor
 
 const file_api_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\x13api/user/user.proto\x12\x04user\"H\n" +
+	"\x13api/user/user.proto\x12\x04user\x1a\x1bgoogle/protobuf/empty.proto\"H\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
@@ -309,7 +310,7 @@ const file_api_user_user_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\"#\n" +
 	"\x11DeleteUserRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id2\xe0\x01\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id2\xdf\x01\n" +
 	"\vUserService\x12+\n" +
 	"\aGetUser\x12\x14.user.GetUserRequest\x1a\n" +
 	".user.User\x121\n" +
@@ -318,9 +319,9 @@ const file_api_user_user_proto_rawDesc = "" +
 	".user.User\x121\n" +
 	"\n" +
 	"UpdateUser\x12\x17.user.UpdateUserRequest\x1a\n" +
-	".user.User\x12>\n" +
+	".user.User\x12=\n" +
 	"\n" +
-	"DeleteUser\x12\x17.user.DeleteUserRequest\x1a\x17.user.DeleteUserRequestB\x1bZ\x19gofiber-skeleton/api/userb\x06proto3"
+	"DeleteUser\x12\x17.user.DeleteUserRequest\x1a\x16.google.protobuf.EmptyB\x1bZ\x19gofiber-skeleton/api/userb\x06proto3"
 
 var (
 	file_api_user_user_proto_rawDescOnce sync.Once
@@ -341,6 +342,7 @@ var file_api_user_user_proto_goTypes = []any{
 	(*CreateUserRequest)(nil), // 2: user.CreateUserRequest
 	(*UpdateUserRequest)(nil), // 3: user.UpdateUserRequest
 	(*DeleteUserRequest)(nil), // 4: user.DeleteUserRequest
+	(*emptypb.Empty)(nil),     // 5: google.protobuf.Empty
 }
 var file_api_user_user_proto_depIdxs = []int32{
 	1, // 0: user.UserService.GetUser:input_type -> user.GetUserRequest
@@ -350,7 +352,7 @@ var file_api_user_user_proto_depIdxs = []int32{
 	0, // 4: user.UserService.GetUser:output_type -> user.User
 	0, // 5: user.UserService.CreateUser:output_type -> user.User
 	0, // 6: user.UserService.UpdateUser:output_type -> user.User
-	4, // 7: user.UserService.DeleteUser:output_type -> user.DeleteUserRequest
+	5, // 7: user.UserService.DeleteUser:output_type -> google.protobuf.Empty
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

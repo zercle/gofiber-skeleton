@@ -9,6 +9,7 @@ package order
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -333,7 +334,7 @@ var File_api_order_order_proto protoreflect.FileDescriptor
 
 const file_api_order_order_proto_rawDesc = "" +
 	"\n" +
-	"\x15api/order/order.proto\x12\x05order\"\x8c\x01\n" +
+	"\x15api/order/order.proto\x12\x05order\x1a\x1bgoogle/protobuf/empty.proto\"\x8c\x01\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\rR\x06userId\x12\x1d\n" +
@@ -360,12 +361,12 @@ const file_api_order_order_proto_rawDesc = "" +
 	"\vtotal_price\x18\x05 \x01(\x01R\n" +
 	"totalPrice\"$\n" +
 	"\x12DeleteOrderRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id2\xf5\x01\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id2\xf2\x01\n" +
 	"\fOrderService\x120\n" +
 	"\bGetOrder\x12\x16.order.GetOrderRequest\x1a\f.order.Order\x126\n" +
 	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\f.order.Order\x126\n" +
-	"\vUpdateOrder\x12\x19.order.UpdateOrderRequest\x1a\f.order.Order\x12C\n" +
-	"\vDeleteOrder\x12\x19.order.DeleteOrderRequest\x1a\x19.order.DeleteOrderRequestB\x1cZ\x1agofiber-skeleton/api/orderb\x06proto3"
+	"\vUpdateOrder\x12\x19.order.UpdateOrderRequest\x1a\f.order.Order\x12@\n" +
+	"\vDeleteOrder\x12\x19.order.DeleteOrderRequest\x1a\x16.google.protobuf.EmptyB\x1cZ\x1agofiber-skeleton/api/orderb\x06proto3"
 
 var (
 	file_api_order_order_proto_rawDescOnce sync.Once
@@ -386,6 +387,7 @@ var file_api_order_order_proto_goTypes = []any{
 	(*CreateOrderRequest)(nil), // 2: order.CreateOrderRequest
 	(*UpdateOrderRequest)(nil), // 3: order.UpdateOrderRequest
 	(*DeleteOrderRequest)(nil), // 4: order.DeleteOrderRequest
+	(*emptypb.Empty)(nil),      // 5: google.protobuf.Empty
 }
 var file_api_order_order_proto_depIdxs = []int32{
 	1, // 0: order.OrderService.GetOrder:input_type -> order.GetOrderRequest
@@ -395,7 +397,7 @@ var file_api_order_order_proto_depIdxs = []int32{
 	0, // 4: order.OrderService.GetOrder:output_type -> order.Order
 	0, // 5: order.OrderService.CreateOrder:output_type -> order.Order
 	0, // 6: order.OrderService.UpdateOrder:output_type -> order.Order
-	4, // 7: order.OrderService.DeleteOrder:output_type -> order.DeleteOrderRequest
+	5, // 7: order.OrderService.DeleteOrder:output_type -> google.protobuf.Empty
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

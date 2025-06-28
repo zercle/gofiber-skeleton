@@ -9,6 +9,7 @@ package product
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -333,7 +334,7 @@ var File_api_product_product_proto protoreflect.FileDescriptor
 
 const file_api_product_product_proto_rawDesc = "" +
 	"\n" +
-	"\x19api/product/product.proto\x12\aproduct\"{\n" +
+	"\x19api/product/product.proto\x12\aproduct\x1a\x1bgoogle/protobuf/empty.proto\"{\n" +
 	"\aProduct\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -354,13 +355,13 @@ const file_api_product_product_proto_rawDesc = "" +
 	"\x05price\x18\x04 \x01(\x01R\x05price\x12\x14\n" +
 	"\x05stock\x18\x05 \x01(\x05R\x05stock\"&\n" +
 	"\x14DeleteProductRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id2\x9f\x02\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id2\x98\x02\n" +
 	"\x0eProductService\x12:\n" +
 	"\n" +
 	"GetProduct\x12\x1a.product.GetProductRequest\x1a\x10.product.Product\x12@\n" +
 	"\rCreateProduct\x12\x1d.product.CreateProductRequest\x1a\x10.product.Product\x12@\n" +
-	"\rUpdateProduct\x12\x1d.product.UpdateProductRequest\x1a\x10.product.Product\x12M\n" +
-	"\rDeleteProduct\x12\x1d.product.DeleteProductRequest\x1a\x1d.product.DeleteProductRequestB\x1eZ\x1cgofiber-skeleton/api/productb\x06proto3"
+	"\rUpdateProduct\x12\x1d.product.UpdateProductRequest\x1a\x10.product.Product\x12F\n" +
+	"\rDeleteProduct\x12\x1d.product.DeleteProductRequest\x1a\x16.google.protobuf.EmptyB\x1eZ\x1cgofiber-skeleton/api/productb\x06proto3"
 
 var (
 	file_api_product_product_proto_rawDescOnce sync.Once
@@ -381,6 +382,7 @@ var file_api_product_product_proto_goTypes = []any{
 	(*CreateProductRequest)(nil), // 2: product.CreateProductRequest
 	(*UpdateProductRequest)(nil), // 3: product.UpdateProductRequest
 	(*DeleteProductRequest)(nil), // 4: product.DeleteProductRequest
+	(*emptypb.Empty)(nil),        // 5: google.protobuf.Empty
 }
 var file_api_product_product_proto_depIdxs = []int32{
 	1, // 0: product.ProductService.GetProduct:input_type -> product.GetProductRequest
@@ -390,7 +392,7 @@ var file_api_product_product_proto_depIdxs = []int32{
 	0, // 4: product.ProductService.GetProduct:output_type -> product.Product
 	0, // 5: product.ProductService.CreateProduct:output_type -> product.Product
 	0, // 6: product.ProductService.UpdateProduct:output_type -> product.Product
-	4, // 7: product.ProductService.DeleteProduct:output_type -> product.DeleteProductRequest
+	5, // 7: product.ProductService.DeleteProduct:output_type -> google.protobuf.Empty
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

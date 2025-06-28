@@ -73,7 +73,7 @@ COPY database/migrations ./database/migrations
 
 VOLUME /app/data
 
-EXPOSE 3000
+EXPOSE 8080 8081
 
 # Default run entrypoint using the copied static tini binary
 ENTRYPOINT ["/usr/bin/tini", "--", "/app/server"]
