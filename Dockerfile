@@ -71,7 +71,7 @@ COPY --from=builder /usr/local/bin/tini /usr/bin/tini
 COPY configs ./configs
 COPY database/migrations ./database/migrations
 
-VOLUME /data
+VOLUME /app/data
 
 EXPOSE 3000
 
