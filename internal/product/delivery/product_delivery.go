@@ -44,7 +44,7 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 
 func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	// TODO: Implement logic to delete product
-	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"message": "DeleteProduct"})
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 // gRPC Server
