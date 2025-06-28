@@ -44,7 +44,7 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 	// TODO: Implement logic to delete user
-	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"message": "DeleteUser"})
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 // gRPC Server
