@@ -1,0 +1,32 @@
+# Binaries for programs
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*.db
+
+# Go binaries
+/bin/
+
+# Dependency directories
+/vendor/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.bak
+*.swo
+
+# Environment variables
+.env
+.env.*
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db

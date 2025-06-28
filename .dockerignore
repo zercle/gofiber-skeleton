@@ -1,0 +1,11 @@
+# Ignore all files except those needed for the build
+*
+!/go.mod
+!/go.sum
+!/main.go
+!/cmd/
+!/internal/
+!/pkg/
+!/config/
+!/database/migrations/
+!/api/

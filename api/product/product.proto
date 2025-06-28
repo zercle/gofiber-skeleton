@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "gofiber-skeleton/api/product";
+
+message Product {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 stock = 5;
+}
+
+message GetProductRequest {
+  uint32 id = 1;
+}
+
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+  int32 stock = 4;
+}
+
+message UpdateProductRequest {
+  uint32 id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 stock = 5;
+}
+
+message DeleteProductRequest {
+  uint32 id = 1;
+}
+
+service ProductService {
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc CreateProduct(CreateProductRequest) returns (Product);
+  rpc UpdateProduct(UpdateProductRequest) returns (Product);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductRequest);
+}
