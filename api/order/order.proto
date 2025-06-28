@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package order;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "gofiber-skeleton/api/order";
+
+message Order {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  uint32 product_id = 3;
+  int32 quantity = 4;
+  double total_price = 5;
+}
+
+message GetOrderRequest {
+  uint32 id = 1;
+}
+
+message CreateOrderRequest {
+  uint32 user_id = 1;
+  uint32 product_id = 2;
+  int32 quantity = 3;
+  double total_price = 4;
+}
+
+message UpdateOrderRequest {
+  uint32 id = 1;
+  uint32 user_id = 2;
+  uint32 product_id = 3;
+  int32 quantity = 4;
+  double total_price = 5;
+}
+
+message DeleteOrderRequest {
+  uint32 id = 1;
+}
+
+service OrderService {
+  rpc GetOrder(GetOrderRequest) returns (Order);
+  rpc CreateOrder(CreateOrderRequest) returns (Order);
+  rpc UpdateOrder(UpdateOrderRequest) returns (Order);
+  rpc DeleteOrder(DeleteOrderRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,5 @@
+GO_ENV: local
+APP_PORT: 8080
+GRPC_PORT: 8081
+DATABASE_URL: ./data/gofiber_boilerplate.db
+JWT_SECRET: supersecretjwtkey
