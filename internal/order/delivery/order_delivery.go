@@ -3,11 +3,12 @@ package delivery
 import (
 	"context"
 	"gofiber-skeleton/api/order"
-	
+
 	"gofiber-skeleton/internal/order/usecase"
 
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type OrderHandler struct {
@@ -76,7 +77,7 @@ func (s *GrpcOrderServer) UpdateOrder(ctx context.Context, req *order.UpdateOrde
 	return &order.Order{Id: req.Id, UserId: req.UserId, ProductId: req.ProductId, Quantity: req.Quantity, TotalPrice: req.TotalPrice}, nil
 }
 
-func (s *GrpcOrderServer) DeleteOrder(ctx context.Context, req *order.DeleteOrderRequest) (*order.DeleteOrderRequest, error) {
+func (s *GrpcOrderServer) DeleteOrder(ctx context.Context, req *order.DeleteOrderRequest) (*emptypb.Empty, error) {
 	// TODO: Implement logic to delete order
-	return &order.DeleteOrderRequest{Id: req.Id}, nil
+	return &emptypb.Empty{}, nil
 }

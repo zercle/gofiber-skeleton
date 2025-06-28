@@ -3,11 +3,12 @@ package delivery
 import (
 	"context"
 	"gofiber-skeleton/api/user"
-	
+
 	"gofiber-skeleton/internal/user/usecase"
 
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserHandler struct {
@@ -76,7 +77,7 @@ func (s *GrpcUserServer) UpdateUser(ctx context.Context, req *user.UpdateUserReq
 	return &user.User{Id: req.Id, Username: req.Username, Email: req.Email}, nil
 }
 
-func (s *GrpcUserServer) DeleteUser(ctx context.Context, req *user.DeleteUserRequest) (*user.DeleteUserRequest, error) {
+func (s *GrpcUserServer) DeleteUser(ctx context.Context, req *user.DeleteUserRequest) (*emptypb.Empty, error) {
 	// TODO: Implement logic to delete user
-	return &user.DeleteUserRequest{Id: req.Id}, nil
+	return &emptypb.Empty{}, nil
 }

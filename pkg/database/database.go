@@ -1,20 +1,25 @@
 package database
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
-
-	
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	_ "modernc.org/sqlite"
 )
 
 func ConnectDB(databaseURL string) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(databaseURL), &gorm.Config{})
+	sqlDB, err := sql.Open("sqlite", databaseURL)
+
+	db, err := gorm.Open(sqlite.New(sqlite.Config{
+		Conn: sqlDB,
+	}), &gorm.Config{})
 
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
@@ -27,7 +32,7 @@ func ConnectDB(databaseURL string) *gorm.DB {
 func RunMigrations(migrationsPath string, databaseURL string) {
 	m, err := migrate.New(
 		fmt.Sprintf("file://%s", migrationsPath),
-		fmt.Sprintf("sqlite3://%s", databaseURL),
+		fmt.Sprintf("sqlite://%s", databaseURL),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create migrate instance: %v", err)
