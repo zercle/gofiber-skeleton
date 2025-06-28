@@ -27,7 +27,7 @@ func ConnectDB(databaseURL string) *gorm.DB {
 func RunMigrations(migrationsPath string, databaseURL string) {
 	m, err := migrate.New(
 		fmt.Sprintf("file://%s", migrationsPath),
-		fmt.Sprintf("sqlite://%s", databaseURL),
+		fmt.Sprintf("sqlite3://%s", databaseURL),
 	)
 	if err != nil {
 		log.Fatalf("Failed to create migrate instance: %v", err)
