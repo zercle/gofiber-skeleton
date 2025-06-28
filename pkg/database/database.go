@@ -17,6 +17,10 @@ import (
 func ConnectDB(databaseURL string) *gorm.DB {
 	sqlDB, err := sql.Open("sqlite", databaseURL)
 
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
 	db, err := gorm.Open(sqlite.New(sqlite.Config{
 		Conn: sqlDB,
 	}), &gorm.Config{})

@@ -1,7 +1,7 @@
 APP_NAME=gofiber-boilerplate
 BUILD_DIR=./bin
 
-.PHONY: all build run test clean migrate-up migrate-down docker-build docker-up
+.PHONY: all build run test clean migrate-up migrate-down docker-build docker-up lint
 
 all: build
 
@@ -57,4 +57,7 @@ generate-mocks:
 	@go generate ./...
 	@echo "Mocks generated."
 
-
+lint:
+	@echo "Running golangci-lint..."
+	@golangci-lint run ./... --fix
+	@echo "golangci-lint complete."
