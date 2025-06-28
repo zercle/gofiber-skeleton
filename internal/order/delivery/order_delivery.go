@@ -44,7 +44,7 @@ func (h *OrderHandler) UpdateOrder(c *fiber.Ctx) error {
 
 func (h *OrderHandler) DeleteOrder(c *fiber.Ctx) error {
 	// TODO: Implement logic to delete order
-	return c.Status(fiber.StatusNoContent).JSON(fiber.Map{"message": "DeleteOrder"})
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 // gRPC Server
