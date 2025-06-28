@@ -29,7 +29,7 @@ func LoadConfig() (config Config, err error) {
 
 	v.AutomaticEnv()
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
+	v.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
 
 	if err := v.ReadInConfig(); err != nil {
 		return config, fmt.Errorf("failed to read config file: %w", err)
