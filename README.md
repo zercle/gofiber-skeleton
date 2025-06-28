@@ -93,7 +93,7 @@ make docker-up
 ├── pkg                 # Reusable packages (config, database, auth)
 ├── api                 # Protobuf definitions for gRPC (to be implemented)
 ├── Dockerfile
-├── docker-compose.yml
+├── compose.yml
 ├── Makefile
 ├── go.mod
 ├── go.sum
