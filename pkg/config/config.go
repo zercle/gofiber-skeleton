@@ -11,6 +11,7 @@ import (
 type Config struct {
 	GO_ENV       string `mapstructure:"GO_ENV"`
 	APP_PORT     string `mapstructure:"APP_PORT"`
+	GRPC_PORT    string `mapstructure:"GRPC_PORT"`
 	DATABASE_URL string `mapstructure:"DATABASE_URL"`
 	JWT_SECRET   string `mapstructure:"JWT_SECRET"`
 }

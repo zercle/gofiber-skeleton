@@ -55,7 +55,7 @@ func main() {
 	orderDelivery.NewOrderHandler(fiberApp, orderUc)
 
 	// Setup gRPC Server
-	grpcPort := "50051" // You can make this configurable
+	grpcPort := cfg.GRPC_PORT // You can make this configurable
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
