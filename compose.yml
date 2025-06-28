@@ -10,6 +10,6 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./data:./app/data
+      - ./data:/app/data
     environment:
       GO_ENV: local

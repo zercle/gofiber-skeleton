@@ -20,7 +20,7 @@ This is a Go Fiber monorepo boilerplate, suitable as a template repository, for 
 *   **Monorepo Structure:** Organized to support multiple internal modules (e.g., `user`, `product`, `order`) demonstrating Clean Architecture layers (domain, usecase, infrastructure, delivery).
 *   **API Endpoints:** Example REST and gRPC endpoints for `User`, `Product`, and `Order` modules (to be implemented).
 *   **Configuration:**
-    *   `config/GO_ENV.yaml` for default settings.
+    *   `configs/local.yaml` for default settings.
     *   Support for runtime environment variable overrides.
 *   **Database:**
     *   SQLite database.

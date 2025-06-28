@@ -24,6 +24,11 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	version string
+	build   string
+)
+
 func main() {
 	migrationsPath := os.Getenv("PWD") + "/database/migrations"
 	fiberApp := app.SetupApp(migrationsPath)
@@ -69,6 +74,7 @@ func main() {
 
 	// Start Fiber app in a goroutine
 	go func() {
+		log.Printf("App version: %s, build: %s", version, build)
 		if err := fiberApp.Listen(fmt.Sprintf(":%s", cfg.APP_PORT)); err != nil {
 			log.Fatalf("failed to serve Fiber: %v", err)
 		}

@@ -6,6 +6,6 @@
 !/cmd/
 !/internal/
 !/pkg/
-!/config/
+!/configs/
 !/database/migrations/
 !/api/
