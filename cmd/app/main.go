@@ -30,7 +30,7 @@ var (
 )
 
 func main() {
-	migrationsPath := os.Getenv("PWD") + "/database/migrations"
+	migrationsPath := "./database/migrations"
 	fiberApp := app.SetupApp(migrationsPath)
 	cfg, err := config.LoadConfig()
 	if err != nil {
