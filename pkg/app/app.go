@@ -25,7 +25,7 @@ import (
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2000.html
 
-// @host localhost:3000
+// @host localhost:8080
 // @BasePath /
 
 func SetupApp(migrationsPath string) *fiber.App {
@@ -44,7 +44,7 @@ func SetupApp(migrationsPath string) *fiber.App {
 	app.Use(logger.New())
 
 	// Swagger UI
-	app.Get("/swagger/*", swagger.New(swagger.Config{URL: "http://localhost:3000/swagger/doc.json"}))
+	app.Get("/swagger/*", swagger.New())
 
 
 	app.Get("/", func(c *fiber.Ctx) error {

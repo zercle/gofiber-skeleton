@@ -26,13 +26,11 @@ clean:
 
 migrate-up:
 	@echo "Running database migrations up..."
-	@migrate -path database/migrations -database "sqlite3://$(shell grep DATABASE_URL configs/local.yaml | awk '{print $2}')" up
-	@echo "Migrations up complete."
+	@go run ./cmd/migrator up
 
 migrate-down:
 	@echo "Running database migrations down..."
-	@migrate -path database/migrations -database "sqlite3://$(shell grep DATABASE_URL configs/local.yaml | awk '{print $2}')" down
-	@echo "Migrations down complete."
+	@go run ./cmd/migrator down
 
 docker-build:
 	@echo "Building Docker image..."
