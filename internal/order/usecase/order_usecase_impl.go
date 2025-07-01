@@ -4,6 +4,7 @@ import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
 	"gofiber-skeleton/internal/order/infrastructure"
+	"gofiber-skeleton/pkg/types"
 )
 
 type orderUsecase struct {
@@ -16,7 +17,7 @@ func NewOrderUsecase(orderRepo infrastructure.OrderRepository) OrderUsecase {
 	}
 }
 
-func (ou *orderUsecase) GetOrder(ctx context.Context, id uint) (*domain.Order, error) {
+func (ou *orderUsecase) GetOrder(ctx context.Context, id types.UUIDv7) (*domain.Order, error) {
 	return ou.orderRepo.GetOrder(ctx, id)
 }
 
@@ -28,6 +29,6 @@ func (ou *orderUsecase) UpdateOrder(ctx context.Context, order *domain.Order) er
 	return ou.orderRepo.UpdateOrder(ctx, order)
 }
 
-func (ou *orderUsecase) DeleteOrder(ctx context.Context, id uint) error {
+func (ou *orderUsecase) DeleteOrder(ctx context.Context, id types.UUIDv7) error {
 	return ou.orderRepo.DeleteOrder(ctx, id)
 }

@@ -1,23 +1,35 @@
 package order
 
 import (
-	"gofiber-skeleton/internal/infra/auth"
+	"gofiber-skeleton/internal/infra/config"
 	"gofiber-skeleton/internal/order/delivery"
 	"gofiber-skeleton/internal/order/repository"
 	"gofiber-skeleton/internal/order/usecase"
 
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
-// RegisterModule initializes and registers the order module for both REST and gRPC.
-func RegisterModule(app *fiber.App, grpcServer *grpc.Server, db *gorm.DB, jwtService auth.JWTService) {
-	orderRepo := repository.NewOrderRepository(db)
-	orderUc := usecase.NewOrderUsecase(orderRepo)
+type Module struct {
+	DB     *gorm.DB
+	Config *config.Config
+}
 
-	// Register REST handlers
-	delivery.NewOrderHandler(app, orderUc, jwtService)
-	// Register gRPC server
-	delivery.NewGrpcOrderServer(grpcServer, orderUc)
+func NewModule(db *gorm.DB, cfg *config.Config) *Module {
+	return &Module{
+		DB:     db,
+		Config: cfg,
+	}
+}
+
+func (m *Module) SetupRoutes(app *fiber.App) {
+	orderRepo := repository.NewOrderRepository(m.DB)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	orderHandler := delivery.NewOrderDelivery(orderUsecase)
+
+	orderGroup := app.Group("/orders")
+	orderGroup.Post("/", orderHandler.CreateOrder)
+	orderGroup.Get("/:id", orderHandler.GetOrderByID)
+	orderGroup.Put("/:id", orderHandler.UpdateOrder)
+	orderGroup.Delete("/:id", orderHandler.DeleteOrder)
 }

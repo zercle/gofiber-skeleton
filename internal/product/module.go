@@ -1,23 +1,35 @@
 package product
 
 import (
-	"gofiber-skeleton/internal/infra/auth"
+	"gofiber-skeleton/internal/infra/config"
 	"gofiber-skeleton/internal/product/delivery"
 	"gofiber-skeleton/internal/product/repository"
 	"gofiber-skeleton/internal/product/usecase"
 
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
-// RegisterModule initializes and registers the product module for both REST and gRPC.
-func RegisterModule(app *fiber.App, grpcServer *grpc.Server, db *gorm.DB, jwtService auth.JWTService) {
-	productRepo := repository.NewProductRepository(db)
-	productUc := usecase.NewProductUsecase(productRepo)
+type Module struct {
+	DB     *gorm.DB
+	Config *config.Config
+}
 
-	// Register REST handlers
-	delivery.NewProductHandler(app, productUc, jwtService)
-	// Register gRPC server
-	delivery.NewGrpcProductServer(grpcServer, productUc)
+func NewModule(db *gorm.DB, cfg *config.Config) *Module {
+	return &Module{
+		DB:     db,
+		Config: cfg,
+	}
+}
+
+func (m *Module) SetupRoutes(app *fiber.App) {
+	productRepo := repository.NewProductRepository(m.DB)
+	productUsecase := usecase.NewProductUsecase(productRepo)
+	productHandler := delivery.NewProductDelivery(productUsecase)
+
+	productGroup := app.Group("/products")
+	productGroup.Post("/", productHandler.CreateProduct)
+	productGroup.Get("/:id", productHandler.GetProductByID)
+	productGroup.Put("/:id", productHandler.UpdateProduct)
+	productGroup.Delete("/:id", productHandler.DeleteProduct)
 }

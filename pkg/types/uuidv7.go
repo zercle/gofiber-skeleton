@@ -1,79 +1,52 @@
-package uuidgen
+package types
 
 import (
 	"database/sql/driver"
 	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
-// UUID is a custom type for UUIDs to ensure type safety.
-type UUID uuid.UUID
+// UUIDv7 represents a UUIDv7 type.
+type UUIDv7 uuid.UUID
 
-// NewUUIDv7 creates a new UUID version 7.
-func NewUUIDv7() (UUID, error) {
-	id, err := uuid.NewV7()
-	return UUID(id), err
-}
-
-// UUIDFromString parses a string into a UUID.
-// func UUIDFromString(s string) (UUID, error) {
-// 	id, err := uuid.FromString(s)
-// 	return UUID(id), err
-// }
-
-// String returns the string representation of the UUID.
-func (u UUID) String() string {
-	return uuid.UUID(u).String()
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-// func (u UUID) MarshalJSON() ([]byte, error) {
-// 	return uuid.UUID(u).MarshalJSON()
-// }
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-// func (u *UUID) UnmarshalJSON(b []byte) error {
-// 	var id uuid.UUID
-// 	if err := id.UnmarshalJSON(b); err != nil {
-// 		return err
-// 	}
-// 	*u = UUID(id)
-// 	return nil
-// }
-
-// GormDataType tells GORM what the database column type should be.
-// For PostgreSQL, it's "uuid". For MySQL, "binary(16)".
-// GORM's default dialect handling should manage this correctly.
-func (u UUID) GormDataType() string {
-	return "uuid"
-}
-
-// Value implements the driver.Valuer interface for database writes.
-func (u UUID) Value() (driver.Value, error) {
-	if u == UUID(uuid.Nil) {
-		return nil, nil
-	}
+// Value implements the driver.Valuer interface.
+func (u UUIDv7) Value() (driver.Value, error) {
 	return uuid.UUID(u).String(), nil
 }
 
-// Scan implements the sql.Scanner interface for database reads.
-func (u *UUID) Scan(src any) error {
+// Scan implements the sql.Scanner interface.
+func (u *UUIDv7) Scan(src interface{}) error {
 	if src == nil {
-		*u = UUID(uuid.Nil)
 		return nil
 	}
 
-	var id uuid.UUID
-	switch src := src.(type) {
-	case string:
-		err := id.Scan(src)
+	switch s := src.(type) {
+	case []byte:
+		parsedUUID, err := uuid.FromString(string(s))
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse UUID from bytes: %w", err)
 		}
+		*u = UUIDv7(parsedUUID)
+		return nil
+	case string:
+		parsedUUID, err := uuid.FromString(s)
+		if err != nil {
+			return fmt.Errorf("failed to parse UUID from string: %w", err)
+		}
+		*u = UUIDv7(parsedUUID)
+		return nil
 	default:
-		return fmt.Errorf("unsupported scan type for UUID: %T", src)
+		return fmt.Errorf("unsupported Scan type for UUIDv7: %T", src)
 	}
-	*u = UUID(id)
-	return nil
+}
+
+// String returns the string representation of the UUIDv7.
+func (u UUIDv7) String() string {
+	return uuid.UUID(u).String()
+}
+
+// NewUUIDv7 generates a new UUIDv7.
+func NewUUIDv7() UUIDv7 {
+	return UUIDv7(uuid.Must(uuid.NewV7()))
 }

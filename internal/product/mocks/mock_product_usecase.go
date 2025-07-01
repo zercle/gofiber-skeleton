@@ -12,6 +12,7 @@ package mocks
 import (
 	context "context"
 	domain "gofiber-skeleton/internal/product/domain"
+	types "gofiber-skeleton/pkg/types"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -56,7 +57,7 @@ func (mr *MockProductUsecaseMockRecorder) CreateProduct(ctx, product any) *gomoc
 }
 
 // DeleteProduct mocks base method.
-func (m *MockProductUsecase) DeleteProduct(ctx context.Context, id uint) error {
+func (m *MockProductUsecase) DeleteProduct(ctx context.Context, id types.UUIDv7) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteProduct", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -70,7 +71,7 @@ func (mr *MockProductUsecaseMockRecorder) DeleteProduct(ctx, id any) *gomock.Cal
 }
 
 // GetProduct mocks base method.
-func (m *MockProductUsecase) GetProduct(ctx context.Context, id uint) (*domain.Product, error) {
+func (m *MockProductUsecase) GetProduct(ctx context.Context, id types.UUIDv7) (*domain.Product, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetProduct", ctx, id)
 	ret0, _ := ret[0].(*domain.Product)

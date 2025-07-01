@@ -6,9 +6,10 @@ import (
 	"gofiber-skeleton/internal/order/domain"
 	"gofiber-skeleton/internal/order/mocks"
 	orderUsecase "gofiber-skeleton/internal/order/usecase"
+	"gofiber-skeleton/pkg/types"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,17 +21,19 @@ func TestGetOrder(t *testing.T) {
 	orderUc := orderUsecase.NewOrderUsecase(mockRepo)
 
 	// Test case 1: Order found
-	expectedOrder := &domain.Order{ID: 1, UserID: 1, ProductID: 1, Quantity: 1, TotalPrice: 10.0}
-	mockRepo.EXPECT().GetOrder(gomock.Any(), uint(1)).Return(expectedOrder, nil).Times(1)
+	orderID := types.NewUUIDv7()
+	expectedOrder := &domain.Order{ID: orderID, UserID: types.NewUUIDv7(), ProductID: types.NewUUIDv7(), Quantity: 1, TotalPrice: 10.0, Status: "pending"}
+	mockRepo.EXPECT().GetOrder(gomock.Any(), orderID).Return(expectedOrder, nil).Times(1)
 
-	order, err := orderUc.GetOrder(context.Background(), 1)
+	order, err := orderUc.GetOrder(context.Background(), orderID)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOrder, order)
 
 	// Test case 2: Order not found
-	mockRepo.EXPECT().GetOrder(gomock.Any(), uint(2)).Return(nil, errors.New("order not found")).Times(1)
+	notFoundOrderID := types.NewUUIDv7()
+	mockRepo.EXPECT().GetOrder(gomock.Any(), notFoundOrderID).Return(nil, errors.New("order not found")).Times(1)
 
-	order, err = orderUc.GetOrder(context.Background(), 2)
+	order, err = orderUc.GetOrder(context.Background(), notFoundOrderID)
 	assert.Error(t, err)
 	assert.Nil(t, order)
 }

@@ -8,14 +8,14 @@ import (
 	"github.com/spf13/viper"
 )
 type Config struct {
-	GO_ENV       string `mapstructure:"GO_ENV"`
-	APP_PORT     string `mapstructure:"APP_PORT"`
-	GRPC_PORT    string `mapstructure:"GRPC_PORT"`
-	DATABASE_URL string `mapstructure:"DATABASE_URL"`
-	JWT_SECRET_KEY string `mapstructure:"JWT_SECRET_KEY"`
+	GoEnv       string `mapstructure:"GO_ENV"`
+	AppPort     string `mapstructure:"APP_PORT"`
+	GrpcPort    string `mapstructure:"GRPC_PORT"`
+	DatabaseURL string `mapstructure:"DATABASE_URL"`
+	JwtSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 }
 
-func LoadConfig() (config Config, err error) {
+func LoadConfig() (config *Config, err error) {
 	goEnv := os.Getenv("GO_ENV")
 	if len(goEnv) == 0 {
 		goEnv = "local"
@@ -32,11 +32,12 @@ func LoadConfig() (config Config, err error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
 
 	if err := v.ReadInConfig(); err != nil {
-		return config, fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	if err := v.Unmarshal(&config); err != nil {
-		return config, fmt.Errorf("failed to unmarshal config: %w", err)
+	config = &Config{}
+	if err := v.Unmarshal(config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
-	return
+	return config, nil
 }

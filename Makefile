@@ -1,13 +1,13 @@
-APP_NAME=gofiber-boilerplate
+APP_NAME=gofiber-skeleton
 BUILD_DIR=./bin
 
-.PHONY: all build run test clean migrate-up migrate-down docker-build docker-up lint
+.PHONY: all build run test clean migrate-up migrate-down docker-build docker-up lint swagger
 
 all: build
 
 build:
 	@echo "Building $(APP_NAME)..."
-	@go build -o $(BUILD_DIR)/$(APP_NAME) ./cmd/app
+	@go build -o $(BUILD_DIR)/$(APP_NAME) ./cmd/server
 	@echo "Build complete."
 
 run:
@@ -61,3 +61,8 @@ lint:
 	@echo "Running golangci-lint..."
 	@golangci-lint run ./... --fix
 	@echo "golangci-lint complete."
+
+swagger:
+	@echo "Generating Swagger documentation..."
+	@swag init -dir ./cmd/server
+	@echo "Swagger documentation generated."

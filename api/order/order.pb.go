@@ -29,6 +29,7 @@ type Order struct {
 	ProductId     uint32                 `protobuf:"varint,3,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	Quantity      int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	TotalPrice    float64                `protobuf:"fixed64,5,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -96,6 +97,13 @@ func (x *Order) GetTotalPrice() float64 {
 		return x.TotalPrice
 	}
 	return 0
+}
+
+func (x *Order) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
 }
 
 type GetOrderRequest struct {
@@ -217,6 +225,7 @@ type UpdateOrderRequest struct {
 	ProductId     uint32                 `protobuf:"varint,3,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	Quantity      int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	TotalPrice    float64                `protobuf:"fixed64,5,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -286,6 +295,13 @@ func (x *UpdateOrderRequest) GetTotalPrice() float64 {
 	return 0
 }
 
+func (x *UpdateOrderRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type DeleteOrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint32                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -334,7 +350,7 @@ var File_api_order_order_proto protoreflect.FileDescriptor
 
 const file_api_order_order_proto_rawDesc = "" +
 	"\n" +
-	"\x15api/order/order.proto\x12\x05order\x1a\x1bgoogle/protobuf/empty.proto\"\x8c\x01\n" +
+	"\x15api/order/order.proto\x12\x05order\x1a\x1bgoogle/protobuf/empty.proto\"\xa4\x01\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\rR\x06userId\x12\x1d\n" +
@@ -342,7 +358,8 @@ const file_api_order_order_proto_rawDesc = "" +
 	"product_id\x18\x03 \x01(\rR\tproductId\x12\x1a\n" +
 	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x1f\n" +
 	"\vtotal_price\x18\x05 \x01(\x01R\n" +
-	"totalPrice\"!\n" +
+	"totalPrice\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\"!\n" +
 	"\x0fGetOrderRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\"\x89\x01\n" +
 	"\x12CreateOrderRequest\x12\x17\n" +
@@ -351,7 +368,7 @@ const file_api_order_order_proto_rawDesc = "" +
 	"product_id\x18\x02 \x01(\rR\tproductId\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x1f\n" +
 	"\vtotal_price\x18\x04 \x01(\x01R\n" +
-	"totalPrice\"\x99\x01\n" +
+	"totalPrice\"\xb1\x01\n" +
 	"\x12UpdateOrderRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\rR\x06userId\x12\x1d\n" +
@@ -359,7 +376,8 @@ const file_api_order_order_proto_rawDesc = "" +
 	"product_id\x18\x03 \x01(\rR\tproductId\x12\x1a\n" +
 	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x1f\n" +
 	"\vtotal_price\x18\x05 \x01(\x01R\n" +
-	"totalPrice\"$\n" +
+	"totalPrice\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\"$\n" +
 	"\x12DeleteOrderRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\rR\x02id2\xf2\x01\n" +
 	"\fOrderService\x120\n" +

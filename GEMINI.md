@@ -1,7 +1,7 @@
 **Generate a Go Fiber Monorepo Boilerplate**
 
 **Project Goal:**
-Create a Go Fiber monorepo boilerplate, suitable as a template repository, for a simple online shopping service demonstrating both REST and gRPC interfaces within a single application.
+Create a Go Fiber monorepo boilerplate with go module `gofiber-skeleton`, suitable as a template repository, for a simple online shopping service demonstrating both REST and gRPC interfaces within a single application.
 
 **Architectural Principles:**
 *   Clean Architecture
@@ -9,7 +9,7 @@ Create a Go Fiber monorepo boilerplate, suitable as a template repository, for a
 
 **Core Technologies:**
 *   **Framework:** Go Fiber
-*   **ORM:** GORM (with `go-sqlite3` pure Go driver)
+*   **ORM:** GORM (with `modernc.org/sqlite` pure Go driver)
 *   **Configuration:** Viper (YAML files, environment variable overrides)
 *   **Authentication:** JWT
 *   **Database Migrations:** Go-migrate

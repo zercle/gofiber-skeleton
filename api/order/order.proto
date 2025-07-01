@@ -12,6 +12,7 @@ message Order {
   uint32 product_id = 3;
   int32 quantity = 4;
   double total_price = 5;
+  string status = 6;
 }
 
 message GetOrderRequest {
@@ -31,6 +32,7 @@ message UpdateOrderRequest {
   uint32 product_id = 3;
   int32 quantity = 4;
   double total_price = 5;
+  string status = 6;
 }
 
 message DeleteOrderRequest {

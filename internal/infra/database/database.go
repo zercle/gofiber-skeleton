@@ -3,18 +3,17 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	_ "modernc.org/sqlite"
 )
 
-func ConnectDB(databaseURL string) *gorm.DB {
+func NewDatabase(databaseURL string) (*gorm.DB, error) {
 	sqlDB, err := sql.Open("sqlite", databaseURL)
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	db, err := gorm.Open(sqlite.New(sqlite.Config{
@@ -22,9 +21,9 @@ func ConnectDB(databaseURL string) *gorm.DB {
 	}), &gorm.Config{})
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	fmt.Println("Connected to database successfully!")
-	return db
+	return db, nil
 }

@@ -12,9 +12,9 @@ package mocks
 import (
 	context "context"
 	domain "gofiber-skeleton/internal/user/domain"
+	types "gofiber-skeleton/pkg/types"
 	reflect "reflect"
 
-	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -57,7 +57,7 @@ func (mr *MockUserUsecaseMockRecorder) CreateUser(ctx, user any) *gomock.Call {
 }
 
 // DeleteUser mocks base method.
-func (m *MockUserUsecase) DeleteUser(ctx context.Context, id uuid.UUID) error {
+func (m *MockUserUsecase) DeleteUser(ctx context.Context, id types.UUIDv7) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", ctx, id)
 	ret0, _ := ret[0].(error)
@@ -71,7 +71,7 @@ func (mr *MockUserUsecaseMockRecorder) DeleteUser(ctx, id any) *gomock.Call {
 }
 
 // GetUser mocks base method.
-func (m *MockUserUsecase) GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (m *MockUserUsecase) GetUser(ctx context.Context, id types.UUIDv7) (*domain.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", ctx, id)
 	ret0, _ := ret[0].(*domain.User)
@@ -83,21 +83,6 @@ func (m *MockUserUsecase) GetUser(ctx context.Context, id uuid.UUID) (*domain.Us
 func (mr *MockUserUsecaseMockRecorder) GetUser(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockUserUsecase)(nil).GetUser), ctx, id)
-}
-
-// Login mocks base method.
-func (m *MockUserUsecase) Login(ctx context.Context, email, password string) (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Login", ctx, email, password)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Login indicates an expected call of Login.
-func (mr *MockUserUsecaseMockRecorder) Login(ctx, email, password any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Login", reflect.TypeOf((*MockUserUsecase)(nil).Login), ctx, email, password)
 }
 
 // UpdateUser mocks base method.

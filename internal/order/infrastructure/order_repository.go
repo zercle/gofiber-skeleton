@@ -4,11 +4,12 @@ package infrastructure
 import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
+	"gofiber-skeleton/pkg/types"
 )
 
 type OrderRepository interface {
-	GetOrder(ctx context.Context, id uint) (*domain.Order, error)
+	GetOrder(ctx context.Context, id types.UUIDv7) (*domain.Order, error)
 	CreateOrder(ctx context.Context, order *domain.Order) error
 	UpdateOrder(ctx context.Context, order *domain.Order) error
-	DeleteOrder(ctx context.Context, id uint) error
+	DeleteOrder(ctx context.Context, id types.UUIDv7) error
 }

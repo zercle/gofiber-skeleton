@@ -26,7 +26,7 @@ func main() {
 	}
 
 	migrationsPath := "db/migrations"
-	dbPath := cfg.DATABASE_URL
+	dbPath := cfg.DatabaseURL
 
 	dbDir := filepath.Dir(dbPath)
 	if _, err := os.Stat(dbDir); os.IsNotExist(err) {

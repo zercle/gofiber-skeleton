@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
+	"gofiber-skeleton/pkg/types"
 
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ func NewOrderRepository(db *gorm.DB) OrderRepository {
 	}
 }
 
-func (or *orderRepository) GetOrder(ctx context.Context, id uint) (*domain.Order, error) {
+func (or *orderRepository) GetOrder(ctx context.Context, id types.UUIDv7) (*domain.Order, error) {
 	var order domain.Order
 	if err := or.db.WithContext(ctx).First(&order, id).Error; err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (or *orderRepository) UpdateOrder(ctx context.Context, order *domain.Order)
 	return nil
 }
 
-func (or *orderRepository) DeleteOrder(ctx context.Context, id uint) error {
+func (or *orderRepository) DeleteOrder(ctx context.Context, id types.UUIDv7) error {
 	if err := or.db.WithContext(ctx).Delete(&domain.Order{}, id).Error; err != nil {
 		return err
 	}

@@ -6,9 +6,10 @@ import (
 	"gofiber-skeleton/internal/product/domain"
 	"gofiber-skeleton/internal/product/mocks"
 	productUsecase "gofiber-skeleton/internal/product/usecase"
+	"gofiber-skeleton/pkg/types"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,17 +21,19 @@ func TestGetProduct(t *testing.T) {
 	productUc := productUsecase.NewProductUsecase(mockRepo)
 
 	// Test case 1: Product found
-	expectedProduct := &domain.Product{ID: 1, Name: "testproduct", Price: 10.0}
-	mockRepo.EXPECT().GetProduct(gomock.Any(), uint(1)).Return(expectedProduct, nil).Times(1)
+	productID := types.NewUUIDv7()
+	expectedProduct := &domain.Product{ID: productID, Name: "testproduct", Price: 10.0}
+	mockRepo.EXPECT().GetProduct(gomock.Any(), productID).Return(expectedProduct, nil).Times(1)
 
-	product, err := productUc.GetProduct(context.Background(), 1)
+	product, err := productUc.GetProduct(context.Background(), productID)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProduct, product)
 
 	// Test case 2: Product not found
-	mockRepo.EXPECT().GetProduct(gomock.Any(), uint(2)).Return(nil, errors.New("product not found")).Times(1)
+	notFoundProductID := types.NewUUIDv7()
+	mockRepo.EXPECT().GetProduct(gomock.Any(), notFoundProductID).Return(nil, errors.New("product not found")).Times(1)
 
-	product, err = productUc.GetProduct(context.Background(), 2)
+	product, err = productUc.GetProduct(context.Background(), notFoundProductID)
 	assert.Error(t, err)
 	assert.Nil(t, product)
 }

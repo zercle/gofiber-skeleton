@@ -3,49 +3,92 @@ package delivery
 import (
 	"context"
 	"gofiber-skeleton/api/product"
-	
+
 	"gofiber-skeleton/internal/product/usecase"
+	"gofiber-skeleton/pkg/jsend"
 
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type ProductHandler struct {
+type ProductDelivery struct {
 	productUsecase usecase.ProductUsecase
 }
 
-func NewProductHandler(app *fiber.App, productUsecase usecase.ProductUsecase) {
-	h := &ProductHandler{
+func NewProductDelivery(productUsecase usecase.ProductUsecase) *ProductDelivery {
+	return &ProductDelivery{
 		productUsecase: productUsecase,
 	}
-
-	// REST Endpoints
-	app.Get("/products/:id", h.GetProductByID)
-	app.Post("/products", h.CreateProduct)
-	app.Put("/products/:id", h.UpdateProduct)
-	app.Delete("/products/:id", h.DeleteProduct)
 }
 
 // REST Handlers
-func (h *ProductHandler) GetProductByID(c *fiber.Ctx) error {
+// GetProductByID godoc
+// @Summary Get product by ID
+// @Description Get product by ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Success 200 {object} jsend.JSendResponse{data=domain.Product} "Success"
+// @Failure 400 {object} jsend.JSendResponse{data=string} "Bad Request"
+// @Failure 404 {object} jsend.JSendResponse{data=string} "Not Found"
+// @Failure 500 {object} jsend.JSendResponse{data=string} "Internal Server Error"
+// @Router /products/{id} [get]
+func (d *ProductDelivery) GetProductByID(c *fiber.Ctx) error {
 	// TODO: Implement logic to get product by ID
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "GetProductByID"})
+	return jsend.Success(c, fiber.Map{"message": "GetProductByID"})
 }
 
-func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param product body domain.Product true "Product object"
+// @Success 201 {object} jsend.JSendResponse{data=domain.Product} "Created"
+// @Failure 400 {object} jsend.JSendResponse{data=string} "Bad Request"
+// @Failure 500 {object} jsend.JSendResponse{data=string} "Internal Server Error"
+// @Router /products [post]
+func (d *ProductDelivery) CreateProduct(c *fiber.Ctx) error {
 	// TODO: Implement logic to create product
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "CreateProduct"})
+	return jsend.Success(c, fiber.Map{"message": "CreateProduct"})
 }
 
-func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
+// UpdateProduct godoc
+// @Summary Update an existing product
+// @Description Update an existing product
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Param product body domain.Product true "Product object"
+// @Success 200 {object} jsend.JSendResponse{data=domain.Product} "Success"
+// @Failure 400 {object} jsend.JSendResponse{data=string} "Bad Request"
+// @Failure 404 {object} jsend.JSendResponse{data=string} "Not Found"
+// @Failure 500 {object} jsend.JSendResponse{data=string} "Internal Server Error"
+// @Router /products/{id} [put]
+func (d *ProductDelivery) UpdateProduct(c *fiber.Ctx) error {
 	// TODO: Implement logic to update product
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "UpdateProduct"})
+	return jsend.Success(c, fiber.Map{"message": "UpdateProduct"})
 }
 
-func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
+// DeleteProduct godoc
+// @Summary Delete a product by ID
+// @Description Delete a product by ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Success 200 {object} jsend.JSendResponse{data=string} "Success"
+// @Failure 400 {object} jsend.JSendResponse{data=string} "Bad Request"
+// @Failure 404 {object} jsend.JSendResponse{data=string} "Not Found"
+// @Failure 500 {object} jsend.JSendResponse{data=string} "Internal Server Error"
+// @Router /products/{id} [delete]
+func (d *ProductDelivery) DeleteProduct(c *fiber.Ctx) error {
 	// TODO: Implement logic to delete product
-	return c.SendStatus(fiber.StatusNoContent)
+	return jsend.Success(c, fiber.Map{"message": "DeleteProduct"})
 }
 
 // gRPC Server

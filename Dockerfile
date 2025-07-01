@@ -45,7 +45,7 @@ COPY . .
 RUN go test -v ./... && \
     CGO_ENABLED=0 go build -v \
     -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)'" \
-    -o dist/server ./cmd/app
+    -o dist/server ./cmd/server
 
 # Pack PRD image
 FROM gcr.io/distroless/base:nonroot
@@ -76,4 +76,5 @@ VOLUME /app/data
 EXPOSE 8080 8081
 
 # Default run entrypoint using the copied static tini binary
-ENTRYPOINT ["/usr/bin/tini", "--", "/app/server"]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/app/server"]

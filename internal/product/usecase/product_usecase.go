@@ -4,11 +4,12 @@ package usecase
 import (
 	"context"
 	"gofiber-skeleton/internal/product/domain"
+	"gofiber-skeleton/pkg/types"
 )
 
 type ProductUsecase interface {
-	GetProduct(ctx context.Context, id uint) (*domain.Product, error)
+	GetProduct(ctx context.Context, id types.UUIDv7) (*domain.Product, error)
 	CreateProduct(ctx context.Context, product *domain.Product) error
 	UpdateProduct(ctx context.Context, product *domain.Product) error
-	DeleteProduct(ctx context.Context, id uint) error
+	DeleteProduct(ctx context.Context, id types.UUIDv7) error
 }

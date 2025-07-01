@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
+	"gofiber-skeleton/pkg/types"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -28,7 +28,7 @@ func (ur *userRepository) FindByEmail(ctx context.Context, email string) (*domai
 	return &user, nil
 }
 
-func (ur *userRepository) GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (ur *userRepository) GetUser(ctx context.Context, id types.UUIDv7) (*domain.User, error) {
 	var user domain.User
 	if err := ur.db.WithContext(ctx).First(&user, id).Error; err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (ur *userRepository) UpdateUser(ctx context.Context, user *domain.User) err
 	return nil
 }
 
-func (ur *userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
+func (ur *userRepository) DeleteUser(ctx context.Context, id types.UUIDv7) error {
 	if err := ur.db.WithContext(ctx).Delete(&domain.User{}, id).Error; err != nil {
 		return err
 	}

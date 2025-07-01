@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"gofiber-skeleton/internal/product/domain"
+	"gofiber-skeleton/pkg/types"
 
 	"gorm.io/gorm"
 )
@@ -17,7 +18,7 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 	}
 }
 
-func (pr *productRepository) GetProduct(ctx context.Context, id uint) (*domain.Product, error) {
+func (pr *productRepository) GetProduct(ctx context.Context, id types.UUIDv7) (*domain.Product, error) {
 	var product domain.Product
 	if err := pr.db.WithContext(ctx).First(&product, id).Error; err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (pr *productRepository) UpdateProduct(ctx context.Context, product *domain.
 	return nil
 }
 
-func (pr *productRepository) DeleteProduct(ctx context.Context, id uint) error {
+func (pr *productRepository) DeleteProduct(ctx context.Context, id types.UUIDv7) error {
 	if err := pr.db.WithContext(ctx).Delete(&domain.Product{}, id).Error; err != nil {
 		return err
 	}

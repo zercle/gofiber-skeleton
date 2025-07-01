@@ -4,14 +4,13 @@ package repository
 import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
-
-	"github.com/google/uuid"
+	"gofiber-skeleton/pkg/types"
 )
 
 type UserRepository interface {
-	GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	GetUser(ctx context.Context, id types.UUIDv7) (*domain.User, error)
 	CreateUser(ctx context.Context, user *domain.User) error
 	UpdateUser(ctx context.Context, user *domain.User) error
-	DeleteUser(ctx context.Context, id uuid.UUID) error
+	DeleteUser(ctx context.Context, id types.UUIDv7) error
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 }
