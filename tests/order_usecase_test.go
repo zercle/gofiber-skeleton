@@ -8,8 +8,8 @@ import (
 	orderUsecase "gofiber-skeleton/internal/order/usecase"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestGetOrder(t *testing.T) {
@@ -34,3 +34,6 @@ func TestGetOrder(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, order)
 }
+
+
+

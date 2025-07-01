@@ -3,41 +3,28 @@ package delivery
 import (
 	"context"
 	"gofiber-skeleton/api/product"
-	"gofiber-skeleton/pkg/jsend"
-
-	"gofiber-skeleton/internal/infra/auth"
-	"gofiber-skeleton/internal/infra/middleware"
+	
 	"gofiber-skeleton/internal/product/usecase"
 
 	"github.com/gofiber/fiber/v2"
-	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/grpc"
 )
 
 type ProductHandler struct {
 	productUsecase usecase.ProductUsecase
 }
 
-func NewProductHandler(app *fiber.App, uc usecase.ProductUsecase, jwtService auth.JWTService) {
-	handler := &ProductHandler{
-		productUsecase: uc,
+func NewProductHandler(app *fiber.App, productUsecase usecase.ProductUsecase) {
+	h := &ProductHandler{
+		productUsecase: productUsecase,
 	}
 
-	// Group all product routes and protect them
-	productsAPI := app.Group("/api/v1/products", middleware.Protected(jwtService))
-
-	productsAPI.Get("/", handler.GetAllProducts)
-	productsAPI.Get("/:id", handler.GetProductByID)
-	productsAPI.Post("/", handler.CreateProduct)
-}
-
-func (h *ProductHandler) GetAllProducts(c *fiber.Ctx) error {
-	// products, err := h.productUsecase.FindAll(c.Context())
-	// if err != nil {
-	// 	return jsend.Error(c, "Could not retrieve products", http.StatusInternalServerError)
-	// }
-	products := []fiber.Map{{"id": "prod_123", "name": "Sample Product"}}
-	return jsend.Success(c, products)
+	// REST Endpoints
+	app.Get("/products/:id", h.GetProductByID)
+	app.Post("/products", h.CreateProduct)
+	app.Put("/products/:id", h.UpdateProduct)
+	app.Delete("/products/:id", h.DeleteProduct)
 }
 
 // REST Handlers

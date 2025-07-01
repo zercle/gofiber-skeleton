@@ -8,8 +8,8 @@ import (
 	productUsecase "gofiber-skeleton/internal/product/usecase"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
 )
 
 func TestGetProduct(t *testing.T) {
@@ -34,3 +34,6 @@ func TestGetProduct(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, product)
 }
+
+
+

@@ -10,7 +10,7 @@ This is a Go Fiber monorepo boilerplate, suitable as a template repository, for 
 ## Core Technologies
 
 *   **Framework:** Go Fiber
-*   **ORM:** GORM (with `modernc.org/sqlite` pure Go driver)
+*   **ORM:** GORM (with `go-sqlite3` pure Go driver)
 *   **Configuration:** Viper (YAML files, environment variable overrides)
 *   **Authentication:** JWT
 *   **Database Migrations:** Go-migrate
@@ -33,6 +33,7 @@ This is a Go Fiber monorepo boilerplate, suitable as a template repository, for 
 
 *   Go (1.24 or higher)
 *   Docker (for containerization)
+*   `migrate` CLI tool: `go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
 
 ### Setup
 

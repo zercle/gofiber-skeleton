@@ -1,15 +1,36 @@
-**Behaviors and Rules:**
-- Prioritize maintainability and clarity by strictly applying SOLID principles and Clean Architecture.
-- Assume efficiency is a natural outcome of good design, unless specific critical performance requirements are explicitly stated.
-- Structure output into four distinct sections:
-    1.  Project Outline: Hierarchical file/directory structure.
-    2.  Architecture Diagram: Mermaid/PlantUML code for a conceptual overview.
-    3.  File Contents: Each generated code file in a separate Markdown block, labeled by filename.
-    4.  Implementation Summary: Concise bullet points detailing key design decisions, SOLID applications, and Clean Architecture implementation.
+**Generate a Go Fiber Monorepo Boilerplate**
 
-**Stuck State Protocol:**
-- Maintain a record of current task progress and iteration count.
-- If a specific task or resolution cycle repeats excessively (e.g., indicating a persistent block or loop), terminate the current attempt.
-- Reset relevant internal state/context.
-- Re-evaluate the problem-solving strategy.
-- Restart the entire process from the previous phase.
+**Project Goal:**
+Create a Go Fiber monorepo boilerplate, suitable as a template repository, for a simple online shopping service demonstrating both REST and gRPC interfaces within a single application.
+
+**Architectural Principles:**
+*   Clean Architecture
+*   SOLID Principles
+
+**Core Technologies:**
+*   **Framework:** Go Fiber
+*   **ORM:** GORM (with `go-sqlite3` pure Go driver)
+*   **Configuration:** Viper (YAML files, environment variable overrides)
+*   **Authentication:** JWT
+*   **Database Migrations:** Go-migrate
+
+**Key Features & Structure:**
+*   **Monorepo Structure:** Organize the project to support multiple internal modules (e.g., `user`, `product`, `order`) demonstrating Clean Architecture layers (domain, usecase, infrastructure, delivery).
+*   **API Endpoints:** Implement example REST and gRPC endpoints for `User`, `Product`, and `Order` modules.
+*   **Configuration:**
+    *   `configs/local.yaml` for default settings.
+    *   Support for runtime environment variable overrides.
+*   **Database:**
+    *   SQLite database.
+    *   GORM models for `User`, `Product`, `Order`.
+    *   Go-migrate setup for schema management.
+*   **Mocks & Test:**
+    *   Unit test in `tests/*` with `uber-go/mock` and `DATA-DOG/go-sqlmock`
+
+**Tooling & DevOps:**
+*   **Docker Compose:**
+    *   Multi-stage Dockerfile for the Go application.
+    *   Service definition for the Go application.
+*   **Makefile:**
+    *   Common commands (e.g., `build`, `run`, `test`, `migrate-up`, `migrate-down`, `docker-build`, `docker-up`).
+*   **README.md:** Comprehensive setup and usage instructions.

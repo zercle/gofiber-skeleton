@@ -39,12 +39,13 @@ COPY . .
 # Build the Go application.
 # - `go test -v ./...` is kept as per original, though often run in a separate CI stage.
 # - `CGO_ENABLED=0` ensures a statically linked binary, suitable for distroless.
+# - `-installsuffix 'static'` is redundant with `CGO_ENABLED=0` and removed.
 # - `-ldflags` embeds version and build information into the binary.
 # - Output binary is named `server` in `dist/server`.
-RUN go test -v --race ./... && \
+RUN go test -v ./... && \
     CGO_ENABLED=0 go build -v \
     -ldflags="-X 'main.version=$(git rev-parse --short HEAD)' -X 'main.build=$(date --iso-8601=seconds)'" \
-    -o dist/server ./cmd/server
+    -o dist/server ./cmd/app
 
 # Pack PRD image
 FROM gcr.io/distroless/base:nonroot
@@ -75,5 +76,4 @@ VOLUME /app/data
 EXPOSE 8080 8081
 
 # Default run entrypoint using the copied static tini binary
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/app/server"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/server"]
