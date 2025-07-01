@@ -3,14 +3,14 @@ package usecase
 import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
-	"gofiber-skeleton/internal/order/infrastructure"
+	"gofiber-skeleton/internal/order/repository"
 )
 
 type orderUsecase struct {
-	orderRepo infrastructure.OrderRepository
+	orderRepo repository.OrderRepository
 }
 
-func NewOrderUsecase(orderRepo infrastructure.OrderRepository) OrderUsecase {
+func NewOrderUsecase(orderRepo repository.OrderRepository) OrderUsecase {
 	return &orderUsecase{
 		orderRepo: orderRepo,
 	}

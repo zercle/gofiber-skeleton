@@ -3,14 +3,14 @@ package usecase
 import (
 	"context"
 	"gofiber-skeleton/internal/product/domain"
-	"gofiber-skeleton/internal/product/infrastructure"
+	"gofiber-skeleton/internal/product/repository"
 )
 
 type productUsecase struct {
-	productRepo infrastructure.ProductRepository
+	productRepo repository.ProductRepository
 }
 
-func NewProductUsecase(productRepo infrastructure.ProductRepository) ProductUsecase {
+func NewProductUsecase(productRepo repository.ProductRepository) ProductUsecase {
 	return &productUsecase{
 		productRepo: productRepo,
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"gofiber-skeleton/pkg/config"
+	"gofiber-skeleton/internal/infra/config"
 	"log"
 	"os"
 	"path/filepath"

@@ -1,11 +1,14 @@
-package infrastructure
+package repository
 
 import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+var _ UserRepository = (*userRepository)(nil)
 
 type userRepository struct {
 	db *gorm.DB
@@ -17,7 +20,15 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (ur *userRepository) GetUser(ctx context.Context, id uint) (*domain.User, error) {
+func (ur *userRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
+	var user domain.User
+	if err := ur.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (ur *userRepository) GetUser(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	var user domain.User
 	if err := ur.db.WithContext(ctx).First(&user, id).Error; err != nil {
 		return nil, err
@@ -39,7 +50,7 @@ func (ur *userRepository) UpdateUser(ctx context.Context, user *domain.User) err
 	return nil
 }
 
-func (ur *userRepository) DeleteUser(ctx context.Context, id uint) error {
+func (ur *userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	if err := ur.db.WithContext(ctx).Delete(&domain.User{}, id).Error; err != nil {
 		return err
 	}

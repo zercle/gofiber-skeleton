@@ -4,6 +4,7 @@ import (
 	"context"
 	"gofiber-skeleton/api/order"
 
+	"gofiber-skeleton/internal/infra/auth"
 	"gofiber-skeleton/internal/order/usecase"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,11 +14,13 @@ import (
 
 type OrderHandler struct {
 	orderUsecase usecase.OrderUsecase
+	jwtService   auth.JWTService
 }
 
-func NewOrderHandler(app *fiber.App, orderUsecase usecase.OrderUsecase) {
+func NewOrderHandler(app *fiber.App, orderUsecase usecase.OrderUsecase, jwtService auth.JWTService) {
 	h := &OrderHandler{
 		orderUsecase: orderUsecase,
+		jwtService:   jwtService,
 	}
 
 	// REST Endpoints

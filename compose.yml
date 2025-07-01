@@ -13,4 +13,5 @@ services:
     volumes:
       - ./data:/app/data
     environment:
+      <<: *default-env
       GO_ENV: local
