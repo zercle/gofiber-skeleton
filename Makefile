@@ -54,7 +54,12 @@ generate-proto:
 
 generate-mocks:
 	@echo "Generating mocks..."
-	@go generate ./...
+	@mockgen -source=internal/user/usecase/user_usecase.go -destination=internal/user/mocks/mock_user_usecase.go
+	@mockgen -source=internal/user/repository/user_repository.go -destination=internal/user/mocks/mock_user_repository.go
+	@mockgen -source=internal/product/usecase/product_usecase.go -destination=internal/product/mocks/mock_product_usecase.go
+	@mockgen -source=internal/product/repository/product_repository.go -destination=internal/product/mocks/mock_product_repository.go
+	@mockgen -source=internal/order/usecase/order_usecase.go -destination=internal/order/mocks/mock_order_usecase.go
+	@mockgen -source=internal/order/repository/order_repository.go -destination=internal/order/mocks/mock_order_repository.go
 	@echo "Mocks generated."
 
 lint:

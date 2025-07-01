@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 
 	"gorm.io/gorm"
 )

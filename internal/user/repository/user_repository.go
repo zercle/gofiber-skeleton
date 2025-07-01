@@ -4,7 +4,7 @@ package repository
 import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 )
 
 type UserRepository interface {

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"gofiber-skeleton/internal/infra/auth"
-	"gofiber-skeleton/pkg/jsend"
+	"gofiber-skeleton/internal/infra/jsend"
 	"net/http"
 	"strings"
 

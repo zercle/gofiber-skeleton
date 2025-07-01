@@ -4,7 +4,7 @@ import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
 	"gofiber-skeleton/internal/user/repository"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 )
 
 type userUsecase struct {

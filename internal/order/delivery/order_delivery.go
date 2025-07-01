@@ -5,7 +5,7 @@ import (
 	"gofiber-skeleton/api/order"
 
 	"gofiber-skeleton/internal/order/usecase"
-	"gofiber-skeleton/pkg/jsend"
+	"gofiber-skeleton/internal/infra/jsend"
 
 	"github.com/gofiber/fiber/v2"
 	"google.golang.org/grpc"

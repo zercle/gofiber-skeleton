@@ -102,12 +102,19 @@ Once the application is running, you can access the Swagger UI at `http://localh
 
 ## Project Structure
 
-```
 . \
 ├── cmd/app             # Main application entry point
 ├── config              # Configuration files
 ├── database            # Database migrations
 ├── internal            # Internal modules (user, product, order) with Clean Architecture layers
+│   ├── infra           # Infrastructure components (app, database, auth, config, jsend, types, middleware)
+│   │   ├── app         # Fiber app setup
+│   │   ├── auth        # JWT authentication
+│   │   ├── config      # Configuration loading
+│   │   ├── database    # Database connection and migrations
+│   │   ├── jsend       # JSend response formatting
+│   │   ├── middleware  # Fiber middleware
+│   │   └── types       # Custom types (e.g., UUIDv7)
 │   ├── user
 │   │   ├── domain      # Data structures, entities
 │   │   ├── usecase     # Business logic, interfaces
@@ -115,7 +122,6 @@ Once the application is running, you can access the Swagger UI at `http://localh
 │   │   └── delivery    # API handlers (REST, gRPC)
 │   ├── product
 │   └── order
-├── pkg                 # Reusable packages (config, database, auth)
 ├── api                 # Protobuf definitions for gRPC (to be implemented)
 ├── Dockerfile
 ├── compose.yml
@@ -123,5 +129,5 @@ Once the application is running, you can access the Swagger UI at `http://localh
 ├── go.mod
 ├── go.sum
 └── README.md
-```
+
 

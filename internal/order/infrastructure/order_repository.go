@@ -4,7 +4,7 @@ package infrastructure
 import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 )
 
 type OrderRepository interface {

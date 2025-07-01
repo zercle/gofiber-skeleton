@@ -5,7 +5,7 @@ package usecase
 import (
 	"context"
 	"gofiber-skeleton/internal/user/domain"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 )
 
 type UserUsecase interface {

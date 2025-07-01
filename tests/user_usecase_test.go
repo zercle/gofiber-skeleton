@@ -6,7 +6,7 @@ import (
 	"gofiber-skeleton/internal/user/domain"
 	"gofiber-skeleton/internal/user/mocks"
 	userUsecase "gofiber-skeleton/internal/user/usecase"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 	"testing"
 
 	"go.uber.org/mock/gomock"

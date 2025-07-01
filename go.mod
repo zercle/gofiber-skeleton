@@ -81,3 +81,11 @@ require (
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
 )
+
+replace gofiber-skeleton/pkg/app => ./internal/infra/app
+
+replace gofiber-skeleton/pkg/database => ./internal/infra/database
+
+replace gofiber-skeleton/pkg/jsend => ./internal/infra/jsend
+
+replace gofiber-skeleton/pkg/types => ./internal/infra/types

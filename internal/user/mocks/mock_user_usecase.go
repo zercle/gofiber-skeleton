@@ -12,7 +12,7 @@ package mocks
 import (
 	context "context"
 	domain "gofiber-skeleton/internal/user/domain"
-	types "gofiber-skeleton/pkg/types"
+	types "gofiber-skeleton/internal/infra/types"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"

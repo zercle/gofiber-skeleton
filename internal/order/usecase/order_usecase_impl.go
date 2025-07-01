@@ -4,7 +4,7 @@ import (
 	"context"
 	"gofiber-skeleton/internal/order/domain"
 	"gofiber-skeleton/internal/order/infrastructure"
-	"gofiber-skeleton/pkg/types"
+	"gofiber-skeleton/internal/infra/types"
 )
 
 type orderUsecase struct {
