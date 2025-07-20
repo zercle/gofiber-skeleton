@@ -1,133 +1,117 @@
-# Go Fiber Monorepo Boilerplate
+# Go URL Shortener Service: Clean Architecture Boilerplate
 
-This is a Go Fiber monorepo boilerplate, suitable as a template repository, for a simple online shopping service demonstrating both REST and gRPC interfaces within a single application.
+This project implements a high-performance URL shortening service in Go, adhering strictly to Clean Architecture and SOLID principles. It serves as a robust boilerplate for building scalable and maintainable Go applications.
 
-## Architectural Principles
+## Features
 
-*   Clean Architecture
-*   SOLID Principles
+*   **User Management:** Secure user registration and JWT-based authentication.
+*   **URL Shortening:** Create tiny URLs with support for custom short codes for authenticated users, and guest URL creation.
+*   **Redirection:** Secure redirection from short URLs to their original long URLs.
+*   **QR Code Generation:** Generate QR codes for all created short URLs.
 
-## Core Technologies
+## Architecture
 
-*   **Framework:** Go Fiber
-*   **ORM:** GORM (with `modernc.org/sqlite` pure Go driver)
-*   **Configuration:** Viper (YAML files, environment variable overrides)
-*   **Authentication:** JWT
-*   **Database Migrations:** Go-migrate
+Built with a strong emphasis on Clean Architecture and SOLID principles, ensuring clear separation of concerns, maintainability, flexibility, and extensibility. The core business logic (use cases) is decoupled from external frameworks (Go Fiber) and database implementations.
 
-## Key Features & Structure
+## Technical Stack
 
-*   **Monorepo Structure:** Organized to support multiple internal modules (e.g., `user`, `product`, `order`) demonstrating Clean Architecture layers (domain, usecase, infrastructure, delivery).
-*   **API Endpoints:** Example REST and gRPC endpoints for `User`, `Product`, and `Order` modules.
-*   **JSend Responses:** All REST API responses adhere to the JSend specification.
-*   **Swagger Documentation:** Integrated Swagger for interactive API documentation.
-*   **Configuration:**
-    *   `configs/local.yaml` for default settings.
-    *   Support for runtime environment variable overrides.
-*   **Database:**
-    *   SQLite database.
-    *   GORM models for `User`, `Product`, `Order` using UUIDv7 as primary keys.
-    *   Go-migrate setup for schema management.
+*   **Go Framework:** [Go Fiber](https://gofiber.io/) for building efficient RESTful APIs.
+*   **Database:** PostgreSQL (default).
+*   **Database Interactions:**
+    *   [UUIDv7](https://github.com/gofrs/uuid) for all primary keys.
+    *   [sqlc](https://sqlc.dev/) for generating type-safe Go code from SQL queries.
+    *   [golang-migrate](https://github.com/golang-migrate/migrate) for database schema migrations.
+*   **Configuration Management:** [Viper](https://github.com/spf13/viper) for flexible application configuration.
+*   **Authentication:** JWT (JSON Web Tokens).
+*   **Caching/Storage:** [Valkey](https://valkey.io/) (Redis fork) for efficient data caching.
+*   **Development Workflow:** [Air](https://github.com/cosmtrek/air) for live reloading.
+*   **Containerization:** Multi-stage Dockerfile and Docker Compose for local development and deployment.
+
+## Project Structure
+
+The project follows a Clean Architecture-compliant directory structure:
+
+```
+.
+├── cmd/                  # Main application entry points
+│   └── api/              # Main API service entry
+├── internal/             # Core application logic (delivery, usecases, repository, entities, configs)
+├── pkg/                  # Reusable utilities, common libraries
+├── api/                  # API specifications (e.g., Swagger/OpenAPI YAML)
+├── configs/              # External application configuration files
+├── db/                   # Database schema, migrations, and sqlc queries
+├── tests/                # Integration tests
+├── mocks/                # Generated mocks for testing
+├── .github/              # GitHub Actions workflows
+├── Dockerfile            # Docker build instructions
+├── compose.yaml          # Docker Compose file for local development
+├── go.mod                # Go module file
+├── go.sum                # Go module checksums
+├── Makefile              # Common development commands
+└── README.md             # Project documentation
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-*   Go (1.24 or higher)
-*   Docker (for containerization)
-*   `migrate` CLI tool: `go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
+*   Go (1.22 or higher)
+*   Docker and Docker Compose
+*   `golang-migrate` CLI tool
+*   `sqlc` CLI tool
+*   `swag` CLI tool
+*   `air` CLI tool
 
 ### Setup
 
 1.  **Clone the repository:**
+
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/your-username/gofiber-skeleton.git
     cd gofiber-skeleton
     ```
 
-2.  **Install Go modules:**
+2.  **Start Docker Compose services:**
+
     ```bash
-    go mod tidy
+    docker-compose up -d
     ```
 
 3.  **Run database migrations:**
+
     ```bash
     make migrate-up
     ```
 
-### Running the Application
+4.  **Generate sqlc code:**
 
-#### Locally
-
-```bash
-make run
-```
-
-#### With Docker
-
-```bash
-make docker-up
-```
-
-### Authentication (JWT)
-
-This boilerplate includes JWT-based authentication.
-
-1.  **Set JWT Secret Key:** Ensure the `JWT_SECRET_KEY` environment variable is set (e.g., in your `.env` file or directly in your shell).
     ```bash
-    export JWT_SECRET_KEY="your_super_secret_jwt_key"
+    make sqlc
     ```
 
-2.  **Access Protected Routes:**
-    *   The `/protected` endpoint is an example of a protected route.
-    *   To access it, you need a valid JWT. You can generate one using the `/auth/login` (or similar) endpoint once implemented, or manually for testing purposes.
+5.  **Generate Swagger documentation:**
 
-    Example using `curl` (replace `YOUR_JWT_TOKEN` with an actual token):
     ```bash
-    curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:8080/protected
+    make swag
     ```
 
-### Development
+6.  **Run the application (development mode with Air):**
 
-*   **Build:** `make build`
-*   **Test:** `make test`
-*   **Clean:** `make clean`
-*   **Migrate Up:** `make migrate-up`
-*   **Migrate Down:** `make migrate-down`
-*   **Generate Swagger Docs:** `make swagger`
+    ```bash
+    make dev
+    ```
 
-### Accessing Swagger UI
+    The API will be accessible at `http://localhost:8080`.
 
-Once the application is running, you can access the Swagger UI at `http://localhost:<APP_PORT>/swagger/index.html` (replace `<APP_PORT>` with the port your application is running on, default is 3000).
+### Running Tests
 
-## Project Structure
+```bash
+make test
+```
 
-. \
-├── cmd/app             # Main application entry point
-├── config              # Configuration files
-├── database            # Database migrations
-├── internal            # Internal modules (user, product, order) with Clean Architecture layers
-│   ├── infra           # Infrastructure components (app, database, auth, config, jsend, types, middleware)
-│   │   ├── app         # Fiber app setup
-│   │   ├── auth        # JWT authentication
-│   │   ├── config      # Configuration loading
-│   │   ├── database    # Database connection and migrations
-│   │   ├── jsend       # JSend response formatting
-│   │   ├── middleware  # Fiber middleware
-│   │   └── types       # Custom types (e.g., UUIDv7)
-│   ├── user
-│   │   ├── domain      # Data structures, entities
-│   │   ├── usecase     # Business logic, interfaces
-│   │   ├── infrastructure # Repositories, external services
-│   │   └── delivery    # API handlers (REST, gRPC)
-│   ├── product
-│   └── order
-├── api                 # Protobuf definitions for gRPC (to be implemented)
-├── Dockerfile
-├── compose.yml
-├── Makefile
-├── go.mod
-├── go.sum
-└── README.md
+## CI/CD
 
+GitHub Actions workflows are configured for:
 
+*   Automated `go test` execution on push/pull request.
+*   Automated `golangci-lint` checks for code quality and style.

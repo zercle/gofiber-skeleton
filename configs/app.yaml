@@ -1,0 +1,27 @@
+server:
+  port: 8080
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 120s
+
+database:
+  host: "db"
+  port: 5432
+  user: "user"
+  password: "password"
+  dbname: "gofiber_skeleton"
+  sslmode: "disable"
+
+jwt:
+  secret: "your-secret-key"
+  access_token_expiry: "15m"
+  refresh_token_expiry: "168h"
+
+redis:
+  host: "valkey"
+  port: 6379
+  password: ""
+  db: 0
+
+app:
+  base_url: "http://localhost:8080"
