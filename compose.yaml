@@ -4,40 +4,22 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      db:
-        condition: service_healthy
-      cache:
-        condition: service_healthy
-  db:
+      - postgres
+      - valkey
+    environment:
+      - DATABASE_HOST=postgres
+      - CACHE_HOST=valkey
+
+  postgres:
     image: postgres:17-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=gofiber
-    ports:
-      - "5432:5432"
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d gofiber"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      - POSTGRES_DB=shortener
 
-  cache:
+  valkey:
     image: valkey/valkey:8-alpine
     ports:
       - "6379:6379"
-    volumes:
-      - cache_data:/data
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-volumes:
-  db_data:
-  cache_data:

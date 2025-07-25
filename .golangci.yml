@@ -1,0 +1,29 @@
+run:
+  timeout: 5m
+  skip-dirs:
+    - mocks
+
+linters:
+  enable-all: true
+  disable:
+    - exhaustivestruct
+    - golint
+    - interfacer
+    - maligned
+    - scopelint
+    - testpackage
+    - gochecknoinits
+    - gochecknoglobals
+    - gocritic
+    - gocyclo
+    - godox
+    - goerr113
+    - gofumpt
+    - goimports
+    - gomnd
+    - goconst
+    - funlen
+    - lll
+    - nestif
+    - testpackage
+    - wsl

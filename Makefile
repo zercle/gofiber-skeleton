@@ -1,29 +1,23 @@
-DB_URL=postgres://user:password@db:5432/gofiber?sslmode=disable
+run:
+	go run ./cmd/api
 
-.PHONY: dev
 dev:
 	air
 
-.PHONY: migrate-up
-migrate-up:
-	docker-compose exec app migrate -path db/migrations -database "$(DB_URL)" -verbose up
+build:
+	docker build -t gofiber-skeleton .
 
-.PHONY: migrate-down
-migrate-down:
-	docker-compose exec app migrate -path db/migrations -database "$(DB_URL)" -verbose down
+compose-up:
+	docker-compose up
 
-.PHONY: sqlc
-sqlc:
+compose-down:
+	docker-compose down
+
+sqlc-generate:
 	sqlc generate
 
-.PHONY: test
-test:
-	go test ./...
+migrate-up:
+	migrate -path db/migrations -database "postgres://user:password@localhost:5432/shortener?sslmode=disable" -verbose up
 
-.PHONY: swag
-swag:
-	swag init -g cmd/api/main.go
-
-.PHONY: mockgen
-mockgen:
-	mockgen -source=internal/usecases/interfaces.go -destination=mocks/usecases.go -package=mocks
+migrate-down:
+	migrate -path db/migrations -database "postgres://user:password@localhost:5432/shortener?sslmode=disable" -verbose down

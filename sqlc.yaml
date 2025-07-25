@@ -1,17 +1,10 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    queries: "db/queries/"
-    schema: "db/migrations/"
+    queries: "./db/queries/"
+    schema: "./db/migrations/"
     gen:
       go:
         package: "db"
         out: "internal/repository/db"
         sql_package: "pgx/v5"
-        overrides:
-          - column: "users.id"
-            go_type: "github.com/gofrs/uuid.UUID"
-          - column: "urls.id"
-            go_type: "github.com/gofrs/uuid.UUID"
-          - column: "urls.user_id"
-            go_type: "github.com/gofrs/uuid.NullUUID"

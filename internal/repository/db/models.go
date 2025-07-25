@@ -5,21 +5,22 @@
 package db
 
 import (
-	"github.com/gofrs/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Url struct {
-	ID        uuid.UUID
-	UserID    uuid.NullUUID
-	ShortCode string
-	LongUrl   string
-	CreatedAt pgtype.Timestamptz
+	ID          pgtype.UUID
+	OriginalUrl string
+	ShortCode   string
+	UserID      pgtype.UUID
+	CreatedAt   pgtype.Timestamptz
+	ExpiresAt   pgtype.Timestamptz
 }
 
 type User struct {
-	ID        uuid.UUID
+	ID        pgtype.UUID
 	Username  string
 	Password  string
 	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }

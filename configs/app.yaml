@@ -1,27 +1,21 @@
+# Application Configuration
 server:
   port: 8080
-  read_timeout: 10s
-  write_timeout: 10s
-  idle_timeout: 120s
 
 database:
-  host: "db"
+  host: "localhost"
   port: 5432
   user: "user"
   password: "password"
-  dbname: "gofiber_skeleton"
+  dbname: "shortener"
   sslmode: "disable"
 
 jwt:
   secret: "your-secret-key"
-  access_token_expiry: "15m"
-  refresh_token_expiry: "168h"
+  expiration: 72 # in hours
 
-redis:
-  host: "valkey"
+cache:
+  host: "localhost"
   port: 6379
   password: ""
   db: 0
-
-app:
-  base_url: "http://localhost:8080"

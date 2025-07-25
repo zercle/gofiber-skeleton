@@ -1,29 +1,28 @@
-# syntax=docker/dockerfile:1
-
 # Build stage
-FROM mirror.gcr.io/library/golang AS build
+FROM mirror.gcr.io/library/golang:alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./ 
+COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o dist/server ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main ./cmd/api
 
-# Tini stage
-FROM mirror.gcr.io/library/debian:stable-slim AS pkg
-RUN apt-get update && apt-get install -y tini curl && cp $(which curl) /usr/bin/curl-static
+# Install migrate
+RUN go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 # Final stage
-FROM gcr.io/distroless/base:nonroot
+FROM mirror.gcr.io/library/alpine:latest
 
 WORKDIR /app
 
-COPY --from=build /app/dist/server server
-COPY --from=pkg /usr/bin/tini-static /usr/bin/tini
+COPY --from=builder /app/main .
+COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
+COPY --from=builder /app/configs ./configs
+COPY --from=builder /app/db ./db
 
 EXPOSE 8080
 
-ENTRYPOINT ["/usr/bin/tini", "--", "/app/server"]
+CMD ["/app/main"]

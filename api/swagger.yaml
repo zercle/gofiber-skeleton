@@ -1,5 +1,4 @@
-openapi: 3.0.0
 info:
-  title: Go Fiber Skeleton API
-  version: 1.0.0
+  contact: {}
 paths: {}
+swagger: "2.0"
