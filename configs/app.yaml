@@ -1,0 +1,9 @@
+# Application Configuration
+server:
+  port: 8080
+
+cache:
+  host: "localhost"
+  port: 6379
+  password: ""
+  db: 0

@@ -1,101 +1,161 @@
-# Go Fiber Monorepo Boilerplate
+# Go Fiber URL Shortener - Clean Architecture Boilerplate
 
-This is a Go Fiber monorepo boilerplate, suitable as a template repository, for a simple online shopping service demonstrating both REST and gRPC interfaces within a single application.
+This repository provides a production-ready boilerplate for a high-performance URL shortener service built with Go. It strictly follows Clean Architecture and SOLID principles, making it a robust foundation for any web service.
 
-## Architectural Principles
+## Features
 
-*   Clean Architecture
-*   SOLID Principles
+- **User Management**: Endpoints for user registration and JWT-based login.
+- **URL Shortening**: Authenticated and guest users can create short URLs. Authenticated users can also specify custom short codes.
+- **URL Management**: Authenticated users can list, update, and delete their own shortened URLs.
+- **Secure Redirection**: Handles short URL redirection securely.
+- **QR Code Generation**: Provides QR codes for each short URL.
 
-## Core Technologies
+## Architecture
 
-*   **Framework:** Go Fiber
-*   **ORM:** GORM (with `go-sqlite3` pure Go driver)
-*   **Configuration:** Viper (YAML files, environment variable overrides)
-*   **Authentication:** JWT
-*   **Database Migrations:** Go-migrate
+This project is built upon the principles of **Clean Architecture**, ensuring a clear separation of concerns between:
 
-## Key Features & Structure
+- **Entities**: Core domain models.
+- **Use Cases**: Business logic and rules.
+- **Repositories**: Data access interfaces.
+- **Delivery**: HTTP handlers and routing (Fiber).
 
-*   **Monorepo Structure:** Organized to support multiple internal modules (e.g., `user`, `product`, `order`) demonstrating Clean Architecture layers (domain, usecase, infrastructure, delivery).
-*   **API Endpoints:** Example REST and gRPC endpoints for `User`, `Product`, and `Order` modules (to be implemented).
-*   **Configuration:**
-    *   `configs/local.yaml` for default settings.
-    *   Support for runtime environment variable overrides.
-*   **Database:**
-    *   SQLite database.
-    *   GORM models for `User`, `Product`, `Order`.
-    *   Go-migrate setup for schema management.
+This structure makes the application decoupled, testable, and independent of frameworks and external dependencies.
+
+## Tech Stack
+
+- **Framework**: [Go Fiber](https://gofiber.io/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/)
+- **Database Access**: [sqlc](https://sqlc.dev/) for type-safe SQL query generation.
+- **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate)
+- **Configuration**: [Viper](https://github.com/spf13/viper)
+- **API Documentation**: [Swagger (swaggo)](https://github.com/swaggo/swag)
+- **Authentication**: JWT
+- **Hot Reloading**: [Air](https://github.com/cosmtrek/air)
+- **Containerization**: Docker & Docker Compose
+
+## Project Structure
+
+```
+.
+├── cmd/api/                # API entry point: Fiber initialization, DI
+├── internal/
+│   ├── delivery/http/      # HTTP handlers (Fiber), route registration
+│   ├── usecases/           # Business logic, repository interfaces
+│   ├── repository/         # DB implementations of interfaces
+│   ├── entities/           # Domain models
+│   └── configs/            # Internal configuration loaders
+├── pkg/                    # Utilities, libraries
+├── api/                    # OpenAPI/Swagger docs
+├── configs/                # Config files (e.g., app.yaml)
+├── db/
+│   ├── migrations/         # DB migrations
+│   └── queries/            # sqlc queries
+├── tests/                  # Integration tests
+├── mocks/                  # Generated mocks
+├── .github/workflows/      # GitHub Actions workflows
+├── Dockerfile              # Multi-stage build
+├── compose.yaml            # Docker Compose for dev
+├── go.mod, go.sum          # Go modules
+├── Makefile                # Common commands
+└── README.md               # Project documentation
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-*   Go (1.24 or higher)
-*   Docker (for containerization)
-*   `migrate` CLI tool: `go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest`
+- Docker
+- Docker Compose
 
-### Setup
+### Installation & Running
 
 1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd gofiber-boilerplate
+    ```sh
+    git clone https://github.com/your-username/gofiber-skeleton.git
+    cd gofiber-skeleton
     ```
 
-2.  **Install Go modules:**
-    ```bash
-    go mod tidy
+2.  **Create a `.env` file from the `example.env` file and update the values:**
+    ```sh
+    cp example.env .env
     ```
 
-3.  **Run database migrations:**
-    ```bash
-    make migrate-up
+3.  **Run the application using Docker Compose:**
+    This command will build the Docker image, start the application, PostgreSQL, and Valkey containers, and run the database migrations.
+    ```sh
+    docker-compose up -d --build
     ```
 
-### Running the Application
+4.  **The application will be available at `http://localhost:8080`**.
 
-#### Locally
+## API Usage
 
-```bash
-make run
+### API Documentation
+
+Full, interactive API documentation is available via Swagger UI at:
+
+[http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
+
+### Example Requests
+
+#### Register a new user
+
+```sh
+curl -X POST -H "Content-Type: application/json" \
+-d '{"username":"testuser","password":"password"}' \
+http://localhost:8080/api/users/register
 ```
 
-#### With Docker
+#### Log in to get a JWT
 
-```bash
-make docker-up
+```sh
+curl -X POST -H "Content-Type: application/json" \
+-d '{"username":"testuser","password":"password"}' \
+http://localhost:8080/api/users/login
 ```
 
-### Development
+#### Create a short URL (Authenticated)
 
-*   **Build:** `make build`
-*   **Test:** `make test`
-*   **Clean:** `make clean`
-*   **Migrate Up:** `make migrate-up`
-*   **Migrate Down:** `make migrate-down`
+```sh
+TOKEN="your-jwt-token"
 
-## Project Structure
-
+curl -X POST -H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{"original_url":"https://www.google.com"}' \
+http://localhost:8080/api/urls
 ```
-. \
-├── cmd/app             # Main application entry point
-├── config              # Configuration files
-├── database            # Database migrations
-├── internal            # Internal modules (user, product, order) with Clean Architecture layers
-│   ├── user
-│   │   ├── domain      # Data structures, entities
-│   │   ├── usecase     # Business logic, interfaces
-│   │   ├── infrastructure # Repositories, external services
-│   │   └── delivery    # API handlers (REST, gRPC)
-│   ├── product
-│   └── order
-├── pkg                 # Reusable packages (config, database, auth)
-├── api                 # Protobuf definitions for gRPC (to be implemented)
-├── Dockerfile
-├── compose.yml
-├── Makefile
-├── go.mod
-├── go.sum
-└── README.md
+
+## Configuration
+
+Application configuration is managed by `Viper`. The base configuration is located in `.env`. You can override these settings with environment variables. For example, to change the database host, you can set the `DATABASE_HOST` environment variable.
+
+## Testing
+
+To run the unit tests, use the following command:
+
+```sh
+go test ./...
 ```
+
+The tests use `gomock` for mocking repository interfaces, ensuring that the business logic is tested in isolation.
+
+## Makefile Commands
+
+The following commands are available in the `Makefile` for convenience:
+
+- `make run`: Run the application locally.
+- `make dev`: Run the application with hot-reloading using Air.
+- `make build`: Build the Docker image.
+- `make compose-up`: Start the services with Docker Compose.
+- `make compose-down`: Stop the services.
+- `make sqlc-generate`: Generate Go code from SQL queries.
+- `make migrate-up`: Run database migrations.
+- `make migrate-down`: Roll back database migrations.
+
+## CI/CD
+
+A basic CI/CD pipeline is configured in `.github/workflows/ci.yml`. It automatically runs tests and linting on every push and pull request to the `main` branch.
+
+## License
+
+This project is licensed under the MIT License.
