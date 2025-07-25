@@ -33,3 +33,6 @@ go.work
 
 # OS-generated files
 .DS_Store
+
+# Config files
+configs/app.yaml

@@ -1,8 +1,6 @@
 package configs
 
 import (
-	"strings"
-
 	"github.com/spf13/viper"
 )
 
@@ -13,16 +11,16 @@ type Config struct {
 		Port int `mapstructure:"port"`
 	} `mapstructure:"server"`
 	Database struct {
-		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
-		User     string `mapstructure:"user"`
-		Password string `mapstructure:"password"`
-		DBName   string `mapstructure:"dbname"`
-		SSLMode  string `mapstructure:"sslmode"`
+		Host     string `mapstructure:"DB_HOST"`
+		Port     int    `mapstructure:"DB_PORT"`
+		User     string `mapstructure:"DB_USER"`
+		Password string `mapstructure:"DB_PASSWORD"`
+		DBName   string `mapstructure:"DB_NAME"`
+		SSLMode  string `mapstructure:"DB_SSLMODE"`
 	} `mapstructure:"database"`
 	JWT struct {
-		Secret     string `mapstructure:"secret"`
-		Expiration int    `mapstructure:"expiration"`
+		Secret     string `mapstructure:"JWT_SECRET"`
+		Expiration int    `mapstructure:"JWT_EXPIRATION"`
 	} `mapstructure:"jwt"`
 	Cache struct {
 		Host     string `mapstructure:"host"`
@@ -34,11 +32,10 @@ type Config struct {
 
 // LoadConfig reads configuration from file or environment variables.
 func LoadConfig() (config Config, err error) {
-	viper.AddConfigPath("./configs")
-	viper.SetConfigName("app")
-	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.SetConfigName("example")
+	viper.SetConfigType("env")
 
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()

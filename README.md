@@ -75,13 +75,18 @@ This structure makes the application decoupled, testable, and independent of fra
     cd gofiber-skeleton
     ```
 
-2.  **Run the application using Docker Compose:**
+2.  **Create a `.env` file from the `example.env` file and update the values:**
+    ```sh
+    cp example.env .env
+    ```
+
+3.  **Run the application using Docker Compose:**
     This command will build the Docker image, start the application, PostgreSQL, and Valkey containers, and run the database migrations.
     ```sh
     docker-compose up -d --build
     ```
 
-3.  **The application will be available at `http://localhost:8080`**.
+4.  **The application will be available at `http://localhost:8080`**.
 
 ## API Usage
 
@@ -122,7 +127,7 @@ http://localhost:8080/api/urls
 
 ## Configuration
 
-Application configuration is managed by `Viper`. The base configuration is located in `configs/app.yaml`. You can override these settings with environment variables. For example, to change the database host, you can set the `DATABASE_HOST` environment variable.
+Application configuration is managed by `Viper`. The base configuration is located in `.env`. You can override these settings with environment variables. For example, to change the database host, you can set the `DATABASE_HOST` environment variable.
 
 ## Testing
 
