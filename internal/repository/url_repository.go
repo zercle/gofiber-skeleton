@@ -92,16 +92,21 @@ func (r *URLRepository) UpdateURL(ctx context.Context, url *entities.URL) error 
 
 // DeleteURL deletes a URL from the database.
 func (r *URLRepository) DeleteURL(ctx context.Context, id uuid.UUID) error {
-	// Delete cache
-	var shortCode string
-	if url, getErr := r.queries.GetURLByID(ctx, pgtype.UUID{Bytes: id, Valid: true}); getErr == nil {
-		shortCode = url.ShortCode
+	// First, get the URL to retrieve its short_code for cache invalidation.
+	url, err := r.GetURLByID(ctx, id)
+	if err != nil {
+		return err // Return error if URL not found or other DB issue.
 	}
-	err := r.queries.DeleteURL(ctx, pgtype.UUID{Bytes: id, Valid: true})
-	if err == nil && shortCode != "" {
-		r.redisClient.Del(ctx, shortCode)
+
+	// Then, delete the URL from the database.
+	if err := r.queries.DeleteURL(ctx, pgtype.UUID{Bytes: id, Valid: true}); err != nil {
+		return err
 	}
-	return err
+
+	// Finally, invalidate the cache.
+	r.redisClient.Del(ctx, url.ShortCode)
+
+	return nil
 }
 
 // GetURLByID retrieves a URL from the database by its ID.

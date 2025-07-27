@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"gofiber-skeleton/internal/entities"
@@ -22,6 +23,7 @@ func TestURLUseCase_CreateShortURL(t *testing.T) {
 	originalURL := "https://example.com"
 	userID := uuid.New()
 
+	mockURLRepo.EXPECT().GetURLByShortCode(gomock.Any(), gomock.Any()).Return(nil, sql.ErrNoRows)
 	mockURLRepo.EXPECT().CreateURL(gomock.Any(), gomock.Any()).Return(nil)
 
 	url, err := urlUseCase.CreateShortURL(context.Background(), originalURL, userID, "")

@@ -33,7 +33,7 @@ func (uc *urlUseCase) CreateShortURL(ctx context.Context, originalURL string, us
 	shortCode := customShortCode
 	if shortCode == "" {
 		var err error
-		shortCode, err = uc.generateShortCode()
+		shortCode, err = uc.generateShortCode(ctx)
 		if err != nil {
 			return nil, err
 		}

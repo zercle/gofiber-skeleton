@@ -12,13 +12,13 @@ type Config struct {
 		Port uint16 `mapstructure:"port"`
 	} `mapstructure:"server"`
 	Database struct {
-		Host     string `mapstructure:"DB_HOST"`
-		Port     uint16 `mapstructure:"DB_PORT"`
-		User     string `mapstructure:"DB_USER"`
-		Password string `mapstructure:"DB_PASSWORD"`
-		DBName   string `mapstructure:"DB_NAME"`
-		SSLMode  string `mapstructure:"DB_SSLMODE"`
-	} `mapstructure:"database"`
+		Host     string `mapstructure:"host"`
+		Port     uint16 `mapstructure:"port"`
+		User     string `mapstructure:"user"`
+		Password string `mapstructure:"password"`
+		DBName   string `mapstructure:"name"`
+		SSLMode  string `mapstructure:"sslmode"`
+	} `mapstructure:"db"`
 	JWT struct {
 		Secret     string `mapstructure:"JWT_SECRET"`
 		Expiration int    `mapstructure:"JWT_EXPIRATION"`
