@@ -1,7 +1,5 @@
 //go:generate mockgen -source=url_repository.go -destination=mocks/mock_url_repository.go -package=mocks URLRepository
 
-//go:generate mockgen -source=url_repository.go -destination=mocks/mock_url_repository.go -package=mocks URLRepository
-
 package repository
 
 import (
