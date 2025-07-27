@@ -2,8 +2,8 @@
 
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go)
 ![GoFiber](https://img.shields.io/badge/GoFiber-v2.52.0-00ADD8?style=for-the-badge&logo=go)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)
-![Redis](https://img.shields.io/badge/Redis-7.2-DC382D?style=for-the-badge&logo=redis)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?style=for-the-badge&logo=postgresql)
+![Valkey](https://img.shields.io/badge/Valkey-8-DC382D?style=for-the-badge&logo=valkey)
 ![Docker](https://img.shields.io/badge/Docker-2596be?style=for-the-badge&logo=docker)
 ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
