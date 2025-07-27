@@ -9,6 +9,8 @@ services:
     environment:
       - DATABASE_HOST=postgres
       - CACHE_HOST=valkey
+    env_file:
+      - .env
 
   postgres:
     image: postgres:17-alpine

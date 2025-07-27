@@ -1,6 +1,8 @@
 package configs
 
 import (
+	"strings"
+
 	"github.com/spf13/viper"
 )
 
@@ -20,8 +22,8 @@ type Config struct {
 		SSLMode  string `mapstructure:"sslmode"`
 	} `mapstructure:"db"`
 	JWT struct {
-		Secret     string `mapstructure:"JWT_SECRET"`
-		Expiration int    `mapstructure:"JWT_EXPIRATION"`
+		Secret     string `mapstructure:"secret"`
+		Expiration int    `mapstructure:"expiration"`
 	} `mapstructure:"jwt"`
 	Cache struct {
 		Host     string `mapstructure:"host"`
@@ -32,23 +34,41 @@ type Config struct {
 }
 
 // LoadConfig reads configuration from file or environment variables.
-func LoadConfig(environment string) (config Config, err error) {
-	if environment == "" {
-		environment = "local"
+func LoadConfig(environment string, configPath ...string) (config Config, err error) {
+	viper.Reset()
+
+	if len(configPath) > 0 && configPath[0] != "" {
+		viper.AddConfigPath(configPath[0])
+		if environment == "" {
+			environment = "local"
+		}
+		viper.SetConfigName(environment)
+	} else {
+		if environment == "" {
+			environment = "local"
+		}
+		viper.AddConfigPath("./configs")
+		viper.AddConfigPath(".")
+		viper.SetConfigName(environment)
 	}
 
-	viper.AddConfigPath(".")
-	viper.SetConfigName(environment)
 	viper.SetConfigType("yaml")
 
+	// Bind environment variables
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+	// Bind config file settings
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return config, err
+		}
 	}
 
-	err = viper.Unmarshal(&config)
+	// Unmarshal the config
+	if err := viper.Unmarshal(&config); err != nil {
+		return config, err
+	}
 
-	return
+	return config, nil
 }

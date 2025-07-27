@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"errors"
 	"gofiber-skeleton/internal/entities"
@@ -24,8 +25,8 @@ type urlUseCase struct {
 func (uc *urlUseCase) CreateShortURL(ctx context.Context, originalURL string, userID uuid.UUID, customShortCode string) (*entities.URL, error) {
 	if customShortCode != "" {
 		// Check if custom short code already exists
-		_, err := uc.urlRepo.GetURLByShortCode(ctx, customShortCode)
-		if err == nil {
+		existingURL, err := uc.urlRepo.GetURLByShortCode(ctx, customShortCode)
+		if err == nil && existingURL != nil {
 			return nil, errors.New("custom short code already exists")
 		}
 	}
@@ -46,12 +47,12 @@ func (uc *urlUseCase) CreateShortURL(ctx context.Context, originalURL string, us
 		UserID:      userID,
 	}
 
-	err := uc.urlRepo.CreateURL(ctx, url)
+	createdURL, err := uc.urlRepo.CreateURL(ctx, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return url, nil
+	return createdURL, nil
 }
 
 func (uc *urlUseCase) GetOriginalURL(ctx context.Context, shortCode string) (string, error) {
@@ -82,12 +83,12 @@ func (uc *urlUseCase) UpdateShortURL(ctx context.Context, userID, urlID uuid.UUI
 		OriginalURL: newOriginalURL,
 	}
 
-	err = uc.urlRepo.UpdateURL(ctx, url)
+	updatedURL, err := uc.urlRepo.UpdateURL(ctx, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return url, nil
+	return updatedURL, nil
 }
 
 func (uc *urlUseCase) DeleteShortURL(ctx context.Context, userID, urlID uuid.UUID) error {
@@ -119,11 +120,15 @@ func (uc *urlUseCase) generateShortCode(ctx context.Context) (string, error) {
 		}
 
 		shortCode := base64.URLEncoding.EncodeToString(b)
+		println("generateShortCode attempt", i+1, "generated:", shortCode)
 
 		// Check if the code already exists
 		_, err = uc.urlRepo.GetURLByShortCode(ctx, shortCode)
-		if err != nil { // Assuming "not found" is the error we want
+		if errors.Is(err, sql.ErrNoRows) { // Assuming "not found" is the error we want
 			return shortCode, nil
+		}
+		if err != nil {
+			return "", err
 		}
 	}
 

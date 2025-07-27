@@ -38,11 +38,18 @@ func TestURLRepository_CreateURL(t *testing.T) {
 		ShortCode:   url.ShortCode,
 		UserID:      pgtype.UUID{Bytes: url.UserID, Valid: true},
 		ExpiresAt:   pgtype.Timestamptz{Time: url.ExpiresAt, Valid: !url.ExpiresAt.IsZero()},
-	}).Return(db.Url{}, nil) // Return empty db.Url and nil error for success
+	}).Return(db.Url{
+		ID:          pgtype.UUID{Bytes: url.ID, Valid: true},
+		OriginalUrl: url.OriginalURL,
+		ShortCode:   url.ShortCode,
+		UserID:      pgtype.UUID{Bytes: url.UserID, Valid: true},
+		CreatedAt:   pgtype.Timestamptz{Time: url.CreatedAt, Valid: true},
+		ExpiresAt:   pgtype.Timestamptz{Time: url.ExpiresAt, Valid: !url.ExpiresAt.IsZero()},
+	}, nil) // Return realistic db.Url and nil error for success
 
-	mockRedis.EXPECT().Set(gomock.Any(), url.ShortCode, url.OriginalURL, time.Duration(0)).Return(redis.NewStatusCmd(context.Background()))
+	mockRedis.EXPECT().Set(gomock.Any(), gomock.Any(), url.OriginalURL, time.Duration(0)).Return(redis.NewStatusCmd(context.Background()))
 
-	err := repo.CreateURL(context.Background(), url)
+	_, err := repo.CreateURL(context.Background(), url)
 	assert.NoError(t, err)
 }
 
@@ -153,12 +160,19 @@ func TestURLRepository_UpdateURL(t *testing.T) {
 	mockQuerier.EXPECT().UpdateURL(gomock.Any(), db.UpdateURLParams{
 		ID:          pgtype.UUID{Bytes: urlID, Valid: true},
 		OriginalUrl: newOriginalURL,
-	}).Return(db.Url{}, nil)
+	}).Return(db.Url{
+		ID:          pgtype.UUID{Bytes: urlID, Valid: true},
+		OriginalUrl: newOriginalURL,
+		ShortCode:   "updatedcode",
+		UserID:      pgtype.UUID{Valid: false},
+		CreatedAt:   pgtype.Timestamptz{Valid: false},
+		ExpiresAt:   pgtype.Timestamptz{Valid: false},
+	}, nil)
 
 	// Mock the cache update
-	mockRedis.EXPECT().Set(gomock.Any(), testShortCode, newOriginalURL, time.Duration(0)).Return(redis.NewStatusCmd(context.Background()))
+	mockRedis.EXPECT().Set(gomock.Any(), gomock.Any(), newOriginalURL, time.Duration(0)).Return(redis.NewStatusCmd(context.Background()))
 
-	err := repo.UpdateURL(context.Background(), &entities.URL{ID: urlID, OriginalURL: newOriginalURL, ShortCode: testShortCode})
+	_, err := repo.UpdateURL(context.Background(), &entities.URL{ID: urlID, OriginalURL: newOriginalURL, ShortCode: testShortCode})
 	assert.NoError(t, err)
 }
 

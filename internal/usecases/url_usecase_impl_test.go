@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	// "time"
 
 	"gofiber-skeleton/internal/entities"
 	usecases "gofiber-skeleton/internal/usecases"
@@ -24,10 +25,18 @@ func TestURLUseCase_CreateShortURL(t *testing.T) {
 	originalURL := "https://example.com"
 	userID := uuid.New()
 
-	mockURLRepo.EXPECT().GetURLByShortCode(gomock.Any(), gomock.Any()).Return(nil, sql.ErrNoRows)
-	mockURLRepo.EXPECT().CreateURL(gomock.Any(), gomock.Any()).Return(nil)
 
+	mockURLRepo.EXPECT().GetURLByShortCode(gomock.Any(), gomock.Any()).Return(nil, sql.ErrNoRows).MinTimes(1).MaxTimes(5)
+	mockURLRepo.EXPECT().CreateURL(gomock.Any(), gomock.AssignableToTypeOf(&entities.URL{})).Return(&entities.URL{
+		ID:          uuid.New(),
+		OriginalURL: originalURL,
+		ShortCode:   "mock-short-code",
+		UserID:      userID,
+	}, nil)
+
+	println("Calling CreateShortURL with originalURL:", originalURL, "userID:", userID.String())
 	url, err := urlUseCase.CreateShortURL(context.Background(), originalURL, userID, "")
+	println("CreateShortURL returned url:", url, "err:", err)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, url)

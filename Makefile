@@ -1,3 +1,7 @@
+# At the top of your Makefile
+include .env
+export 
+
 run:
 	go run ./cmd/api
 
