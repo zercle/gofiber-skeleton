@@ -101,11 +101,20 @@ func (uc *urlUseCase) GenerateQRCode(ctx context.Context, shortCode string) ([]b
 	return qrcode.Encode(fullURL, qrcode.Medium, 256)
 }
 
-func (uc *urlUseCase) generateShortCode() (string, error) {
-	b := make([]byte, 6)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
+func (uc *urlUseCase) generateShortCode(ctx context.Context) (string, error) {
+	for i := 0; i < 5; i++ { // Retry up to 5 times to find a unique code
+		b := make([]byte, 6)
+		_, err := rand.Read(b)
+		if err != nil {
+			return "", err
+		}
+		shortCode := base64.URLEncoding.EncodeToString(b)
+
+		// Check if the code already exists
+		_, err = uc.urlRepo.GetURLByShortCode(ctx, shortCode)
+		if err != nil { // Assuming "not found" is the error we want
+			return shortCode, nil
+		}
 	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	return "", errors.New("failed to generate a unique short code after multiple attempts")
 }
