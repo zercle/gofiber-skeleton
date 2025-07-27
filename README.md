@@ -62,7 +62,7 @@ This project follows **Clean Architecture**, promoting a clear separation of con
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/gofiber-skeleton.git
+    git clone https://github.com/zercle/gofiber-skeleton.git
     cd gofiber-skeleton
     ```
 
