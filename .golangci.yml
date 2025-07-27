@@ -1,6 +1,10 @@
-version: "2"
-
 linters:
-  default: standard
-severity:
-  default: error
+  enable-all: false
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused

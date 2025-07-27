@@ -17,6 +17,7 @@ import (
 type RedisCache interface {
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
+	Del(ctx context.Context, keys ...string) *redis.IntCmd
 }
 
 // NewURLRepository creates a new URLRepository.
@@ -82,12 +83,25 @@ func (r *URLRepository) UpdateURL(ctx context.Context, url *entities.URL) error 
 		ID:          pgtype.UUID{Bytes: url.ID, Valid: true},
 		OriginalUrl: url.OriginalURL,
 	})
+	// Update cache
+	if err == nil {
+		err = r.redisClient.Set(ctx, url.ShortCode, url.OriginalURL, 0).Err()
+	}
 	return err
 }
 
 // DeleteURL deletes a URL from the database.
 func (r *URLRepository) DeleteURL(ctx context.Context, id uuid.UUID) error {
-	return r.queries.DeleteURL(ctx, pgtype.UUID{Bytes: id, Valid: true})
+	// Delete cache
+	var shortCode string
+	if url, getErr := r.queries.GetURLByID(ctx, pgtype.UUID{Bytes: id, Valid: true}); getErr == nil {
+		shortCode = url.ShortCode
+	}
+	err := r.queries.DeleteURL(ctx, pgtype.UUID{Bytes: id, Valid: true})
+	if err == nil && shortCode != "" {
+		r.redisClient.Del(ctx, shortCode)
+	}
+	return err
 }
 
 // GetURLByID retrieves a URL from the database by its ID.

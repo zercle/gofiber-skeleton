@@ -158,7 +158,6 @@ func TestURLHandler_GetOriginalURL(t *testing.T) {
 	}
 }
 
-
 func TestURLHandler_GenerateQRCode(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -223,8 +222,8 @@ func TestURLHandler_GenerateQRCode(t *testing.T) {
 // Helper function to generate a mock JWT token for testing
 func generateMockToken(userID uuid.UUID) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userID.String(),
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+		"sub": userID.String(),
+		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	})
 	tokenString, _ := token.SignedString([]byte("test-secret"))
 	return tokenString

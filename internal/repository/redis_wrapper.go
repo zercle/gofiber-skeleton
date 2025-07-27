@@ -21,3 +21,8 @@ func (r *RealRedisClient) Set(ctx context.Context, key string, value interface{}
 func (r *RealRedisClient) Get(ctx context.Context, key string) *redis.StringCmd {
 	return r.Client.Get(ctx, key)
 }
+
+// Del implements the Del method of the RedisCache interface.
+func (r *RealRedisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
+	return r.Client.Del(ctx, keys...)
+}

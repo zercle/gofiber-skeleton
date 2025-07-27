@@ -17,7 +17,7 @@ sqlc-generate:
 	sqlc generate
 
 migrate-up:
-	migrate -path db/migrations -database "postgres://user:password@localhost:5432/shortener?sslmode=disable" -verbose up
+	migrate -path db/migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}" -verbose up
 
 migrate-down:
-	migrate -path db/migrations -database "postgres://user:password@localhost:5432/shortener?sslmode=disable" -verbose down
+	migrate -path db/migrations -database "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}" -verbose down

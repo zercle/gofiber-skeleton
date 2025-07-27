@@ -14,9 +14,10 @@ import (
 	db "gofiber-skeleton/internal/repository/db" // Added import
 	"gofiber-skeleton/internal/usecases"
 
+	_ "gofiber-skeleton/api" // Import generated docs
+
 	"github.com/gofiber/fiber/v2"
 	swagger "github.com/gofiber/swagger"
-	_ "gofiber-skeleton/api" // Import generated docs
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9" // Import for Valkey client
@@ -27,7 +28,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	// Load configuration
-	cfg, err := configs.LoadConfig()
+	cfg, err := configs.LoadConfig(os.Getenv("GO_ENV"))
 	if err != nil {
 		slog.Error("Failed to load configuration", "error", err)
 		os.Exit(1)
@@ -45,7 +46,7 @@ func main() {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Host, cfg.Cache.Port),
 		Password: cfg.Cache.Password,
-		DB:       cfg.Cache.DB,
+		DB:       int(cfg.Cache.DB),
 	})
 
 	// Create repositories
@@ -55,7 +56,7 @@ func main() {
 
 	// Create use cases
 	userUseCase := usecases.NewUserUseCase(userRepo, cfg.JWT.Secret, cfg.JWT.Expiration)
-	urlUseCase := usecases.NewURLUseCase(urlRepo, fmt.Sprintf("http://localhost:%d", cfg.Server.Port))
+	urlUseCase := usecases.NewURLUseCase(urlRepo, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 
 	// Create handlers
 	userHandler := http.NewUserHandler(userUseCase)

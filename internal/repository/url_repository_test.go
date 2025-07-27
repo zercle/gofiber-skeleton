@@ -144,13 +144,18 @@ func TestURLRepository_UpdateURL(t *testing.T) {
 
 	urlID := uuid.New()
 	newOriginalURL := "https://example.com/updated"
+	testShortCode := "updatedcode"
 
+	// Mock the database update
 	mockQuerier.EXPECT().UpdateURL(gomock.Any(), db.UpdateURLParams{
 		ID:          pgtype.UUID{Bytes: urlID, Valid: true},
 		OriginalUrl: newOriginalURL,
 	}).Return(db.Url{}, nil)
 
-	err := repo.UpdateURL(context.Background(), &entities.URL{ID: urlID, OriginalURL: newOriginalURL})
+	// Mock the cache update
+	mockRedis.EXPECT().Set(gomock.Any(), testShortCode, newOriginalURL, time.Duration(0)).Return(redis.NewStatusCmd(context.Background()))
+
+	err := repo.UpdateURL(context.Background(), &entities.URL{ID: urlID, OriginalURL: newOriginalURL, ShortCode: testShortCode})
 	assert.NoError(t, err)
 }
 
@@ -164,7 +169,19 @@ func TestURLRepository_DeleteURL(t *testing.T) {
 
 	urlID := uuid.New()
 
+	testShortCode := "deletedcode"
+
+	// Mock getting the URL by ID to retrieve the short code for cache deletion
+	mockQuerier.EXPECT().GetURLByID(gomock.Any(), pgtype.UUID{Bytes: urlID, Valid: true}).Return(db.Url{
+		ID:        pgtype.UUID{Bytes: urlID, Valid: true},
+		ShortCode: testShortCode,
+	}, nil)
+
+	// Mock the database delete
 	mockQuerier.EXPECT().DeleteURL(gomock.Any(), pgtype.UUID{Bytes: urlID, Valid: true}).Return(nil)
+
+	// Mock the cache deletion
+	mockRedis.EXPECT().Del(gomock.Any(), testShortCode).Return(redis.NewIntCmd(context.Background()))
 
 	err := repo.DeleteURL(context.Background(), urlID)
 	assert.NoError(t, err)

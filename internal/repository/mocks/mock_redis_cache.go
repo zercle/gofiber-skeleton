@@ -42,6 +42,25 @@ func (m *MockRedisCache) EXPECT() *MockRedisCacheMockRecorder {
 	return m.recorder
 }
 
+// Del mocks base method.
+func (m *MockRedisCache) Del(ctx context.Context, keys ...string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx}
+	for _, a := range keys {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Del", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// Del indicates an expected call of Del.
+func (mr *MockRedisCacheMockRecorder) Del(ctx any, keys ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx}, keys...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockRedisCache)(nil).Del), varargs...)
+}
+
 // Get mocks base method.
 func (m *MockRedisCache) Get(ctx context.Context, key string) *redis.StringCmd {
 	m.ctrl.T.Helper()

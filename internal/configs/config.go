@@ -8,11 +8,12 @@ import (
 // The values are read by viper from a config file or environment variable.
 type Config struct {
 	Server struct {
-		Port int `mapstructure:"port"`
+		Host string `mapstructure:"host"`
+		Port uint16 `mapstructure:"port"`
 	} `mapstructure:"server"`
 	Database struct {
 		Host     string `mapstructure:"DB_HOST"`
-		Port     int    `mapstructure:"DB_PORT"`
+		Port     uint16 `mapstructure:"DB_PORT"`
 		User     string `mapstructure:"DB_USER"`
 		Password string `mapstructure:"DB_PASSWORD"`
 		DBName   string `mapstructure:"DB_NAME"`
@@ -24,17 +25,21 @@ type Config struct {
 	} `mapstructure:"jwt"`
 	Cache struct {
 		Host     string `mapstructure:"host"`
-		Port     int    `mapstructure:"port"`
+		Port     uint16 `mapstructure:"port"`
 		Password string `mapstructure:"password"`
-		DB       int    `mapstructure:"db"`
+		DB       uint8  `mapstructure:"db"`
 	} `mapstructure:"cache"`
 }
 
 // LoadConfig reads configuration from file or environment variables.
-func LoadConfig() (config Config, err error) {
+func LoadConfig(environment string) (config Config, err error) {
+	if environment == "" {
+		environment = "local"
+	}
+
 	viper.AddConfigPath(".")
-	viper.SetConfigName("example")
-	viper.SetConfigType("env")
+	viper.SetConfigName(environment)
+	viper.SetConfigType("yaml")
 
 	viper.AutomaticEnv()
 
