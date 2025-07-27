@@ -3,15 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
-
 	"gofiber-skeleton/internal/configs"
 	"gofiber-skeleton/internal/delivery/http"
 	"gofiber-skeleton/internal/repository"
+	db "gofiber-skeleton/internal/repository/db" // Added import
 	"gofiber-skeleton/internal/usecases"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,40 +19,43 @@ import (
 	_ "gofiber-skeleton/api" // Import generated docs
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9" // Import for Valkey client
 )
 
-// @title Go Fiber URL Shortener API
-// @version 1.0
-// @description This is a sample URL shortener service.
-// @termsOfService http://swagger.io/terms/
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host localhost:8080
-// @BasePath /
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Load configuration
 	cfg, err := configs.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		slog.Error("Failed to load configuration", "error", err)
+		os.Exit(1)
 	}
 
 	// Connect to the database
 	dbpool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.DBName, cfg.Database.SSLMode))
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		slog.Error("Unable to connect to database", "error", err)
+		os.Exit(1)
 	}
 	defer dbpool.Close()
 
+	// Initialize Redis client for Valkey
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Host, cfg.Cache.Port),
+		Password: cfg.Cache.Password,
+		DB:       cfg.Cache.DB,
+	})
+
 	// Create repositories
-	userRepo := repository.NewUserRepository(dbpool)
-	urlRepo := repository.NewURLRepository(dbpool)
+	queries := db.New(dbpool)
+	userRepo := repository.NewUserRepository(queries)
+	urlRepo := repository.NewURLRepository(queries, &repository.RealRedisClient{Client: redisClient})
 
 	// Create use cases
 	userUseCase := usecases.NewUserUseCase(userRepo, cfg.JWT.Secret, cfg.JWT.Expiration)
-	urlUseCase := usecases.NewURLUseCase(urlRepo)
+	urlUseCase := usecases.NewURLUseCase(urlRepo, fmt.Sprintf("http://localhost:%d", cfg.Server.Port))
 
 	// Create handlers
 	userHandler := http.NewUserHandler(userUseCase)
@@ -75,7 +78,8 @@ func main() {
 	// Start the server in a goroutine
 	go func() {
 		if err := app.Listen(fmt.Sprintf(":%d", cfg.Server.Port)); err != nil {
-			log.Fatalf("Failed to start server: %v", err)
+			slog.Error("Failed to start server", "error", err)
+			os.Exit(1)
 		}
 	}()
 
@@ -84,11 +88,12 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down server...")
+	slog.Info("Shutting down server...")
 
 	if err := app.Shutdown(); err != nil {
-		log.Fatalf("Server shutdown failed: %v", err)
+		slog.Error("Server shutdown failed", "error", err)
+		os.Exit(1)
 	}
 
-	log.Println("Server exited gracefully")
+	slog.Info("Server exited gracefully")
 }

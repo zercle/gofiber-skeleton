@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"gofiber-skeleton/internal/entities"
-	"gofiber-skeleton/mocks"
+	"gofiber-skeleton/internal/usecases/mocks"
 
 	"go.uber.org/mock/gomock"
 	"github.com/google/uuid"
@@ -17,7 +17,7 @@ func TestURLUseCase_CreateShortURL(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockURLRepo := mocks.NewMockURLRepository(ctrl)
-	urlUseCase := NewURLUseCase(mockURLRepo)
+	urlUseCase := NewURLUseCase(mockURLRepo, "http://localhost:8080")
 
 	originalURL := "https://example.com"
 	userID := uuid.New()
@@ -37,7 +37,7 @@ func TestURLUseCase_GetOriginalURL(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockURLRepo := mocks.NewMockURLRepository(ctrl)
-	urlUseCase := NewURLUseCase(mockURLRepo)
+	urlUseCase := NewURLUseCase(mockURLRepo, "http://localhost:8080")
 
 	shortCode := "test-code"
 	originalURL := "https://example.com"

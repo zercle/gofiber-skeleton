@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"gofiber-skeleton/internal/entities"
-	"gofiber-skeleton/mocks"
+	"gofiber-skeleton/internal/usecases/mocks"
 
 	"go.uber.org/mock/gomock"
 	"github.com/stretchr/testify/assert"

@@ -12,3 +12,6 @@ UPDATE urls SET original_url = $2 WHERE id = $1 RETURNING *;
 
 -- name: DeleteURL :exec
 DELETE FROM urls WHERE id = $1;
+
+-- name: GetURLByID :one
+SELECT * FROM urls WHERE id = $1;

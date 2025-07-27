@@ -1,3 +1,5 @@
+//go:generate mockgen -source=url_repository.go -destination=mocks/mock_redis_cache.go -package=mocks RedisCache
+
 package repository
 
 import (
@@ -7,17 +9,25 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
+	"time"
 )
 
+// RedisCache defines the interface for Redis operations used by URLRepository.
+type RedisCache interface {
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
+	Get(ctx context.Context, key string) *redis.StringCmd
+}
+
 // NewURLRepository creates a new URLRepository.
-func NewURLRepository(dbpool *pgxpool.Pool) *URLRepository {
-	return &URLRepository{queries: db.New(dbpool)}
+func NewURLRepository(querier DBQueriesInterface, redisClient RedisCache) *URLRepository {
+	return &URLRepository{queries: querier, redisClient: redisClient}
 }
 
 // URLRepository implements the usecases.URLRepository interface.
 type URLRepository struct {
-	queries *db.Queries
+	queries     DBQueriesInterface
+	redisClient RedisCache
 }
 
 // CreateURL creates a new URL in the database.
@@ -28,15 +38,27 @@ func (r *URLRepository) CreateURL(ctx context.Context, url *entities.URL) error 
 		UserID:      pgtype.UUID{Bytes: url.UserID, Valid: true},
 		ExpiresAt:   pgtype.Timestamptz{Time: url.ExpiresAt, Valid: !url.ExpiresAt.IsZero()},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	// Cache the URL
+	return r.redisClient.Set(ctx, url.ShortCode, url.OriginalURL, 0).Err()
 }
 
 // GetURLByShortCode retrieves a URL from the database by its short code.
 func (r *URLRepository) GetURLByShortCode(ctx context.Context, shortCode string) (*entities.URL, error) {
+	// Try to get from cache first
+	originalURL, err := r.redisClient.Get(ctx, shortCode).Result()
+	if err == nil {
+		return &entities.URL{OriginalURL: originalURL, ShortCode: shortCode}, nil
+	}
+
 	url, err := r.queries.GetURLByShortCode(ctx, shortCode)
 	if err != nil {
 		return nil, err
 	}
+	// Cache the URL if found in DB
+	r.redisClient.Set(ctx, url.ShortCode, url.OriginalUrl, 0)
 	return &entities.URL{ID: url.ID.Bytes, OriginalURL: url.OriginalUrl, ShortCode: url.ShortCode, UserID: url.UserID.Bytes, CreatedAt: url.CreatedAt.Time, ExpiresAt: url.ExpiresAt.Time}, nil
 }
 
@@ -66,4 +88,13 @@ func (r *URLRepository) UpdateURL(ctx context.Context, url *entities.URL) error 
 // DeleteURL deletes a URL from the database.
 func (r *URLRepository) DeleteURL(ctx context.Context, id uuid.UUID) error {
 	return r.queries.DeleteURL(ctx, pgtype.UUID{Bytes: id, Valid: true})
+}
+
+// GetURLByID retrieves a URL from the database by its ID.
+func (r *URLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*entities.URL, error) {
+	url, err := r.queries.GetURLByID(ctx, pgtype.UUID{Bytes: id, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+	return &entities.URL{ID: url.ID.Bytes, OriginalURL: url.OriginalUrl, ShortCode: url.ShortCode, UserID: url.UserID.Bytes, CreatedAt: url.CreatedAt.Time, ExpiresAt: url.ExpiresAt.Time}, nil
 }

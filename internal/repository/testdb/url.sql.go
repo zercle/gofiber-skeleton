@@ -3,12 +3,13 @@
 //   sqlc v1.29.0
 // source: url.sql
 
-package db
+package testdb
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createURL = `-- name: CreateURL :one
@@ -18,12 +19,12 @@ INSERT INTO urls (original_url, short_code, user_id, expires_at) VALUES ($1, $2,
 type CreateURLParams struct {
 	OriginalUrl string
 	ShortCode   string
-	UserID      pgtype.UUID
-	ExpiresAt   pgtype.Timestamptz
+	UserID      uuid.NullUUID
+	ExpiresAt   sql.NullTime
 }
 
 func (q *Queries) CreateURL(ctx context.Context, arg CreateURLParams) (Url, error) {
-	row := q.db.QueryRow(ctx, createURL,
+	row := q.db.QueryRowContext(ctx, createURL,
 		arg.OriginalUrl,
 		arg.ShortCode,
 		arg.UserID,
@@ -45,9 +46,27 @@ const deleteURL = `-- name: DeleteURL :exec
 DELETE FROM urls WHERE id = $1
 `
 
-func (q *Queries) DeleteURL(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteURL, id)
+func (q *Queries) DeleteURL(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteURL, id)
 	return err
+}
+
+const getURLByID = `-- name: GetURLByID :one
+SELECT id, original_url, short_code, user_id, created_at, expires_at FROM urls WHERE id = $1
+`
+
+func (q *Queries) GetURLByID(ctx context.Context, id uuid.UUID) (Url, error) {
+	row := q.db.QueryRowContext(ctx, getURLByID, id)
+	var i Url
+	err := row.Scan(
+		&i.ID,
+		&i.OriginalUrl,
+		&i.ShortCode,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
 }
 
 const getURLByShortCode = `-- name: GetURLByShortCode :one
@@ -55,7 +74,7 @@ SELECT id, original_url, short_code, user_id, created_at, expires_at FROM urls W
 `
 
 func (q *Queries) GetURLByShortCode(ctx context.Context, shortCode string) (Url, error) {
-	row := q.db.QueryRow(ctx, getURLByShortCode, shortCode)
+	row := q.db.QueryRowContext(ctx, getURLByShortCode, shortCode)
 	var i Url
 	err := row.Scan(
 		&i.ID,
@@ -72,8 +91,8 @@ const getURLsByUserID = `-- name: GetURLsByUserID :many
 SELECT id, original_url, short_code, user_id, created_at, expires_at FROM urls WHERE user_id = $1
 `
 
-func (q *Queries) GetURLsByUserID(ctx context.Context, userID pgtype.UUID) ([]Url, error) {
-	rows, err := q.db.Query(ctx, getURLsByUserID, userID)
+func (q *Queries) GetURLsByUserID(ctx context.Context, userID uuid.NullUUID) ([]Url, error) {
+	rows, err := q.db.QueryContext(ctx, getURLsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +112,9 @@ func (q *Queries) GetURLsByUserID(ctx context.Context, userID pgtype.UUID) ([]Ur
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -104,30 +126,12 @@ UPDATE urls SET original_url = $2 WHERE id = $1 RETURNING id, original_url, shor
 `
 
 type UpdateURLParams struct {
-	ID          pgtype.UUID
+	ID          uuid.UUID
 	OriginalUrl string
 }
 
 func (q *Queries) UpdateURL(ctx context.Context, arg UpdateURLParams) (Url, error) {
-	row := q.db.QueryRow(ctx, updateURL, arg.ID, arg.OriginalUrl)
-	var i Url
-	err := row.Scan(
-		&i.ID,
-		&i.OriginalUrl,
-		&i.ShortCode,
-		&i.UserID,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-	)
-	return i, err
-}
-
-const getURLByID = `-- name: GetURLByID :one
-SELECT id, original_url, short_code, user_id, created_at, expires_at FROM urls WHERE id = $1
-`
-
-func (q *Queries) GetURLByID(ctx context.Context, id pgtype.UUID) (Url, error) {
-	row := q.db.QueryRow(ctx, getURLByID, id)
+	row := q.db.QueryRowContext(ctx, updateURL, arg.ID, arg.OriginalUrl)
 	var i Url
 	err := row.Scan(
 		&i.ID,

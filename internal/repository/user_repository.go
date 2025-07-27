@@ -7,17 +7,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // NewUserRepository creates a new UserRepository.
-func NewUserRepository(dbpool *pgxpool.Pool) *UserRepository {
-	return &UserRepository{queries: db.New(dbpool)}
+func NewUserRepository(querier DBQueriesInterface) *UserRepository {
+	return &UserRepository{queries: querier}
 }
 
 // UserRepository implements the usecases.UserRepository interface.
 type UserRepository struct {
-	queries *db.Queries
+	queries DBQueriesInterface
 }
 
 // CreateUser creates a new user in the database.
