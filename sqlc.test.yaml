@@ -6,5 +6,21 @@ sql:
     gen:
       go:
         package: "testdb"
-        out: "internal/repository/testdb"
+        out: "internal/platform/db/testdb"
+        sql_package: "database/sql"
+  - engine: "postgresql"
+    queries: "./db/queries/url.sql"
+    schema: "./db/migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "internal/url/infrastructure/repository/test"
+        sql_package: "database/sql"
+  - engine: "postgresql"
+    queries: "./db/queries/user.sql"
+    schema: "./db/migrations/"
+    gen:
+      go:
+        package: "repository"
+        out: "internal/user/infrastructure/repository/test"
         sql_package: "database/sql"

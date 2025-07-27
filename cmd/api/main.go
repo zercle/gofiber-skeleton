@@ -8,11 +8,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	"gofiber-skeleton/internal/configs"
-	"gofiber-skeleton/internal/delivery/http"
-	"gofiber-skeleton/internal/repository"
-	db "gofiber-skeleton/internal/repository/db" // Added import
-	"gofiber-skeleton/internal/usecases"
+	configs "gofiber-skeleton/internal/configs" // Aliased configs
+	"gofiber-skeleton/internal/platform/cache"
+	"gofiber-skeleton/internal/platform/db"
+	routerPkg "gofiber-skeleton/internal/platform/router" // Aliased router
+	urlHandler "gofiber-skeleton/internal/url/delivery/http"
+	urlRepo "gofiber-skeleton/internal/url/infrastructure/repository"
+	urlUseCase "gofiber-skeleton/internal/url/usecase"
+	userHandler "gofiber-skeleton/internal/user/delivery/http"
+	userRepo "gofiber-skeleton/internal/user/infrastructure/repository"
+	userUseCase "gofiber-skeleton/internal/user/usecase"
 
 	_ "gofiber-skeleton/api" // Import generated docs
 
@@ -51,16 +56,16 @@ func main() {
 
 	// Create repositories
 	queries := db.New(dbpool)
-	userRepo := repository.NewSQLUserRepository(queries)
-	urlRepo := repository.NewSQLURLRepository(queries, &repository.RealRedisClient{Client: redisClient})
+	userRepository := userRepo.NewSQLUserRepository(queries)
+	urlRepository := urlRepo.NewSQLURLRepository(queries)
 
 	// Create use cases
-	userUseCase := usecases.NewUserUseCase(userRepo, cfg.JWT.Secret, cfg.JWT.Expiration)
-	urlUseCase := usecases.NewURLUseCase(urlRepo, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
+	userUsecase := userUseCase.NewUserUseCase(userRepository, cfg.JWT.Secret, cfg.JWT.Expiration)
+	urlUsecase := urlUseCase.NewURLUseCase(urlRepository, &cache.RealRedisClient{Client: redisClient})
 
 	// Create handlers
-	userHandler := http.NewHTTPUserHandler(userUseCase)
-	urlHandler := http.NewHTTPURLHandler(urlUseCase)
+	userHttpHandler := userHandler.NewHTTPUserHandler(userUsecase)
+	urlHttpHandler := urlHandler.NewHTTPURLHandler(urlUsecase)
 
 	// Create a new Fiber instance
 	app := fiber.New()
@@ -74,7 +79,7 @@ func main() {
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Register routes
-	http.RegisterRoutes(app, userHandler, urlHandler, cfg.JWT.Secret)
+	routerPkg.RegisterRoutes(app, userHttpHandler, urlHttpHandler, cfg.JWT.Secret)
 
 	// Start the server in a goroutine
 	go func() {

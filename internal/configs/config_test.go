@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gofiber-skeleton/internal/configs"
+	"gofiber-skeleton/internal/configs" // Updated import
 
 	"github.com/stretchr/testify/assert"
 )
