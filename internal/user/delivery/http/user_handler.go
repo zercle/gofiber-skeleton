@@ -1,7 +1,9 @@
 package http
 
 import (
+	"errors"
 	"gofiber-skeleton/internal/user/usecase" // Updated import
+	"gofiber-skeleton/pkg/constant"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -34,7 +36,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 
 	_, err := h.userUseCase.Register(c.Context(), req.Username, req.Password)
 	if err != nil {
-		if err.Error() == "username already exists" {
+		if errors.Is(err, constant.ErrUsernameAlreadyExists) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Username already exists"})
 		}
 

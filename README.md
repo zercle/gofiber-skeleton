@@ -20,7 +20,7 @@ This repository provides a production-ready, high-performance URL shortener serv
 *   **URL Management**: Create, list, update, and delete short URLs.
 *   **Custom Short Codes**: Authenticated users can create custom short codes.
 *   **Redirection**: Fast and secure redirection from short codes to original URLs.
-*   **QR Code Generation**: Automatically generates QR codes for each shortened URL.
+<!-- *   **QR Code Generation**: Automatically generates QR codes for each shortened URL. -->
 *   **Caching**: Utilizes Redis for caching frequently accessed URLs.
 *   **Database Management**: Integrated with PostgreSQL, `sqlc`, and `golang-migrate`.
 *   **API Documentation**: Automated Swagger UI for interactive API exploration.
@@ -40,7 +40,7 @@ This project follows **Clean Architecture**, promoting a clear separation of con
 
 *   **Framework**: [Go Fiber](https://gofiber.io/)
 *   **Database**: [PostgreSQL](https://www.postgresql.org/)
-*   **Caching**: [Redis](https://redis.io/)
+*   **Caching**: [Valkey](https://valkey.io/)
 *   **Database Tool**: [sqlc](https://sqlc.dev/)
 *   **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate)
 *   **Configuration**: [Viper](https://github.com/spf13/viper)

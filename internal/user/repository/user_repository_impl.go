@@ -4,14 +4,13 @@ import (
 	"context"
 	"gofiber-skeleton/internal/platform/db"
 	"gofiber-skeleton/internal/user"
-	"gofiber-skeleton/internal/user/repository"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // NewSQLUserRepository creates a new UserRepository.
-func NewSQLUserRepository(queries *db.Queries) repository.UserRepository {
+func NewSQLUserRepository(queries *db.Queries) UserRepository {
 	return &SQLUserRepository{queries: queries}
 }
 

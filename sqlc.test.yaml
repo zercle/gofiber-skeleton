@@ -14,7 +14,7 @@ sql:
     gen:
       go:
         package: "repository"
-        out: "internal/url/infrastructure/repository/test"
+        out: "internal/url/infrastructure/db/test"
         sql_package: "database/sql"
   - engine: "postgresql"
     queries: "./db/queries/user.sql"
@@ -22,5 +22,5 @@ sql:
     gen:
       go:
         package: "repository"
-        out: "internal/user/infrastructure/repository/test"
+        out: "internal/user/infrastructure/db/test"
         sql_package: "database/sql"

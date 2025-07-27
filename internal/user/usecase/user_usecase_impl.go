@@ -4,21 +4,22 @@ import (
 	"context"
 	"gofiber-skeleton/internal/user"            // Updated import
 	"gofiber-skeleton/internal/user/repository" // Updated import
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // NewUserUseCase creates a new UserUseCase.
-func NewUserUseCase(userRepo repository.UserRepository, jwtSecret string, jwtExpiration int) UserUseCase { // Updated interface
+import "time"
+
+func NewUserUseCase(userRepo repository.UserRepository, jwtSecret string, jwtExpiration time.Duration) UserUseCase {
 	return &userUseCase{userRepo: userRepo, jwtSecret: jwtSecret, jwtExpiration: jwtExpiration}
 }
 
 type userUseCase struct {
 	userRepo      repository.UserRepository
 	jwtSecret     string
-	jwtExpiration int
+	jwtExpiration time.Duration
 }
 
 func (uc *userUseCase) Register(ctx context.Context, username, password string) (*user.User, error) {
@@ -53,7 +54,7 @@ func (uc *userUseCase) Login(ctx context.Context, username, password string) (st
 
 	claims := jwt.MapClaims{
 		"sub": usr.ID,
-		"exp": jwt.NewNumericDate(time.Now().Add(time.Second * time.Duration(uc.jwtExpiration))),
+		"exp": jwt.NewNumericDate(time.Now().Add(uc.jwtExpiration)),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

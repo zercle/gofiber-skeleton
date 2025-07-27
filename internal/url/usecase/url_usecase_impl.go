@@ -7,12 +7,13 @@ import (
 	"gofiber-skeleton/internal/url/repository"
 	"time"
 
-	"github.com/google/uuid"     // Added uuid import
 	"gofiber-skeleton/pkg/utils" // Assuming a utility for short code generation
+
+	"github.com/google/uuid" // Added uuid import
 )
 
 // NewURLUseCase creates a new URLUseCase.
-func NewURLUseCase(urlRepo repository.URLRepository, cacheRepo interface{}) URLUseCase { // cacheRepo is a placeholder for now
+func NewURLUseCase(urlRepo repository.URLRepository, cacheRepo any) URLUseCase { // cacheRepo is a placeholder for now
 	return &urlUseCase{urlRepo: urlRepo}
 }
 
