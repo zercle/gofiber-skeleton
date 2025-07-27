@@ -1,10 +1,11 @@
-package repository
+package repository_test
 
 import (
 	"context"
 	"gofiber-skeleton/internal/entities"
-	"gofiber-skeleton/internal/repository/mocks"
 	db "gofiber-skeleton/internal/repository/db"
+	repo "gofiber-skeleton/internal/repository"
+	"gofiber-skeleton/internal/repository/mocks"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ func TestURLRepository_CreateURL(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	userID := uuid.New()
 	url := &entities.URL{
@@ -51,7 +52,7 @@ func TestURLRepository_GetURLByShortCode(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	userID := uuid.New()
 	expectedURL := &entities.URL{
@@ -66,6 +67,7 @@ func TestURLRepository_GetURLByShortCode(t *testing.T) {
 	mockRedis.EXPECT().Get(gomock.Any(), expectedURL.ShortCode).Return(redis.NewStringCmd(context.Background())).Times(1).DoAndReturn(func(ctx context.Context, key string) *redis.StringCmd {
 		cmd := redis.NewStringCmd(ctx)
 		cmd.SetVal(expectedURL.OriginalURL) // Simulate cache hit
+
 		return cmd
 	})
 
@@ -79,6 +81,7 @@ func TestURLRepository_GetURLByShortCode(t *testing.T) {
 	mockRedis.EXPECT().Get(gomock.Any(), expectedURL.ShortCode).Return(redis.NewStringCmd(context.Background())).Times(1).DoAndReturn(func(ctx context.Context, key string) *redis.StringCmd {
 		cmd := redis.NewStringCmd(ctx)
 		cmd.SetErr(redis.Nil) // Simulate cache miss
+
 		return cmd
 	})
 	mockQuerier.EXPECT().GetURLByShortCode(gomock.Any(), expectedURL.ShortCode).Return(db.Url{
@@ -105,7 +108,7 @@ func TestURLRepository_GetURLsByUserID(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	userID := uuid.New()
 	expectedURLs := []db.Url{
@@ -140,7 +143,7 @@ func TestURLRepository_UpdateURL(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	urlID := uuid.New()
 	newOriginalURL := "https://example.com/updated"
@@ -165,7 +168,7 @@ func TestURLRepository_DeleteURL(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	urlID := uuid.New()
 
@@ -193,7 +196,7 @@ func TestURLRepository_GetURLByID(t *testing.T) {
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
 	mockRedis := mocks.NewMockRedisCache(ctrl)
-	repo := NewURLRepository(mockQuerier, mockRedis)
+	repo := repo.NewSQLURLRepository(mockQuerier, mockRedis)
 
 	userID := uuid.New()
 	expectedURL := &entities.URL{

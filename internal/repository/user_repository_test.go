@@ -1,8 +1,9 @@
-package repository
+package repository_test
 
 import (
 	"context"
 	"gofiber-skeleton/internal/entities"
+	repo "gofiber-skeleton/internal/repository"
 	"gofiber-skeleton/internal/repository/mocks"
 	db "gofiber-skeleton/internal/repository/db"
 	"testing"
@@ -19,7 +20,7 @@ func TestUserRepository_CreateUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
-	repo := NewUserRepository(mockQuerier)
+	repo := repo.NewSQLUserRepository(mockQuerier)
 
 	user := &entities.User{
 		ID:        uuid.New(),
@@ -43,7 +44,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
-	repo := NewUserRepository(mockQuerier)
+	repo := repo.NewSQLUserRepository(mockQuerier)
 
 	expectedUser := &entities.User{
 		ID:        uuid.New(),
@@ -73,7 +74,7 @@ func TestUserRepository_GetUserByUsername(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockQuerier := mocks.NewMockDBQueriesInterface(ctrl)
-	repo := NewUserRepository(mockQuerier)
+	repo := repo.NewSQLUserRepository(mockQuerier)
 
 	expectedUser := &entities.User{
 		ID:        uuid.New(),

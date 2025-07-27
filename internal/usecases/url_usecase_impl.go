@@ -33,6 +33,7 @@ func (uc *urlUseCase) CreateShortURL(ctx context.Context, originalURL string, us
 	shortCode := customShortCode
 	if shortCode == "" {
 		var err error
+
 		shortCode, err = uc.generateShortCode(ctx)
 		if err != nil {
 			return nil, err
@@ -58,6 +59,7 @@ func (uc *urlUseCase) GetOriginalURL(ctx context.Context, shortCode string) (str
 	if err != nil {
 		return "", err
 	}
+
 	return url.OriginalURL, nil
 }
 
@@ -70,6 +72,7 @@ func (uc *urlUseCase) UpdateShortURL(ctx context.Context, userID, urlID uuid.UUI
 	if err != nil {
 		return nil, err
 	}
+
 	if existingURL.UserID != userID {
 		return nil, errors.New("unauthorized: user does not own this URL")
 	}
@@ -78,10 +81,12 @@ func (uc *urlUseCase) UpdateShortURL(ctx context.Context, userID, urlID uuid.UUI
 		ID:          urlID,
 		OriginalURL: newOriginalURL,
 	}
+
 	err = uc.urlRepo.UpdateURL(ctx, url)
 	if err != nil {
 		return nil, err
 	}
+
 	return url, nil
 }
 
@@ -90,24 +95,29 @@ func (uc *urlUseCase) DeleteShortURL(ctx context.Context, userID, urlID uuid.UUI
 	if err != nil {
 		return err
 	}
+
 	if existingURL.UserID != userID {
 		return errors.New("unauthorized: user does not own this URL")
 	}
+
 	return uc.urlRepo.DeleteURL(ctx, urlID)
 }
 
 func (uc *urlUseCase) GenerateQRCode(ctx context.Context, shortCode string) ([]byte, error) {
 	fullURL := uc.appDomain + "/" + shortCode
+
 	return qrcode.Encode(fullURL, qrcode.Medium, 256)
 }
 
 func (uc *urlUseCase) generateShortCode(ctx context.Context) (string, error) {
 	for i := 0; i < 5; i++ { // Retry up to 5 times to find a unique code
 		b := make([]byte, 6)
+
 		_, err := rand.Read(b)
 		if err != nil {
 			return "", err
 		}
+
 		shortCode := base64.URLEncoding.EncodeToString(b)
 
 		// Check if the code already exists
@@ -116,5 +126,6 @@ func (uc *urlUseCase) generateShortCode(ctx context.Context) (string, error) {
 			return shortCode, nil
 		}
 	}
+
 	return "", errors.New("failed to generate a unique short code after multiple attempts")
 }

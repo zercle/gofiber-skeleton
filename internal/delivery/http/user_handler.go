@@ -7,7 +7,7 @@ import (
 )
 
 // NewUserHandler creates a new UserHandler.
-func NewUserHandler(userUseCase usecases.UserUseCase) *UserHandler {
+func NewHTTPUserHandler(userUseCase usecases.UserUseCase) *UserHandler {
 	return &UserHandler{userUseCase: userUseCase}
 }
 
@@ -37,6 +37,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		if err.Error() == "username already exists" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Username already exists"})
 		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Failed to register user"})
 	}
 

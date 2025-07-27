@@ -1,4 +1,4 @@
-package http
+package http_test
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"gofiber-skeleton/internal/entities"
+	deliveryhttp "gofiber-skeleton/internal/delivery/http"
 	"gofiber-skeleton/internal/usecases/mocks"
 	"io"
 	"net/http"
@@ -28,7 +29,7 @@ func TestURLHandler_CreateShortURL(t *testing.T) {
 	_ = context.Background() // Dummy usage to prevent "context imported and not used" error
 
 	mockURLUseCase := mocks.NewMockURLUseCase(ctrl)
-	handler := NewURLHandler(mockURLUseCase)
+	handler := deliveryhttp.NewHTTPURLHandler(mockURLUseCase)
 
 	var currentUserID uuid.UUID // Declare userID in the outer scope
 
@@ -40,6 +41,7 @@ func TestURLHandler_CreateShortURL(t *testing.T) {
 				"sub": currentUserID.String(), // Use the captured userID
 			},
 		})
+
 		return handler.CreateShortURL(c)
 	})
 
@@ -111,7 +113,7 @@ func TestURLHandler_GetOriginalURL(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockURLUseCase := mocks.NewMockURLUseCase(ctrl)
-	handler := NewURLHandler(mockURLUseCase)
+	handler := deliveryhttp.NewHTTPURLHandler(mockURLUseCase)
 
 	app := fiber.New()
 	app.Get("/:shortCode", handler.Redirect)
@@ -151,6 +153,7 @@ func TestURLHandler_GetOriginalURL(t *testing.T) {
 			resp, _ := app.Test(req, -1)
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
 			for key, value := range tt.expectedHeader {
 				assert.Equal(t, value, resp.Header.Get(key))
 			}
@@ -163,7 +166,7 @@ func TestURLHandler_GenerateQRCode(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockURLUseCase := mocks.NewMockURLUseCase(ctrl)
-	handler := NewURLHandler(mockURLUseCase)
+	handler := deliveryhttp.NewHTTPURLHandler(mockURLUseCase)
 
 	app := fiber.New()
 	app.Get("/:shortCode/qr", handler.GetQRCode)
@@ -206,9 +209,11 @@ func TestURLHandler_GenerateQRCode(t *testing.T) {
 			resp, _ := app.Test(req, -1)
 
 			assert.Equal(t, tt.expectedStatus, resp.StatusCode)
+
 			for key, value := range tt.expectedHeader {
 				assert.Equal(t, value, resp.Header.Get(key))
 			}
+
 			respBody, _ := io.ReadAll(resp.Body)
 			if tt.expectedHeader["Content-Type"] == "image/png" {
 				assert.Equal(t, tt.expectedBody, respBody)
@@ -219,12 +224,13 @@ func TestURLHandler_GenerateQRCode(t *testing.T) {
 	}
 }
 
-// Helper function to generate a mock JWT token for testing
+// Helper function to generate a mock JWT token for testing.
 func generateMockToken(userID uuid.UUID) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID.String(),
 		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	})
 	tokenString, _ := token.SignedString([]byte("test-secret"))
+
 	return tokenString
 }

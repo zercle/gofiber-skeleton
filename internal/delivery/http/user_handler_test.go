@@ -1,4 +1,4 @@
-package http
+package http_test
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gofiber-skeleton/internal/entities"
+	deliveryhttp "gofiber-skeleton/internal/delivery/http"
 	"gofiber-skeleton/internal/usecases/mocks"
 	"io"
 	"net/http"
@@ -25,7 +26,7 @@ func TestUserHandler_Register(t *testing.T) {
 	_ = context.Background() // Dummy usage to prevent "context imported and not used" error
 
 	mockUserUseCase := mocks.NewMockUserUseCase(ctrl)
-	handler := NewUserHandler(mockUserUseCase)
+	handler := deliveryhttp.NewHTTPUserHandler(mockUserUseCase)
 
 	app := fiber.New()
 	app.Post("/register", handler.Register)
@@ -101,7 +102,7 @@ func TestUserHandler_Login(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserUseCase := mocks.NewMockUserUseCase(ctrl)
-	handler := NewUserHandler(mockUserUseCase)
+	handler := deliveryhttp.NewHTTPUserHandler(mockUserUseCase)
 
 	app := fiber.New()
 	app.Post("/login", handler.Login)

@@ -10,7 +10,7 @@ import (
 )
 
 // NewURLHandler creates a new URLHandler.
-func NewURLHandler(urlUseCase usecases.URLUseCase) *URLHandler {
+func NewHTTPURLHandler(urlUseCase usecases.URLUseCase) *URLHandler {
 	return &URLHandler{urlUseCase: urlUseCase}
 }
 
@@ -67,6 +67,7 @@ func (h *URLHandler) CreateShortURL(c *fiber.Ctx) error {
 // Redirect redirects a short URL to the original URL.
 func (h *URLHandler) Redirect(c *fiber.Ctx) error {
 	shortCode := c.Params("shortCode")
+
 	originalURL, err := h.urlUseCase.GetOriginalURL(c.Context(), shortCode)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"status": "fail", "data": "Short URL not found"})
@@ -86,17 +87,20 @@ func isValidURL(u string) bool {
 	if err != nil {
 		return false
 	}
+
 	return parsedURL.Scheme == "http" || parsedURL.Scheme == "https"
 }
 
 // GetQRCode generates a QR code for a short URL.
 func (h *URLHandler) GetQRCode(c *fiber.Ctx) error {
 	shortCode := c.Params("shortCode")
+
 	qrCode, err := h.urlUseCase.GenerateQRCode(c.Context(), shortCode)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Failed to generate QR code"})
 	}
 
 	c.Set("Content-Type", "image/png")
+
 	return c.Send(qrCode)
 }

@@ -51,16 +51,16 @@ func main() {
 
 	// Create repositories
 	queries := db.New(dbpool)
-	userRepo := repository.NewUserRepository(queries)
-	urlRepo := repository.NewURLRepository(queries, &repository.RealRedisClient{Client: redisClient})
+	userRepo := repository.NewSQLUserRepository(queries)
+	urlRepo := repository.NewSQLURLRepository(queries, &repository.RealRedisClient{Client: redisClient})
 
 	// Create use cases
 	userUseCase := usecases.NewUserUseCase(userRepo, cfg.JWT.Secret, cfg.JWT.Expiration)
 	urlUseCase := usecases.NewURLUseCase(urlRepo, fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 
 	// Create handlers
-	userHandler := http.NewUserHandler(userUseCase)
-	urlHandler := http.NewURLHandler(urlUseCase)
+	userHandler := http.NewHTTPUserHandler(userUseCase)
+	urlHandler := http.NewHTTPURLHandler(urlUseCase)
 
 	// Create a new Fiber instance
 	app := fiber.New()

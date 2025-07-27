@@ -1,10 +1,11 @@
-package usecases
+package usecases_test
 
 import (
 	"context"
 	"testing"
 
 	"gofiber-skeleton/internal/entities"
+	usecases "gofiber-skeleton/internal/usecases"
 	"gofiber-skeleton/internal/usecases/mocks"
 
 	"go.uber.org/mock/gomock"
@@ -17,7 +18,7 @@ func TestUserUseCase_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mocks.NewMockUserRepository(ctrl)
-	userUseCase := NewUserUseCase(mockUserRepo, "test-secret", 1)
+	userUseCase := usecases.NewUserUseCase(mockUserRepo, "test-secret", 1)
 
 	username := "testuser"
 	password := "password"
@@ -38,7 +39,7 @@ func TestUserUseCase_Login(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mocks.NewMockUserRepository(ctrl)
-	userUseCase := NewUserUseCase(mockUserRepo, "test-secret", 1)
+	userUseCase := usecases.NewUserUseCase(mockUserRepo, "test-secret", 1)
 
 	username := "testuser"
 	password := "password"

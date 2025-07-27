@@ -21,7 +21,7 @@ type RedisCache interface {
 }
 
 // NewURLRepository creates a new URLRepository.
-func NewURLRepository(querier DBQueriesInterface, redisClient RedisCache) *URLRepository {
+func NewSQLURLRepository(querier DBQueriesInterface, redisClient RedisCache) *URLRepository {
 	return &URLRepository{queries: querier, redisClient: redisClient}
 }
 
@@ -60,6 +60,7 @@ func (r *URLRepository) GetURLByShortCode(ctx context.Context, shortCode string)
 	}
 	// Cache the URL if found in DB
 	r.redisClient.Set(ctx, url.ShortCode, url.OriginalUrl, 0)
+
 	return &entities.URL{ID: url.ID.Bytes, OriginalURL: url.OriginalUrl, ShortCode: url.ShortCode, UserID: url.UserID.Bytes, CreatedAt: url.CreatedAt.Time, ExpiresAt: url.ExpiresAt.Time}, nil
 }
 
@@ -74,6 +75,7 @@ func (r *URLRepository) GetURLsByUserID(ctx context.Context, userID uuid.UUID) (
 	for _, url := range urls {
 		result = append(result, &entities.URL{ID: url.ID.Bytes, OriginalURL: url.OriginalUrl, ShortCode: url.ShortCode, UserID: url.UserID.Bytes, CreatedAt: url.CreatedAt.Time, ExpiresAt: url.ExpiresAt.Time})
 	}
+
 	return result, nil
 }
 
@@ -87,6 +89,7 @@ func (r *URLRepository) UpdateURL(ctx context.Context, url *entities.URL) error 
 	if err == nil {
 		err = r.redisClient.Set(ctx, url.ShortCode, url.OriginalURL, 0).Err()
 	}
+
 	return err
 }
 
@@ -115,5 +118,6 @@ func (r *URLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*entities
 	if err != nil {
 		return nil, err
 	}
+
 	return &entities.URL{ID: url.ID.Bytes, OriginalURL: url.OriginalUrl, ShortCode: url.ShortCode, UserID: url.UserID.Bytes, CreatedAt: url.CreatedAt.Time, ExpiresAt: url.ExpiresAt.Time}, nil
 }

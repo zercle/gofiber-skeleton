@@ -1,4 +1,4 @@
-package tests
+package tests_test
 
 import (
 	"bytes"
@@ -24,6 +24,7 @@ func TestMain(m *testing.M) {
 
 func TestUserRegistrationAndLogin(t *testing.T) {
 	t.Skip("Skipping integration test")
+
 	username := "testuser"
 	password := "testpassword"
 
@@ -53,6 +54,7 @@ func TestUserRegistrationAndLogin(t *testing.T) {
 			Token string `json:"token"`
 		} `json:"data"`
 	}
+
 	err = json.NewDecoder(resp.Body).Decode(&loginResponse)
 	assert.NoError(t, err)
 	assert.Equal(t, "success", loginResponse.Status)
@@ -79,14 +81,17 @@ func TestURLShortening(t *testing.T) {
 	loginBody, _ := json.Marshal(loginPayload)
 	resp, err := http.Post(fmt.Sprintf("%s/api/users/login", baseURL), "application/json", bytes.NewBuffer(loginBody))
 	assert.NoError(t, err)
+
 	var loginResponse struct {
 		Status string `json:"status"`
 		Data   struct {
 			Token string `json:"token"`
 		} `json:"data"`
 	}
+
 	err = json.NewDecoder(resp.Body).Decode(&loginResponse)
 	assert.NoError(t, err)
+
 	token := loginResponse.Data.Token
 
 	// Create a short URL
@@ -95,7 +100,7 @@ func TestURLShortening(t *testing.T) {
 		"original_url": originalURL,
 	}
 	createURLBody, _ := json.Marshal(createURLPayload)
-	req, _ := http.NewRequest("POST", fmt.Sprintf("%s/api/urls", baseURL), bytes.NewBuffer(createURLBody))
+	req, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/urls", baseURL), bytes.NewBuffer(createURLBody))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 
@@ -110,6 +115,7 @@ func TestURLShortening(t *testing.T) {
 			ShortCode string `json:"short_code"`
 		} `json:"data"`
 	}
+
 	err = json.NewDecoder(resp.Body).Decode(&createURLResponse)
 	assert.NoError(t, err)
 	assert.Equal(t, "success", createURLResponse.Status)

@@ -10,7 +10,7 @@ import (
 )
 
 // NewUserRepository creates a new UserRepository.
-func NewUserRepository(querier DBQueriesInterface) *UserRepository {
+func NewSQLUserRepository(querier DBQueriesInterface) *UserRepository {
 	return &UserRepository{queries: querier}
 }
 
@@ -25,6 +25,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *entities.User) er
 		Username: user.Username,
 		Password: user.Password,
 	})
+
 	return err
 }
 
@@ -34,6 +35,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*entiti
 	if err != nil {
 		return nil, err
 	}
+
 	return &entities.User{ID: user.ID.Bytes, Username: user.Username, Password: user.Password, CreatedAt: user.CreatedAt.Time, UpdatedAt: user.UpdatedAt.Time}, nil
 }
 
@@ -43,5 +45,6 @@ func (r *UserRepository) GetUserByUsername(ctx context.Context, username string)
 	if err != nil {
 		return nil, err
 	}
+
 	return &entities.User{ID: user.ID.Bytes, Username: user.Username, Password: user.Password, CreatedAt: user.CreatedAt.Time, UpdatedAt: user.UpdatedAt.Time}, nil
 }
