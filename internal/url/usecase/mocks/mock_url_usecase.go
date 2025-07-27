@@ -42,10 +42,10 @@ func (m *MockURLUseCase) EXPECT() *MockURLUseCaseMockRecorder {
 }
 
 // CreateURL mocks base method.
-func (m *MockURLUseCase) CreateURL(ctx context.Context, originalURL, userID string) (*url.URL, error) {
+func (m *MockURLUseCase) CreateURL(ctx context.Context, originalURL, userID string) (*url.ModelURL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateURL", ctx, originalURL, userID)
-	ret0, _ := ret[0].(*url.URL)
+	ret0, _ := ret[0].(*url.ModelURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

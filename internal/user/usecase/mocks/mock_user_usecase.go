@@ -57,10 +57,10 @@ func (mr *MockUserUseCaseMockRecorder) Login(ctx, username, password any) *gomoc
 }
 
 // Register mocks base method.
-func (m *MockUserUseCase) Register(ctx context.Context, username, password string) (*user.User, error) {
+func (m *MockUserUseCase) Register(ctx context.Context, username, password string) (*user.ModelUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Register", ctx, username, password)
-	ret0, _ := ret[0].(*user.User)
+	ret0, _ := ret[0].(*user.ModelUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

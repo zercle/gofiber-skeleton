@@ -61,7 +61,7 @@ func TestUserUseCase_Login(t *testing.T) {
 	username := "testuser"
 	password := "testpassword"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	testUser := &user.User{
+	testUser := &user.ModelUser{
 		ID:       uuid.New(),
 		Username: username,
 		Password: string(hashedPassword),

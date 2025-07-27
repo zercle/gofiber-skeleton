@@ -1,4 +1,4 @@
-//go:generate mockgen -source=redis_wrapper.go -destination=mocks/mock_redis_wrapper.go -package=mocks RedisCache
+//go:generate mockgen -source=redis_wrapper.go -destination=mocks/mock_redis_wrapper.go -package=mocks CacheWrapper
 package cache
 
 import (

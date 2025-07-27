@@ -31,23 +31,25 @@ type SQLURLRepository struct {
 }
 
 // CreateURL creates a new url in the database.
-func (r *SQLURLRepository) CreateURL(ctx context.Context, url *url.URL) error {
+func (r *SQLURLRepository) CreateURL(ctx context.Context, urlObj *url.ModelURL) error {
 	_, err := r.queries.CreateURL(ctx, db.CreateURLParams{
-		OriginalUrl: url.OriginalURL,
-		ShortCode:   url.ShortCode,
-		UserID:      pgtype.UUID{Bytes: url.UserID, Valid: url.UserID != uuid.Nil},
-		ExpiresAt:   pgtype.Timestamptz{Time: url.ExpiresAt, Valid: !url.ExpiresAt.IsZero()},
+		OriginalUrl: urlObj.OriginalURL,
+		ShortCode:   urlObj.ShortCode,
+		UserID:      pgtype.UUID{Bytes: urlObj.UserID, Valid: urlObj.UserID != uuid.Nil},
+		ExpiresAt:   pgtype.Timestamptz{Time: urlObj.ExpiresAt, Valid: !urlObj.ExpiresAt.IsZero()},
 	})
 	if err != nil {
 		return err
 	}
 	// Cache the URL
-	data, err := json.Marshal(url)
-	if err == nil {
-		if cacheErr := r.redisClient.Set(ctx, r.cacheKeyByShortCode(url.ShortCode), data, time.Hour); cacheErr != nil {
+	data, err := json.Marshal(urlObj)
+	if err != nil {
+		slog.Warn("Failed to marshal URL for caching", "error", err, "url_id", urlObj.ID)
+	} else {
+		if cacheErr := r.redisClient.Set(ctx, r.cacheKeyByShortCode(urlObj.ShortCode), data, time.Hour); cacheErr != nil {
 			slog.Warn("Failed to cache URL", "error", cacheErr)
 		}
-		if cacheErr := r.redisClient.Set(ctx, r.cacheKeyByID(url.ID.String()), data, time.Hour); cacheErr != nil {
+		if cacheErr := r.redisClient.Set(ctx, r.cacheKeyByID(urlObj.ID.String()), data, time.Hour); cacheErr != nil {
 			slog.Warn("Failed to cache URL", "error", cacheErr)
 		}
 	}
@@ -55,11 +57,11 @@ func (r *SQLURLRepository) CreateURL(ctx context.Context, url *url.URL) error {
 }
 
 // GetURLByShortCode retrieves a url from the database by its short code with caching.
-func (r *SQLURLRepository) GetURLByShortCode(ctx context.Context, shortCode string) (*url.URL, error) {
+func (r *SQLURLRepository) GetURLByShortCode(ctx context.Context, shortCode string) (*url.ModelURL, error) {
 	cacheKey := r.cacheKeyByShortCode(shortCode)
 	cachedData, err := r.redisClient.Get(ctx, cacheKey)
 	if err == nil {
-		var cachedURL url.URL
+		var cachedURL url.ModelURL
 		if err := json.Unmarshal([]byte(cachedData), &cachedURL); err == nil {
 			return &cachedURL, nil
 		}
@@ -70,7 +72,7 @@ func (r *SQLURLRepository) GetURLByShortCode(ctx context.Context, shortCode stri
 	if err != nil {
 		return nil, err
 	}
-	urlObj := &url.URL{
+	urlObj := &url.ModelURL{
 		ID:          u.ID.Bytes,
 		OriginalURL: u.OriginalUrl,
 		ShortCode:   u.ShortCode,
@@ -80,7 +82,9 @@ func (r *SQLURLRepository) GetURLByShortCode(ctx context.Context, shortCode stri
 	}
 	// Cache the URL
 	data, err := json.Marshal(urlObj)
-	if err == nil {
+	if err != nil {
+		slog.Warn("Failed to marshal URL for caching", "error", err, "url_id", urlObj.ID)
+	} else {
 		if cacheErr := r.redisClient.Set(ctx, cacheKey, data, time.Hour); cacheErr != nil {
 			slog.Warn("Failed to cache URL", "error", cacheErr)
 		}
@@ -92,11 +96,11 @@ func (r *SQLURLRepository) GetURLByShortCode(ctx context.Context, shortCode stri
 }
 
 // GetURLByID retrieves a url from the database by its ID with caching.
-func (r *SQLURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.URL, error) {
+func (r *SQLURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.ModelURL, error) {
 	cacheKey := r.cacheKeyByID(id.String())
 	cachedData, err := r.redisClient.Get(ctx, cacheKey)
 	if err == nil {
-		var cachedURL url.URL
+		var cachedURL url.ModelURL
 		if err := json.Unmarshal([]byte(cachedData), &cachedURL); err == nil {
 			return &cachedURL, nil
 		}
@@ -107,7 +111,7 @@ func (r *SQLURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.U
 	if err != nil {
 		return nil, err
 	}
-	urlObj := &url.URL{
+	urlObj := &url.ModelURL{
 		ID:          u.ID.Bytes,
 		OriginalURL: u.OriginalUrl,
 		ShortCode:   u.ShortCode,
@@ -117,7 +121,9 @@ func (r *SQLURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.U
 	}
 	// Cache the URL
 	data, err := json.Marshal(urlObj)
-	if err == nil {
+	if err != nil {
+		slog.Warn("Failed to marshal URL for caching", "error", err, "url_id", urlObj.ID)
+	} else {
 		if cacheErr := r.redisClient.Set(ctx, cacheKey, data, time.Hour); cacheErr != nil {
 			slog.Warn("Failed to cache URL", "error", cacheErr)
 		}

@@ -11,7 +11,7 @@ import (
 
 // URLRepository defines the interface for URL data access.
 type URLRepository interface {
-	CreateURL(ctx context.Context, url *url.URL) error
-	GetURLByShortCode(ctx context.Context, shortCode string) (*url.URL, error)
-	GetURLByID(ctx context.Context, id uuid.UUID) (*url.URL, error)
+	CreateURL(ctx context.Context, url *url.ModelURL) error
+	GetURLByShortCode(ctx context.Context, shortCode string) (*url.ModelURL, error)
+	GetURLByID(ctx context.Context, id uuid.UUID) (*url.ModelURL, error)
 }

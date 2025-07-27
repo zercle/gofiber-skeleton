@@ -2,15 +2,14 @@ package usecase
 
 import (
 	"context"
-	"gofiber-skeleton/internal/user"            // Updated import
-	"gofiber-skeleton/internal/user/repository" // Updated import
+	"gofiber-skeleton/internal/user"
+	"gofiber-skeleton/internal/user/repository"
+
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// NewUserUseCase creates a new UserUseCase.
-import "time"
 
 func NewUserUseCase(userRepo repository.UserRepository, jwtSecret string, jwtExpiration time.Duration) UserUseCase {
 	return &userUseCase{userRepo: userRepo, jwtSecret: jwtSecret, jwtExpiration: jwtExpiration}
@@ -22,32 +21,32 @@ type userUseCase struct {
 	jwtExpiration time.Duration
 }
 
-func (uc *userUseCase) Register(ctx context.Context, username, password string) (*user.User, error) {
+func (uc *userUseCase) Register(ctx context.Context, username, password string) (*user.ModelUser, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
-	usr := &user.User{ // Changed variable name to avoid conflict with package name
+	usr := &user.ModelUser{
 		Username: username,
 		Password: string(hashedPassword),
 	}
 
-	err = uc.userRepo.CreateUser(ctx, usr) // Changed variable name
+	err = uc.userRepo.CreateUser(ctx, usr)
 	if err != nil {
 		return nil, err
 	}
 
-	return usr, nil // Changed variable name
+	return usr, nil
 }
 
 func (uc *userUseCase) Login(ctx context.Context, username, password string) (string, error) {
-	usr, err := uc.userRepo.GetUserByUsername(ctx, username) // Changed variable name
+	usr, err := uc.userRepo.GetUserByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password)) // Changed variable name
+	err = bcrypt.CompareHashAndPassword([]byte(usr.Password), []byte(password))
 	if err != nil {
 		return "", err
 	}

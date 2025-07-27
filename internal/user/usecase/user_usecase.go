@@ -9,6 +9,6 @@ import (
 
 // UserUseCase defines the interface for user-related business logic.
 type UserUseCase interface {
-	Register(ctx context.Context, username, password string) (*user.User, error)
+	Register(ctx context.Context, username, password string) (*user.ModelUser, error)
 	Login(ctx context.Context, username, password string) (string, error) // Returns JWT
 }

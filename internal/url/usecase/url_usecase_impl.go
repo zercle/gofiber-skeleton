@@ -22,7 +22,7 @@ type urlUseCase struct {
 	// cacheRepo cache.CacheRepository // Uncomment when cache is integrated
 }
 
-func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID string) (*url.URL, error) {
+func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID string) (*url.ModelURL, error) {
 	// Generate short code
 	shortCode := utils.GenerateShortCode(8) // Assuming a utility function
 
@@ -39,7 +39,7 @@ func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID 
 	// Set expiration time (e.g., 24 hours from now)
 	expiresAt := time.Now().Add(24 * time.Hour)
 
-	url := &url.URL{
+	url := &url.ModelURL{
 		OriginalURL: originalURL,
 		ShortCode:   shortCode,
 		UserID:      userUUID,
