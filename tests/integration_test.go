@@ -85,7 +85,8 @@ func TestURLShortening(t *testing.T) {
 			Token string `json:"token"`
 		} `json:"data"`
 	}
-	json.NewDecoder(resp.Body).Decode(&loginResponse)
+	err = json.NewDecoder(resp.Body).Decode(&loginResponse)
+	assert.NoError(t, err)
 	token := loginResponse.Data.Token
 
 	// Create a short URL
