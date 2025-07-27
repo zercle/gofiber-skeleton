@@ -2,6 +2,7 @@ package http
 
 import (
 	"gofiber-skeleton/internal/usecases"
+	"net/url"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -34,7 +35,6 @@ func (h *URLHandler) CreateShortURL(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Original URL cannot be empty"})
 	}
 
-
 	user, ok := c.Locals("user").(*jwt.Token)
 	if !ok || user == nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
@@ -54,7 +54,7 @@ func (h *URLHandler) CreateShortURL(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"status": "error", "message": "Failed to create short URL"})
 	}
-	
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":  "success",
 		"message": "Short URL created successfully",
@@ -81,8 +81,12 @@ func (h *URLHandler) Redirect(c *fiber.Ctx) error {
 }
 
 // isValidURL performs a basic check to ensure the URL is safe for redirection.
-func isValidURL(url string) bool {
-	return len(url) > 7 && (url[:7] == "http://" || url[:8] == "https://")
+func isValidURL(u string) bool {
+	parsedURL, err := url.ParseRequestURI(u)
+	if err != nil {
+		return false
+	}
+	return parsedURL.Scheme == "http" || parsedURL.Scheme == "https"
 }
 
 // GetQRCode generates a QR code for a short URL.
