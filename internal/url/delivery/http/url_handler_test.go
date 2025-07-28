@@ -33,7 +33,7 @@ func TestURLHandler_CreateURL(t *testing.T) {
 	originalURL := "https://example.com"
 	shortCode := "abc123def"
 	userID := uuid.New()
-	expectedURL := &url.URL{
+	expectedURL := &url.ModelURL{
 		ID:          uuid.New(),
 		OriginalURL: originalURL,
 		ShortCode:   shortCode,

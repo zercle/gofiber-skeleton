@@ -56,7 +56,7 @@ func TestURLUseCase_GetOriginalURL(t *testing.T) {
 
 	ctx := context.Background()
 	shortCode := "abc123def"
-	expectedURL := &url.URL{
+	expectedURL := &url.ModelURL{
 		OriginalURL: "https://example.com/original",
 		ShortCode:   shortCode,
 		ExpiresAt:   time.Now().Add(time.Hour), // Not expired
@@ -79,7 +79,7 @@ func TestURLUseCase_GetOriginalURL(t *testing.T) {
 	assert.Equal(t, repoError, err)
 
 	// Test case 3: Expired URL
-	expiredURL := &url.URL{
+	expiredURL := &url.ModelURL{
 		OriginalURL: "https://example.com/expired",
 		ShortCode:   "expired",
 		ExpiresAt:   time.Now().Add(-time.Hour), // Expired

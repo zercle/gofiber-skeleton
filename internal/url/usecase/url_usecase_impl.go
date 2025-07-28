@@ -2,17 +2,25 @@ package usecase
 
 import (
 	"context"
-	"errors" // Added errors import
+	"errors"
 	"gofiber-skeleton/internal/url"
 	"gofiber-skeleton/internal/url/repository"
 	"time"
 
-	"github.com/google/uuid"     // Added uuid import
-	"gofiber-skeleton/pkg/utils" // Assuming a utility for short code generation
+	"gofiber-skeleton/pkg/utils"
+
+	"github.com/google/uuid"
 )
 
-// NewURLUseCase creates a new URLUseCase.
-func NewURLUseCase(urlRepo repository.URLRepository, cacheRepo interface{}) URLUseCase { // cacheRepo is a placeholder for now
+// NewURLUseCase creates a new instance of URLUseCase.
+//
+// Parameters:
+//   - urlRepo: Repository interface for URL persistence.
+//   - cacheRepo: Placeholder for cache repository, currently unused.
+//
+// Returns:
+//   - URLUseCase: Implementation of URLUseCase interface.
+func NewURLUseCase(urlRepo repository.URLRepository, cacheRepo any) URLUseCase {
 	return &urlUseCase{urlRepo: urlRepo}
 }
 
@@ -21,11 +29,19 @@ type urlUseCase struct {
 	// cacheRepo cache.CacheRepository // Uncomment when cache is integrated
 }
 
-func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID string) (*url.URL, error) {
-	// Generate short code
-	shortCode := utils.GenerateShortCode(8) // Assuming a utility function
+// CreateURL generates a short code, constructs a ModelURL, and persists it.
+//
+// Parameters:
+//   - ctx: Context for request management.
+//   - originalURL: The original URL string to shorten.
+//   - userID: Optional user ID string associated with the URL.
+//
+// Returns:
+//   - *url.ModelURL: The created URL model with generated short code.
+//   - error: Error if creation fails.
+func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID string) (*url.ModelURL, error) {
+	shortCode := utils.GenerateShortCode(8)
 
-	// Convert userID string to uuid.UUID
 	var userUUID uuid.UUID
 	if userID != "" {
 		parsedUserID, err := uuid.Parse(userID)
@@ -35,10 +51,9 @@ func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID 
 		userUUID = parsedUserID
 	}
 
-	// Set expiration time (e.g., 24 hours from now)
 	expiresAt := time.Now().Add(24 * time.Hour)
 
-	url := &url.URL{
+	url := &url.ModelURL{
 		OriginalURL: originalURL,
 		ShortCode:   shortCode,
 		UserID:      userUUID,
@@ -54,15 +69,23 @@ func (uc *urlUseCase) CreateURL(ctx context.Context, originalURL string, userID 
 	return url, nil
 }
 
+// GetOriginalURL retrieves the original URL for a given short code.
+//
+// Parameters:
+//   - ctx: Context for request management.
+//   - shortCode: The short code string to look up.
+//
+// Returns:
+//   - string: The original URL corresponding to the short code.
+//   - error: Error if the URL is not found or expired.
 func (uc *urlUseCase) GetOriginalURL(ctx context.Context, shortCode string) (string, error) {
 	url, err := uc.urlRepo.GetURLByShortCode(ctx, shortCode)
 	if err != nil {
 		return "", err
 	}
 
-	// Check if URL has expired
 	if url.ExpiresAt.Before(time.Now()) {
-		return "", errors.New("URL expired") // Assuming errors package
+		return "", errors.New("URL expired")
 	}
 
 	return url.OriginalURL, nil

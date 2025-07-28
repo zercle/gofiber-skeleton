@@ -11,7 +11,7 @@ import (
 
 // UserRepository defines the interface for user data access.
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *user.User) error
-	GetUserByID(ctx context.Context, id uuid.UUID) (*user.User, error)
-	GetUserByUsername(ctx context.Context, username string) (*user.User, error)
+	CreateUser(ctx context.Context, user *user.ModelUser) error
+	GetUserByID(ctx context.Context, id uuid.UUID) (*user.ModelUser, error)
+	GetUserByUsername(ctx context.Context, username string) (*user.ModelUser, error)
 }

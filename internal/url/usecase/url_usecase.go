@@ -9,6 +9,6 @@ import (
 
 // URLUseCase defines the interface for URL-related business logic.
 type URLUseCase interface {
-	CreateURL(ctx context.Context, originalURL string, userID string) (*url.URL, error)
+	CreateURL(ctx context.Context, originalURL string, userID string) (*url.ModelURL, error)
 	GetOriginalURL(ctx context.Context, shortCode string) (string, error)
 }

@@ -43,7 +43,7 @@ func (m *MockURLRepository) EXPECT() *MockURLRepositoryMockRecorder {
 }
 
 // CreateURL mocks base method.
-func (m *MockURLRepository) CreateURL(ctx context.Context, arg1 *url.URL) error {
+func (m *MockURLRepository) CreateURL(ctx context.Context, arg1 *url.ModelURL) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateURL", ctx, arg1)
 	ret0, _ := ret[0].(error)
@@ -57,10 +57,10 @@ func (mr *MockURLRepositoryMockRecorder) CreateURL(ctx, arg1 any) *gomock.Call {
 }
 
 // GetURLByID mocks base method.
-func (m *MockURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.URL, error) {
+func (m *MockURLRepository) GetURLByID(ctx context.Context, id uuid.UUID) (*url.ModelURL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetURLByID", ctx, id)
-	ret0, _ := ret[0].(*url.URL)
+	ret0, _ := ret[0].(*url.ModelURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -72,10 +72,10 @@ func (mr *MockURLRepositoryMockRecorder) GetURLByID(ctx, id any) *gomock.Call {
 }
 
 // GetURLByShortCode mocks base method.
-func (m *MockURLRepository) GetURLByShortCode(ctx context.Context, shortCode string) (*url.URL, error) {
+func (m *MockURLRepository) GetURLByShortCode(ctx context.Context, shortCode string) (*url.ModelURL, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetURLByShortCode", ctx, shortCode)
-	ret0, _ := ret[0].(*url.URL)
+	ret0, _ := ret[0].(*url.ModelURL)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

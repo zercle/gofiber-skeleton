@@ -2,6 +2,7 @@ package configs
 
 import (
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -22,8 +23,8 @@ type Config struct {
 		SSLMode  string `mapstructure:"sslmode"`
 	} `mapstructure:"db"`
 	JWT struct {
-		Secret     string `mapstructure:"secret"`
-		Expiration int    `mapstructure:"expiration"`
+		Secret     string        `mapstructure:"secret"`
+		Expiration time.Duration `mapstructure:"expiration"`
 	} `mapstructure:"jwt"`
 	Cache struct {
 		Host     string `mapstructure:"host"`

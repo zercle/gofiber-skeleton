@@ -21,7 +21,8 @@ func TestUserUseCase_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
-	userUseCase := usecase.NewUserUseCase(mockUserRepo, "test_secret", 3600)
+	duration, _ := time.ParseDuration("1h")
+	userUseCase := usecase.NewUserUseCase(mockUserRepo, "test_secret", duration)
 
 	ctx := context.Background()
 	username := "testuser"
@@ -52,25 +53,26 @@ func TestUserUseCase_Login(t *testing.T) {
 
 	mockUserRepo := mock_repository.NewMockUserRepository(ctrl)
 	jwtSecret := "test_secret"
-	jwtExpiration := 3600 // 1 hour
+	jwtExpirationStr := "1h"
+	jwtExpiration, _ := time.ParseDuration(jwtExpirationStr)
 	userUseCase := usecase.NewUserUseCase(mockUserRepo, jwtSecret, jwtExpiration)
 
 	ctx := context.Background()
 	username := "testuser"
 	password := "testpassword"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	testUser := &user.User{
+	testUser := &user.ModelUser{
 		ID:       uuid.New(),
 		Username: username,
 		Password: string(hashedPassword),
 	}
 
 	// Capture the current time before generating the token
-	now := time.Now()
 
 	// Test case 1: Successful login
 	mockUserRepo.EXPECT().GetUserByUsername(ctx, username).Return(testUser, nil).Times(1)
 
+	now := time.Now()
 	token, err := userUseCase.Login(ctx, username, password)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
@@ -86,7 +88,7 @@ func TestUserUseCase_Login(t *testing.T) {
 	assert.Equal(t, testUser.ID.String(), claims["sub"])
 	// Convert claims["exp"] to time.Time for more accurate comparison
 	expirationTime := time.Unix(int64(claims["exp"].(float64)), 0)
-	assert.WithinDuration(t, now.Add(time.Duration(jwtExpiration)*time.Second), expirationTime, 2*time.Second) // Allow a 2-second margin
+	assert.WithinDuration(t, now.Add(jwtExpiration), expirationTime, 2*time.Second) // Allow a 2-second margin
 
 	// Test case 2: Invalid password
 	mockUserRepo.EXPECT().GetUserByUsername(ctx, username).Return(testUser, nil).Times(1)

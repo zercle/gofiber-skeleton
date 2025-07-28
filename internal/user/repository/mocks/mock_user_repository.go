@@ -43,7 +43,7 @@ func (m *MockUserRepository) EXPECT() *MockUserRepositoryMockRecorder {
 }
 
 // CreateUser mocks base method.
-func (m *MockUserRepository) CreateUser(ctx context.Context, arg1 *user.User) error {
+func (m *MockUserRepository) CreateUser(ctx context.Context, arg1 *user.ModelUser) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", ctx, arg1)
 	ret0, _ := ret[0].(error)
@@ -57,10 +57,10 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(ctx, arg1 any) *gomock.Call
 }
 
 // GetUserByID mocks base method.
-func (m *MockUserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*user.User, error) {
+func (m *MockUserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*user.ModelUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", ctx, id)
-	ret0, _ := ret[0].(*user.User)
+	ret0, _ := ret[0].(*user.ModelUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -72,10 +72,10 @@ func (mr *MockUserRepositoryMockRecorder) GetUserByID(ctx, id any) *gomock.Call 
 }
 
 // GetUserByUsername mocks base method.
-func (m *MockUserRepository) GetUserByUsername(ctx context.Context, username string) (*user.User, error) {
+func (m *MockUserRepository) GetUserByUsername(ctx context.Context, username string) (*user.ModelUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByUsername", ctx, username)
-	ret0, _ := ret[0].(*user.User)
+	ret0, _ := ret[0].(*user.ModelUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

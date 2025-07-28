@@ -9,14 +9,13 @@ import (
 	"syscall"
 
 	configs "gofiber-skeleton/internal/configs" // Aliased configs
-	"gofiber-skeleton/internal/platform/cache"
 	"gofiber-skeleton/internal/platform/db"
 	routerPkg "gofiber-skeleton/internal/platform/router" // Aliased router
 	urlHandler "gofiber-skeleton/internal/url/delivery/http"
-	urlRepo "gofiber-skeleton/internal/url/infrastructure/repository"
+	urlRepo "gofiber-skeleton/internal/url/repository"
 	urlUseCase "gofiber-skeleton/internal/url/usecase"
 	userHandler "gofiber-skeleton/internal/user/delivery/http"
-	userRepo "gofiber-skeleton/internal/user/infrastructure/repository"
+	userRepo "gofiber-skeleton/internal/user/repository"
 	userUseCase "gofiber-skeleton/internal/user/usecase"
 
 	_ "gofiber-skeleton/api" // Import generated docs
@@ -57,11 +56,11 @@ func main() {
 	// Create repositories
 	queries := db.New(dbpool)
 	userRepository := userRepo.NewSQLUserRepository(queries)
-	urlRepository := urlRepo.NewSQLURLRepository(queries)
+	urlRepository := urlRepo.NewSQLURLRepository(queries, redisClient)
 
 	// Create use cases
 	userUsecase := userUseCase.NewUserUseCase(userRepository, cfg.JWT.Secret, cfg.JWT.Expiration)
-	urlUsecase := urlUseCase.NewURLUseCase(urlRepository, &cache.RealRedisClient{Client: redisClient})
+	urlUsecase := urlUseCase.NewURLUseCase(urlRepository, redisClient)
 
 	// Create handlers
 	userHttpHandler := userHandler.NewHTTPUserHandler(userUsecase)
