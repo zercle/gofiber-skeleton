@@ -14,4 +14,5 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, user *user.ModelUser) error
 	GetUserByID(ctx context.Context, id uuid.UUID) (*user.ModelUser, error)
 	GetUserByUsername(ctx context.Context, username string) (*user.ModelUser, error)
+	UpdateUserRole(ctx context.Context, id uuid.UUID, role string) error
 }

@@ -17,7 +17,7 @@ sql:
         out: "internal/url/infrastructure/db"
         sql_package: "pgx/v5"
   - engine: "postgresql"
-    queries: "./db/queries/user.sql"
+    queries: "./db/queries/users.sql"
     schema: "./db/migrations/"
     gen:
       go:
