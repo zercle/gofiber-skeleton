@@ -18,11 +18,11 @@ RETURNING id, name, description, price, stock, image_url, created_at, updated_at
 `
 
 type CreateProductParams struct {
-	Name        string
-	Description pgtype.Text
-	Price       pgtype.Numeric
-	Stock       int32
-	ImageUrl    pgtype.Text
+	Name        string         `json:"name"`
+	Description pgtype.Text    `json:"description"`
+	Price       pgtype.Numeric `json:"price"`
+	Stock       int32          `json:"stock"`
+	ImageUrl    pgtype.Text    `json:"image_url"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -89,7 +89,7 @@ func (q *Queries) GetProducts(ctx context.Context) ([]Product, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Product
+	items := []Product{}
 	for rows.Next() {
 		var i Product
 		if err := rows.Scan(
@@ -120,12 +120,12 @@ RETURNING id, name, description, price, stock, image_url, created_at, updated_at
 `
 
 type UpdateProductParams struct {
-	ID          pgtype.UUID
-	Name        string
-	Description pgtype.Text
-	Price       pgtype.Numeric
-	Stock       int32
-	ImageUrl    pgtype.Text
+	ID          pgtype.UUID    `json:"id"`
+	Name        string         `json:"name"`
+	Description pgtype.Text    `json:"description"`
+	Price       pgtype.Numeric `json:"price"`
+	Stock       int32          `json:"stock"`
+	ImageUrl    pgtype.Text    `json:"image_url"`
 }
 
 func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
@@ -159,8 +159,8 @@ RETURNING id, name, description, price, stock, image_url, created_at, updated_at
 `
 
 type UpdateProductStockParams struct {
-	ID    pgtype.UUID
-	Stock int32
+	ID    pgtype.UUID `json:"id"`
+	Stock int32       `json:"stock"`
 }
 
 func (q *Queries) UpdateProductStock(ctx context.Context, arg UpdateProductStockParams) (Product, error) {

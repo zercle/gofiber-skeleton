@@ -4,16 +4,15 @@ import (
 	"errors"
 
 	"gofiber-skeleton/internal/core/domain"
-	"gofiber-skeleton/internal/product/repository"
 
 	"github.com/google/uuid"
 )
 
 type ProductService struct {
-	productRepo *repository.ProductRepository
+	productRepo domain.ProductRepository
 }
 
-func NewProductService(productRepo *repository.ProductRepository) *ProductService {
+func NewProductService(productRepo domain.ProductRepository) *ProductService {
 	return &ProductService{
 		productRepo: productRepo,
 	}

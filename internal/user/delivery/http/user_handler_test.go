@@ -29,12 +29,14 @@ func TestUserHandler_Register(t *testing.T) {
 	// Test case 1: Successful registration
 	username := "testuser"
 	password := "testpassword"
+	role := "customer"
 	registerPayload := map[string]string{
 		"username": username,
 		"password": password,
+		"role":     role,
 	}
 
-	mockUserUseCase.EXPECT().Register(gomock.Any(), username, password).Return(nil, nil).Times(1)
+	mockUserUseCase.EXPECT().Register(gomock.Any(), username, password, role).Return(nil, nil).Times(1)
 
 	body, _ := json.Marshal(registerPayload)
 	req := httptest.NewRequest(http.MethodPost, "/api/users/register", bytes.NewBuffer(body))
@@ -57,7 +59,7 @@ func TestUserHandler_Register(t *testing.T) {
 
 	// Test case 3: Use case error
 	useCaseError := errors.New("registration failed")
-	mockUserUseCase.EXPECT().Register(gomock.Any(), username, password).Return(nil, useCaseError).Times(1)
+	mockUserUseCase.EXPECT().Register(gomock.Any(), username, password, role).Return(nil, useCaseError).Times(1)
 
 	body, _ = json.Marshal(registerPayload)
 	req = httptest.NewRequest(http.MethodPost, "/api/users/register", bytes.NewBuffer(body))
@@ -77,7 +79,6 @@ func TestUserHandler_Login(t *testing.T) {
 	app.Post("/api/users/login", handler.Login)
 
 	// Test case 1: Successful login
-	var err error // Declare err here
 	username := "testuser"
 	password := "testpassword"
 	token := "mock_jwt_token"
@@ -96,7 +97,7 @@ func TestUserHandler_Login(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var response map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&response)
+	err := json.NewDecoder(resp.Body).Decode(&response)
 	assert.NoError(t, err)
 	assert.Equal(t, "success", response["status"])
 	data, ok := response["data"].(map[string]interface{})
