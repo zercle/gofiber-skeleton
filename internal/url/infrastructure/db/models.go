@@ -8,6 +8,37 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Order struct {
+	ID              pgtype.UUID
+	UserID          pgtype.UUID
+	Status          string
+	TotalAmount     pgtype.Numeric
+	ShippingAddress string
+	CreatedAt       pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
+}
+
+type OrderItem struct {
+	ID        pgtype.UUID
+	OrderID   pgtype.UUID
+	ProductID pgtype.UUID
+	Quantity  int32
+	UnitPrice pgtype.Numeric
+	Subtotal  pgtype.Numeric
+	CreatedAt pgtype.Timestamptz
+}
+
+type Product struct {
+	ID          pgtype.UUID
+	Name        string
+	Description pgtype.Text
+	Price       pgtype.Numeric
+	Stock       int32
+	ImageUrl    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+}
+
 type Url struct {
 	ID          pgtype.UUID
 	OriginalUrl string
@@ -23,4 +54,5 @@ type User struct {
 	Password  string
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
+	Role      string
 }

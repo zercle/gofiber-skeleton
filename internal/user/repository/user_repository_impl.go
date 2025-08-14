@@ -41,6 +41,7 @@ func (r *SQLUserRepository) CreateUser(ctx context.Context, usr *user.ModelUser)
 	_, err := r.queries.CreateUser(ctx, db.CreateUserParams{
 		Username: usr.Username,
 		Password: usr.Password,
+		Role:     usr.Role,
 	})
 
 	return err
@@ -61,7 +62,7 @@ func (r *SQLUserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*use
 		return nil, err
 	}
 
-	return &user.ModelUser{ID: usr.ID.Bytes, Username: usr.Username, Password: usr.Password, CreatedAt: usr.CreatedAt.Time, UpdatedAt: usr.UpdatedAt.Time}, nil
+	return &user.ModelUser{ID: usr.ID.Bytes, Username: usr.Username, Password: usr.Password, Role: usr.Role, CreatedAt: usr.CreatedAt.Time, UpdatedAt: usr.UpdatedAt.Time}, nil
 }
 
 // GetUserByUsername retrieves a user model by their username.
@@ -79,5 +80,22 @@ func (r *SQLUserRepository) GetUserByUsername(ctx context.Context, username stri
 		return nil, err
 	}
 
-	return &user.ModelUser{ID: usr.ID.Bytes, Username: usr.Username, Password: usr.Password, CreatedAt: usr.CreatedAt.Time, UpdatedAt: usr.UpdatedAt.Time}, nil
+	return &user.ModelUser{ID: usr.ID.Bytes, Username: usr.Username, Password: usr.Password, Role: usr.Role, CreatedAt: usr.CreatedAt.Time, UpdatedAt: usr.UpdatedAt.Time}, nil
+}
+
+// UpdateUserRole updates a user's role in the database.
+//
+// Parameters:
+//   - ctx: The context for managing request deadlines and cancellation.
+//   - id: UUID of the user to update.
+//   - role: The new role to assign to the user.
+//
+// Returns:
+//   - error: An error object if the operation fails, otherwise nil.
+func (r *SQLUserRepository) UpdateUserRole(ctx context.Context, id uuid.UUID, role string) error {
+	_, err := r.queries.UpdateUserRole(ctx, db.UpdateUserRoleParams{
+		ID:   pgtype.UUID{Bytes: id, Valid: true},
+		Role: role,
+	})
+	return err
 }
