@@ -94,7 +94,7 @@ func (r *OrderRepository) GetByID(id uuid.UUID) (*domain.Order, error) {
 func (r *OrderRepository) GetAll() ([]*domain.Order, error) {
 	ctx := context.Background()
 	
-	dbOrders, err := r.queries.GetAllOrders(ctx)
+	dbOrders, err := r.queries.GetOrders(ctx)
 	if err != nil {
 		return nil, err
 	}
