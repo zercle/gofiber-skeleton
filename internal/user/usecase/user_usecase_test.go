@@ -27,21 +27,23 @@ func TestUserUseCase_Register(t *testing.T) {
 	ctx := context.Background()
 	username := "testuser"
 	password := "testpassword"
+	role := "customer"
 
 	// Test case 1: Successful user registration
 	mockUserRepo.EXPECT().CreateUser(ctx, gomock.Any()).Return(nil).Times(1)
 
-	registeredUser, err := userUseCase.Register(ctx, username, password)
+	registeredUser, err := userUseCase.Register(ctx, username, password, role)
 	assert.NoError(t, err)
 	assert.NotNil(t, registeredUser)
 	assert.Equal(t, username, registeredUser.Username)
+	assert.Equal(t, role, registeredUser.Role)
 	assert.NotEmpty(t, registeredUser.Password) // Password should be hashed
 
 	// Test case 2: Error creating user in repository
 	repoError := errors.New("failed to create user in repository")
 	mockUserRepo.EXPECT().CreateUser(ctx, gomock.Any()).Return(repoError).Times(1)
 
-	registeredUser, err = userUseCase.Register(ctx, username, password)
+	registeredUser, err = userUseCase.Register(ctx, username, password, role)
 	assert.Error(t, err)
 	assert.Nil(t, registeredUser)
 	assert.Equal(t, repoError, err)
@@ -65,9 +67,8 @@ func TestUserUseCase_Login(t *testing.T) {
 		ID:       uuid.New(),
 		Username: username,
 		Password: string(hashedPassword),
+		Role:     "customer",
 	}
-
-	// Capture the current time before generating the token
 
 	// Test case 1: Successful login
 	mockUserRepo.EXPECT().GetUserByUsername(ctx, username).Return(testUser, nil).Times(1)

@@ -16,10 +16,10 @@ INSERT INTO urls (original_url, short_code, user_id, expires_at) VALUES ($1, $2,
 `
 
 type CreateURLParams struct {
-	OriginalUrl string
-	ShortCode   string
-	UserID      pgtype.UUID
-	ExpiresAt   pgtype.Timestamptz
+	OriginalUrl string             `json:"original_url"`
+	ShortCode   string             `json:"short_code"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
 }
 
 func (q *Queries) CreateURL(ctx context.Context, arg CreateURLParams) (Url, error) {
@@ -96,7 +96,7 @@ func (q *Queries) GetURLsByUserID(ctx context.Context, userID pgtype.UUID) ([]Ur
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Url
+	items := []Url{}
 	for rows.Next() {
 		var i Url
 		if err := rows.Scan(
@@ -122,8 +122,8 @@ UPDATE urls SET original_url = $2 WHERE id = $1 RETURNING id, original_url, shor
 `
 
 type UpdateURLParams struct {
-	ID          pgtype.UUID
-	OriginalUrl string
+	ID          pgtype.UUID `json:"id"`
+	OriginalUrl string      `json:"original_url"`
 }
 
 func (q *Queries) UpdateURL(ctx context.Context, arg UpdateURLParams) (Url, error) {

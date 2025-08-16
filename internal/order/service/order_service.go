@@ -4,18 +4,16 @@ import (
 	"errors"
 
 	"gofiber-skeleton/internal/core/domain"
-	"gofiber-skeleton/internal/order/repository"
-	"gofiber-skeleton/internal/product/repository"
 
 	"github.com/google/uuid"
 )
 
 type OrderService struct {
-	orderRepo   *repository.OrderRepository
-	productRepo *repository.ProductRepository
+	orderRepo   domain.OrderRepository
+	productRepo domain.ProductRepository
 }
 
-func NewOrderService(orderRepo *repository.OrderRepository, productRepo *repository.ProductRepository) *OrderService {
+func NewOrderService(orderRepo domain.OrderRepository, productRepo domain.ProductRepository) *OrderService {
 	return &OrderService{
 		orderRepo:   orderRepo,
 		productRepo: productRepo,

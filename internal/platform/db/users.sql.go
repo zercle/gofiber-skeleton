@@ -18,9 +18,9 @@ RETURNING id, username, password, created_at, updated_at, role
 `
 
 type CreateUserParams struct {
-	Username string
-	Password string
-	Role     string
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -83,8 +83,8 @@ RETURNING id, username, password, created_at, updated_at, role
 `
 
 type UpdateUserRoleParams struct {
-	ID   pgtype.UUID
-	Role string
+	ID   pgtype.UUID `json:"id"`
+	Role string      `json:"role"`
 }
 
 func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error) {

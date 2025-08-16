@@ -1,4 +1,4 @@
-# Go Fiber URL Shortener
+# E-commerce Management System Backend
 
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8?style=for-the-badge&logo=go)
 ![GoFiber](https://img.shields.io/badge/GoFiber-v2.52.0-00ADD8?style=for-the-badge&logo=go)
@@ -12,16 +12,16 @@
 
 ## 🚀 Overview
 
-This repository provides a production-ready, high-performance URL shortener service built with Go, adhering strictly to **Clean Architecture** and **SOLID principles**. It serves as a robust and scalable boilerplate for developing modern web services, emphasizing maintainability, testability, and independence from external frameworks.
+This repository provides a production-ready, high-performance **E-commerce Management System Backend** built with Go, adhering strictly to **Clean Architecture** and **SOLID principles**. It serves as a robust and scalable boilerplate for developing modern e-commerce services, emphasizing maintainability, testability, and independence from external frameworks.
 
 ## ✨ Features
 
-*   **User Authentication**: Secure JWT-based authentication.
-*   **URL Management**: Create, list, update, and delete short URLs.
-*   **Custom Short Codes**: Authenticated users can create custom short codes.
-*   **Redirection**: Fast and secure redirection from short codes to original URLs.
-<!-- *   **QR Code Generation**: Automatically generates QR codes for each shortened URL. -->
-*   **Caching**: Utilizes Redis for caching frequently accessed URLs.
+*   **User Authentication & Authorization**: Secure JWT-based authentication with role-based access control (Admin/Customer).
+*   **Product Management**: Complete CRUD operations for products with inventory tracking.
+*   **Order Management**: Full order lifecycle management with status tracking.
+*   **Inventory Control**: Automatic stock management and validation.
+*   **Customer Order Flow**: Seamless order creation and processing.
+*   **Role-Based Access**: Different permissions for administrators and customers.
 *   **Database Management**: Integrated with PostgreSQL, `sqlc`, and `golang-migrate`.
 *   **API Documentation**: Automated Swagger UI for interactive API exploration.
 *   **Containerization**: Docker and Docker Compose for easy setup and deployment.
@@ -29,24 +29,32 @@ This repository provides a production-ready, high-performance URL shortener serv
 
 ## 📐 Architecture
 
-This project follows **Clean Architecture**, promoting a clear separation of concerns.
+This project follows **Clean Architecture**, promoting a clear separation of concerns:
 
-*   **Entities**: Core domain models.
-*   **Use Cases**: Business logic and repository interfaces.
-*   **Repositories**: Database and cache implementations.
-*   **Delivery (HTTP)**: HTTP handlers and routing (Go Fiber).
+*   **Domain Layer**: Core business entities (Product, Order, User, OrderItem).
+*   **Repository Layer**: Data access interfaces and implementations.
+*   **Service Layer**: Business logic and use case implementations.
+*   **Delivery Layer**: HTTP handlers and routing (Go Fiber).
+*   **Infrastructure**: Database, caching, and external service integrations.
+
+### 🏗️ Clean Architecture Benefits
+
+- **Independence**: Business logic is independent of frameworks and databases
+- **Testability**: Easy to unit test business logic in isolation
+- **Maintainability**: Clear separation makes code easier to understand and modify
+- **Scalability**: Modular design allows for easy scaling and feature additions
 
 ## 🛠️ Tech Stack
 
-*   **Framework**: [Go Fiber](https://gofiber.io/)
-*   **Database**: [PostgreSQL](https://www.postgresql.org/)
-*   **Caching**: [Valkey](https://valkey.io/)
-*   **Database Tool**: [sqlc](https://sqlc.dev/)
-*   **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate)
-*   **Configuration**: [Viper](https://github.com/spf13/viper)
-*   **API Documentation**: [Swagger (swaggo)](https://github.com/swaggo/swag)
-*   **Authentication**: JWT
-*   **Hot Reloading**: [Air](https://github.com/cosmtrek/air)
+*   **Framework**: [Go Fiber](https://gofiber.io/) - High-performance web framework
+*   **Database**: [PostgreSQL](https://www.postgresql.org/) - Robust relational database
+*   **Caching**: [Valkey](https://valkey.io/) - High-performance Redis-compatible cache
+*   **Database Tool**: [sqlc](https://sqlc.dev/) - Type-safe SQL code generation
+*   **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate) - Database schema management
+*   **Configuration**: [Viper](https://github.com/spf13/viper) - Configuration management
+*   **API Documentation**: [Swagger (swaggo)](https://github.com/swaggo/swag) - API documentation
+*   **Authentication**: JWT with role-based access control
+*   **Hot Reloading**: [Air](https://github.com/cosmtrek/air) - Development hot reloading
 *   **Containerization**: [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
 *   **Testing**: [testify](https://github.com/stretchr/testify) & [mock](https://pkg.go.dev/go.uber.org/mock)
 
@@ -65,8 +73,8 @@ This is the quickest way to get the service up and running.
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/zercle/gofiber-skeleton.git
-    cd gofiber-skeleton
+    git clone <repository-url>
+    cd ecommerce-backend
     ```
 
 2.  **Configure Environment Variables:**
@@ -93,8 +101,8 @@ If you prefer to run the application directly on your machine, follow these step
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/zercle/gofiber-skeleton.git
-    cd gofiber-skeleton
+    git clone <repository-url>
+    cd ecommerce-backend
     ```
 
 2.  **Install Go Dependencies:**
@@ -104,7 +112,7 @@ If you prefer to run the application directly on your machine, follow these step
 
 3.  **Set up Database (PostgreSQL):**
     *   Ensure PostgreSQL is installed and running.
-    *   Create a new database for the application (e.g., `url_shortener_db`).
+    *   Create a new database for the application (e.g., `ecommerce_db`).
     *   Update your `.env` file with the correct database connection string.
 
 4.  **Set up Caching (Valkey/Redis):**
@@ -150,25 +158,25 @@ Key environment variables:
 *   `REDIS_ADDR`: Address for Valkey/Redis cache (e.g., `localhost:6379`).
 *   `JWT_SECRET`: Secret key for JWT authentication. **Change this to a strong, random value in production.**
 *   `JWT_EXPIRE_MINUTES`: Expiration time for JWT tokens in minutes (e.g., `60`).
-*   `BASE_URL`: The base URL for the shortened links (e.g., `http://localhost:8080`). This is used when generating the full short URL.
 
-## 🚀 Usage Examples
+## 🚀 API Endpoints
 
-The API provides endpoints for user authentication, URL shortening, and management. You can interact with it using tools like `curl`, Postman, or through the Swagger UI.
+The API provides comprehensive endpoints for e-commerce management. You can interact with it using tools like `curl`, Postman, or through the Swagger UI.
 
-### User Authentication
+### 🔐 Authentication Endpoints
 
 #### Register a New User
-`POST /api/v1/register`
+`POST /api/v1/users/register`
 ```json
 {
   "username": "testuser",
-  "password": "strongpassword"
+  "password": "strongpassword",
+  "role": "customer"
 }
 ```
 
 #### Login User
-`POST /api/v1/login`
+`POST /api/v1/users/login`
 ```json
 {
   "username": "testuser",
@@ -177,43 +185,104 @@ The API provides endpoints for user authentication, URL shortening, and manageme
 ```
 *Response will include a `token` for subsequent authenticated requests.*
 
-### URL Management
+### 📦 Product Management
 
-All URL management endpoints require a valid JWT token in the `Authorization` header (e.g., `Bearer YOUR_JWT_TOKEN`).
+All product management endpoints require a valid JWT token in the `Authorization` header (e.g., `Bearer YOUR_JWT_TOKEN`).
 
-#### Create a Short URL
-`POST /api/v1/urls`
+#### Create a Product
+`POST /api/v1/products`
 ```json
 {
-  "original_url": "https://www.example.com/very/long/url/that/needs/shortening",
-  "custom_code": "my-short-code" (optional)
-}
-```
-*If `custom_code` is not provided, a random one will be generated.*
-
-#### Get All Short URLs for User
-`GET /api/v1/urls`
-
-#### Get a Single Short URL Details
-`GET /api/v1/urls/{id}`
-
-#### Update a Short URL
-`PUT /api/v1/urls/{id}`
-```json
-{
-  "original_url": "https://www.newexample.com",
-  "custom_code": "updated-code"
+  "name": "Sample Product",
+  "description": "A sample product description",
+  "price": 29.99,
+  "stock": 100,
+  "image_url": "https://example.com/image.jpg"
 }
 ```
 
-#### Delete a Short URL
-`DELETE /api/v1/urls/{id}`
+#### Get All Products
+`GET /api/v1/products`
 
-### Redirection
+#### Get a Single Product
+`GET /api/v1/products/{id}`
 
-To redirect to an original URL, simply access the short code:
-`GET /s/{short_code}`
-Example: `http://localhost:8080/s/my-short-code`
+#### Update a Product
+`PUT /api/v1/products/{id}`
+```json
+{
+  "name": "Updated Product Name",
+  "description": "Updated description",
+  "price": 39.99,
+  "stock": 150,
+  "image_url": "https://example.com/new-image.jpg"
+}
+```
+
+#### Delete a Product
+`DELETE /api/v1/products/{id}`
+
+#### Update Product Stock
+`PATCH /api/v1/products/{id}/stock?quantity=10`
+
+### 🛒 Order Management
+
+#### Create a New Order (Customer)
+`POST /api/v1/orders/create`
+```json
+{
+  "user_id": "uuid-here",
+  "items": [
+    {
+      "product_id": "product-uuid-here",
+      "quantity": 2
+    }
+  ],
+  "shipping_address": "123 Main St, City, Country"
+}
+```
+
+#### Get All Orders (Admin)
+`GET /api/v1/orders`
+
+#### Get a Specific Order
+`GET /api/v1/orders/{id}`
+
+#### Get User Orders
+`GET /api/v1/orders/user/{userID}`
+
+#### Update Order Status (Admin)
+`PUT /api/v1/orders/{id}/status`
+```json
+{
+  "status": "confirmed"
+}
+```
+
+### 📊 Order Status Flow
+
+Orders follow a specific status progression:
+1. **Pending** → **Confirmed** or **Cancelled**
+2. **Confirmed** → **Shipped**
+3. **Shipped** → **Delivered**
+4. **Delivered** or **Cancelled** (final states)
+
+## 🗄️ Database Schema
+
+### Core Tables
+
+- **Users**: Authentication and role management
+- **Products**: Product catalog with inventory tracking
+- **Orders**: Order management with status tracking
+- **Order Items**: Individual items within orders
+
+### Key Features
+
+- **UUID Primary Keys**: Secure and globally unique identifiers
+- **Timestamps**: Automatic creation and update tracking
+- **Foreign Key Constraints**: Referential integrity
+- **Indexes**: Performance optimization for common queries
+- **Check Constraints**: Data validation at database level
 
 ## ⚙️ Makefile Commands
 
@@ -228,7 +297,37 @@ Example: `http://localhost:8080/s/my-short-code`
 *   `make migrate-down`: Rolls back the last applied database migration.
 *   `make test`: Runs all unit and integration tests.
 *   `make lint`: Runs the Go linter (`golangci-lint`).
-*   `make clean`: Cleans up build artifacts (e.g., `api/docs.go`, `api/swagger.json`, `api/swagger.yaml`).
+*   `make clean`: Cleans up build artifacts.
+
+## 🧪 Testing
+
+The project includes comprehensive testing setup:
+
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test component interactions
+- **Mock Generation**: Automatic mock generation for testing
+- **Test Coverage**: Track test coverage and quality
+
+Run tests with:
+```bash
+make test
+```
+
+## 🔒 Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-Based Access Control**: Admin and customer permission levels
+- **Password Hashing**: Bcrypt password encryption
+- **Input Validation**: Comprehensive request validation
+- **SQL Injection Protection**: Parameterized queries via SQLC
+
+## 📈 Performance Features
+
+- **Database Indexing**: Optimized query performance
+- **Connection Pooling**: Efficient database connection management
+- **Caching Layer**: Redis/Valkey integration for performance
+- **Efficient Queries**: Type-safe SQL with SQLC
+- **Async Processing**: Non-blocking operations where appropriate
 
 ## ⚠️ Troubleshooting
 
@@ -241,7 +340,7 @@ Example: `http://localhost:8080/s/my-short-code`
     *   Ensure Valkey/Redis is running and accessible.
     *   Check `REDIS_ADDR` in your `.env` file.
     *   If running with Docker Compose, ensure the cache service is healthy.
-*   **`sqlc` or migration errors**: Ensure your `Makefile` commands are executed in the correct order (`sqlc-generate` before `run` or `dev` if schema changes). Also, ensure your database is clean for migrations if you're experiencing issues.
+*   **`sqlc` or migration errors**: Ensure your `Makefile` commands are executed in the correct order (`sqlc-generate` before `run` or `dev` if schema changes).
 *   **JWT token issues**: Ensure `JWT_SECRET` is set and consistent between your application and any clients. Check token expiration times.
 
 ## 🤝 Contributing
@@ -260,6 +359,26 @@ We welcome contributions to this project! To contribute:
 
 Please ensure your code adheres to the existing architectural patterns and Go best practices.
 
+## 🚀 Roadmap
+
+### Phase 1: Core E-commerce (✅ Completed)
+- [x] User authentication and authorization
+- [x] Product management
+- [x] Order management
+- [x] Basic inventory control
+
+### Phase 2: Enhanced Features (🔄 In Progress)
+- [ ] Payment processing integration
+- [ ] Shipping and delivery tracking
+- [ ] Customer reviews and ratings
+- [ ] Advanced inventory management
+
+### Phase 3: Advanced Features (📋 Planned)
+- [ ] Multi-tenant support
+- [ ] Analytics and reporting
+- [ ] Mobile app API
+- [ ] Third-party integrations
+
 ## 🙌 Credits
 
 *   **Go Fiber**: The fast, expressive, and zero-allocation web framework for Go.
@@ -271,3 +390,16 @@ Please ensure your code adheres to the existing architectural patterns and Go be
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Review the [API Documentation](#-api-endpoints)
+3. Open an [Issue](../../issues) on GitHub
+4. Check the [Swagger UI](http://localhost:8080/swagger/index.html) for API details
+
+---
+
+**Built with ❤️ using Clean Architecture and SOLID Principles**

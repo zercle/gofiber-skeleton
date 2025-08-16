@@ -9,50 +9,50 @@ import (
 )
 
 type Order struct {
-	ID              pgtype.UUID
-	UserID          pgtype.UUID
-	Status          string
-	TotalAmount     pgtype.Numeric
-	ShippingAddress string
-	CreatedAt       pgtype.Timestamptz
-	UpdatedAt       pgtype.Timestamptz
+	ID              pgtype.UUID        `json:"id"`
+	UserID          pgtype.UUID        `json:"user_id"`
+	Status          string             `json:"status"`
+	TotalAmount     pgtype.Numeric     `json:"total_amount"`
+	ShippingAddress string             `json:"shipping_address"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type OrderItem struct {
-	ID        pgtype.UUID
-	OrderID   pgtype.UUID
-	ProductID pgtype.UUID
-	Quantity  int32
-	UnitPrice pgtype.Numeric
-	Subtotal  pgtype.Numeric
-	CreatedAt pgtype.Timestamptz
+	ID        pgtype.UUID        `json:"id"`
+	OrderID   pgtype.UUID        `json:"order_id"`
+	ProductID pgtype.UUID        `json:"product_id"`
+	Quantity  int32              `json:"quantity"`
+	UnitPrice pgtype.Numeric     `json:"unit_price"`
+	Subtotal  pgtype.Numeric     `json:"subtotal"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Product struct {
-	ID          pgtype.UUID
-	Name        string
-	Description pgtype.Text
-	Price       pgtype.Numeric
-	Stock       int32
-	ImageUrl    pgtype.Text
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
+	ID          pgtype.UUID        `json:"id"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	Price       pgtype.Numeric     `json:"price"`
+	Stock       int32              `json:"stock"`
+	ImageUrl    pgtype.Text        `json:"image_url"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Url struct {
-	ID          pgtype.UUID
-	OriginalUrl string
-	ShortCode   string
-	UserID      pgtype.UUID
-	CreatedAt   pgtype.Timestamptz
-	ExpiresAt   pgtype.Timestamptz
+	ID          pgtype.UUID        `json:"id"`
+	OriginalUrl string             `json:"original_url"`
+	ShortCode   string             `json:"short_code"`
+	UserID      pgtype.UUID        `json:"user_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
 }
 
 type User struct {
-	ID        pgtype.UUID
-	Username  string
-	Password  string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
-	Role      string
+	ID        pgtype.UUID        `json:"id"`
+	Username  string             `json:"username"`
+	Password  string             `json:"password"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	Role      string             `json:"role"`
 }

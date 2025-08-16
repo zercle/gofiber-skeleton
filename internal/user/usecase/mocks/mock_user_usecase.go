@@ -14,6 +14,7 @@ import (
 	user "gofiber-skeleton/internal/user"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -57,16 +58,31 @@ func (mr *MockUserUseCaseMockRecorder) Login(ctx, username, password any) *gomoc
 }
 
 // Register mocks base method.
-func (m *MockUserUseCase) Register(ctx context.Context, username, password string) (*user.ModelUser, error) {
+func (m *MockUserUseCase) Register(ctx context.Context, username, password, role string) (*user.ModelUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, username, password)
+	ret := m.ctrl.Call(m, "Register", ctx, username, password, role)
 	ret0, _ := ret[0].(*user.ModelUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockUserUseCaseMockRecorder) Register(ctx, username, password any) *gomock.Call {
+func (mr *MockUserUseCaseMockRecorder) Register(ctx, username, password, role any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUseCase)(nil).Register), ctx, username, password)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUseCase)(nil).Register), ctx, username, password, role)
+}
+
+// UpdateRole mocks base method.
+func (m *MockUserUseCase) UpdateRole(ctx context.Context, userID uuid.UUID, role string) (*user.ModelUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRole", ctx, userID, role)
+	ret0, _ := ret[0].(*user.ModelUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateRole indicates an expected call of UpdateRole.
+func (mr *MockUserUseCaseMockRecorder) UpdateRole(ctx, userID, role any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRole", reflect.TypeOf((*MockUserUseCase)(nil).UpdateRole), ctx, userID, role)
 }

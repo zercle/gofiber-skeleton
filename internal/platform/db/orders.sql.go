@@ -18,9 +18,9 @@ RETURNING id, user_id, status, total_amount, shipping_address, created_at, updat
 `
 
 type CreateOrderParams struct {
-	UserID          pgtype.UUID
-	TotalAmount     pgtype.Numeric
-	ShippingAddress string
+	UserID          pgtype.UUID    `json:"user_id"`
+	TotalAmount     pgtype.Numeric `json:"total_amount"`
+	ShippingAddress string         `json:"shipping_address"`
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
@@ -45,11 +45,11 @@ RETURNING id, order_id, product_id, quantity, unit_price, subtotal, created_at
 `
 
 type CreateOrderItemParams struct {
-	OrderID   pgtype.UUID
-	ProductID pgtype.UUID
-	Quantity  int32
-	UnitPrice pgtype.Numeric
-	Subtotal  pgtype.Numeric
+	OrderID   pgtype.UUID    `json:"order_id"`
+	ProductID pgtype.UUID    `json:"product_id"`
+	Quantity  int32          `json:"quantity"`
+	UnitPrice pgtype.Numeric `json:"unit_price"`
+	Subtotal  pgtype.Numeric `json:"subtotal"`
 }
 
 func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error) {
@@ -104,7 +104,7 @@ func (q *Queries) GetOrderItems(ctx context.Context, orderID pgtype.UUID) ([]Ord
 		return nil, err
 	}
 	defer rows.Close()
-	var items []OrderItem
+	items := []OrderItem{}
 	for rows.Next() {
 		var i OrderItem
 		if err := rows.Scan(
@@ -137,7 +137,7 @@ func (q *Queries) GetOrders(ctx context.Context) ([]Order, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Order
+	items := []Order{}
 	for rows.Next() {
 		var i Order
 		if err := rows.Scan(
@@ -171,7 +171,7 @@ func (q *Queries) GetUserOrders(ctx context.Context, userID pgtype.UUID) ([]Orde
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Order
+	items := []Order{}
 	for rows.Next() {
 		var i Order
 		if err := rows.Scan(
@@ -201,8 +201,8 @@ RETURNING id, user_id, status, total_amount, shipping_address, created_at, updat
 `
 
 type UpdateOrderStatusParams struct {
-	ID     pgtype.UUID
-	Status string
+	ID     pgtype.UUID `json:"id"`
+	Status string      `json:"status"`
 }
 
 func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
