@@ -62,7 +62,7 @@ func (uc *userUseCase) Login(ctx context.Context, username, password string) (st
 
 	t, err := token.SignedString([]byte(uc.jwtSecret))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	return t, nil
