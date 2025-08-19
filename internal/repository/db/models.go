@@ -6,9 +6,29 @@ package db
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+type Order struct {
+	ID         int32
+	UserID     int32
+	TotalPrice string
+	Status     string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type OrderItem struct {
+	ID        int32
+	OrderID   int32
+	ProductID uuid.UUID
+	Quantity  int32
+	Price     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
 
 type Product struct {
 	ID          uuid.UUID
@@ -19,4 +39,12 @@ type Product struct {
 	ImageUrl    sql.NullString
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type User struct {
+	ID           int32
+	Username     string
+	PasswordHash string
+	Role         string
+	CreatedAt    time.Time
 }

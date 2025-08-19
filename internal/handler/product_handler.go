@@ -18,6 +18,14 @@ func NewProductHandler(productUseCase domain.ProductUseCase) *ProductHandler {
 	}
 }
 
+func (ph *ProductHandler) RegisterRoutes(router fiber.Router) {
+	router.Post("/products", ph.CreateProduct)
+	router.Get("/products/:id", ph.GetProductByID)
+	router.Get("/products", ph.GetAllProducts)
+	router.Put("/products/:id", ph.UpdateProduct)
+	router.Delete("/products/:id", ph.DeleteProduct)
+}
+
 func (ph *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 	product := new(domain.Product)
 	if err := c.BodyParser(product); err != nil {

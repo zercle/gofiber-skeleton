@@ -41,7 +41,7 @@ We will start by building the essential features required for the first version 
     * **`GET /api/v1/products`**: To retrieve all products.
     * **`GET /api/v1/products/{id}`**: To retrieve a specific product.
 3.  **Mock Interfaces**:
-    * Add go generate annotation for gomock to mock interfaces in its own mock package.
+    * Add go generate annotation for gomock to mock interfaces in its own mock's sub package.
 4.  **Write Unit Tests**:
     * Test the functionality of each API endpoint and related business logic with mock interfaces.
 

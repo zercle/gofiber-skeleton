@@ -4,6 +4,7 @@
 package domain
 
 import (
+	context "context"
 	reflect "reflect"
 
 	uuid "github.com/google/uuid"
@@ -198,4 +199,18 @@ func (m *MockProductUseCase) UpdateProduct(product *Product) error {
 func (mr *MockProductUseCaseMockRecorder) UpdateProduct(product interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProduct", reflect.TypeOf((*MockProductUseCase)(nil).UpdateProduct), product)
+}
+
+// ReduceStock mocks base method.
+func (m *MockProductUseCase) ReduceStock(ctx context.Context, productID int64, quantity int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReduceStock", ctx, productID, quantity)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReduceStock indicates an expected call of ReduceStock.
+func (mr *MockProductUseCaseMockRecorder) ReduceStock(ctx, productID, quantity interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReduceStock", reflect.TypeOf((*MockProductUseCase)(nil).ReduceStock), ctx, productID, quantity)
 }

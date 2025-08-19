@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,4 +32,5 @@ type ProductUseCase interface {
 	GetAllProducts() ([]*Product, error)
 	UpdateProduct(product *Product) error
 	DeleteProduct(id uuid.UUID) error
+	ReduceStock(ctx context.Context, productID string, quantity int) error
 }

@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 )
@@ -34,4 +35,17 @@ func (pu *productUseCase) UpdateProduct(product *domain.Product) error {
 
 func (pu *productUseCase) DeleteProduct(id uuid.UUID) error {
 	return pu.productRepository.DeleteProduct(id)
+}
+
+func (pu *productUseCase) ReduceStock(ctx context.Context, productID string, quantity int) error {
+	id, err := uuid.Parse(productID)
+	if err != nil {
+		return err
+	}
+	product, err := pu.productRepository.GetProductByID(id)
+	if err != nil {
+		return err
+	}
+	product.Stock -= int32(quantity)
+	return pu.productRepository.UpdateProduct(product)
 }
