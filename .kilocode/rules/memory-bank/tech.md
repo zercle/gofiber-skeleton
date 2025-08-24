@@ -13,6 +13,9 @@
 - Docker Compose
 - Air (github.com/cosmtrek/air)
 - golangci-lint (github.com/golangci/golangci-lint)
+- go-playground/validator (github.com/go-playground/validator/v10)
+- jsend (github.com/omniti-labs/jsend)
+- uuidv7 (e.g., github.com/your/uuidv7-lib) for index-friendly primary keys
 
 ## Development Setup
 1. Install Go (>=1.24.6) and set GOPATH.
@@ -31,16 +34,25 @@ docker compose up --build
 ```
 
 ## Configuration
-- Use `DATABASE_URL` environment variable for Postgres connection.
-- Use `JWT_SECRET` for signing JWT tokens.
+- Application configuration is managed by **Viper**, loading from environment variables and optionally from `.env` files.
+- Configuration files (`configs/<ENV>.yaml`) are no longer required.
+- The application validates required configuration fields at startup using `go-playground/validator` to ensure all necessary values are present.
+- A shared `config` struct is used throughout the application to avoid global variables.
 
 ## Technical Constraints
 - Enforce Clean Architecture layering.
 - Avoid global mutable state.
 - Use dependency injection for all components.
 - Rely on parameterized SQL via SQLC to prevent SQL injection.
-- Validate inputs using Fiber middleware.
+- Validate inputs using `go-playground/validator`.
 - Keep migrations aligned with SQLC queries and domain models.
-- Place generated mocks in a mock subpackage within each owner package (e.g., `internal/repository/mock`, `internal/usecase/mock`).
-- Treat SQLC-generated code as entity providers; repositories should orchestrate and aggregate data before returning to use cases.
+- Mocks live alongside their interfaces in a mock subpackage.
+- Treat SQLC-generated code as entity providers; repositories should orchestrate and aggregate data before returning to use cases. The generated code is centralized in `internal/infrastructure/sqlc` and queries are located in the `queries` directory at the project root.
+- Use UUIDv7 instead of UUIDv4 for index-friendly primary keys.
 - Do not edit mock or generated files manually; use go generate to regenerate mocks and other generated code.
+
+## Testing
+- **Unit Tests**: Should be located in the same package as the code they are testing, using the `_test.go` suffix.
+- **Integration Tests**: Should be located in a top-level `tests/` directory, mirroring the structure of the `internal/` directory.
+- **Mocks**: All tests must use mocks for database access and other external services. No tests should interact with a live database.
+- **Verify Works:** Linting and testing with `go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...` and fix any promlems.

@@ -3,51 +3,37 @@ package main
 import (
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/joho/godotenv"
-	"github.com/zercle/gofiber-skeleton/internal/domain"
-	"github.com/zercle/gofiber-skeleton/internal/handler"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure"
-	"github.com/zercle/gofiber-skeleton/internal/repository"
-	"github.com/zercle/gofiber-skeleton/internal/usecase"
+	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config" // Import config package
+	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
+	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
+	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
 )
 
 func main() {
-	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using default environment variables")
+	// Load configuration
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	// Initialize database
-	dbConfig := infrastructure.NewDatabaseConfig()
-	db, err := infrastructure.ConnectDatabase(dbConfig)
+	db, err := infrastructure.ConnectDatabase(cfg.DB) // Pass database URL from config
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
 	// Initialize SQLC queries
-	queries := infrastructure.NewQueries(db)
 
-	// Initialize repositories
-	userRepo := repository.NewUserRepository(queries)
-	productRepo := repository.NewProductRepository(queries)
-	orderRepo := repository.NewOrderRepository(queries)
-
-	// Initialize use cases
-	jwtSecret := getEnv("JWT_SECRET", "your-secret-key")
-	userUseCase := usecase.NewUserUseCase(userRepo, jwtSecret)
-	productUseCase := usecase.NewProductUseCase(productRepo)
-	orderUseCase := usecase.NewOrderUseCase(orderRepo, productRepo)
-
-	// Initialize handlers
-	userHandler := handler.NewUserHandler(userUseCase)
-	productHandler := handler.NewProductHandler(productUseCase)
-	orderHandler := handler.NewOrderHandler(orderUseCase)
+	// Handlers are now initialized within their respective RegisterRoutes functions if needed
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -72,51 +58,45 @@ func main() {
 	}))
 
 	// JWT middleware
-	app.Use(infrastructure.JWTMiddleware(jwtSecret))
+	app.Use(infrastructure.JWTMiddleware(cfg.JWT.Secret)) // Use JWT secret from config
 
 	// API routes
-	api := app.Group("/api/v1")
 
-	// User routes (public)
-	api.Post("/register", userHandler.Register)
-	api.Post("/login", userHandler.Login)
-
-	// Product routes
-	products := api.Group("/products")
-	products.Get("/", productHandler.GetAllProducts)                    // Public
-	products.Get("/:id", productHandler.GetProduct)                     // Public
-	products.Post("/", infrastructure.AdminMiddleware(), productHandler.CreateProduct)      // Admin only
-	products.Put("/:id", infrastructure.AdminMiddleware(), productHandler.UpdateProduct)    // Admin only
-	products.Delete("/:id", infrastructure.AdminMiddleware(), productHandler.DeleteProduct) // Admin only
-
-	// Order routes
-	orders := api.Group("/orders")
-	orders.Post("/create", orderHandler.CreateOrder)                    // Authenticated users
-	orders.Get("/", orderHandler.GetUserOrders)                        // Authenticated users
-	orders.Get("/:id", orderHandler.GetOrder)                          // Authenticated users
-	orders.Get("/admin/all", infrastructure.AdminMiddleware(), orderHandler.GetAllOrders)           // Admin only
-	orders.Put("/:id/status", infrastructure.AdminMiddleware(), orderHandler.UpdateOrderStatus)    // Admin only
+	// Register domain-specific routes
+	producthandler.RegisterRoutes(app)
+	orderhandler.RegisterRoutes(app)
+	userhandler.RegisterRoutes(app)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
-			"status": "ok",
+			"status":  "ok",
 			"message": "E-commerce API is running",
 		})
 	})
 
-	// Start server
-	port := getEnv("PORT", "8080")
-	log.Printf("Server starting on port %s", port)
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
-}
+	// Start server in other goroutine
+	go func() {
+		log.Printf("Server starting on port %s", cfg.App.Port)
+		if err := app.Listen(":" + cfg.App.Port); err != nil {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
 
-// getEnv gets an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+	quitCh := make(chan os.Signal, 1)
+
+	signal.Notify(quitCh, os.Interrupt, syscall.SIGTERM)
+
+	<-quitCh
+
+	log.Println("Shutting down server...")
+
+	if err := app.Shutdown(); err != nil {
+		log.Fatalf("Failed to gracefully shutdown server: %v", err)
 	}
-	return defaultValue
+
+	// Clean up connections
+
+	log.Println("Server gracefully shutdown")
+
 }

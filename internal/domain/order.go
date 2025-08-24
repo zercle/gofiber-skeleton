@@ -1,6 +1,8 @@
+//go:generate mockgen -source=order.go -destination=./mock/mock_order.go -package=mock
 package domain
 
 import (
+	"errors"
 	"time"
 )
 
@@ -53,3 +55,7 @@ type OrderUseCase interface {
 	GetAllOrders() ([]*Order, error)
 	UpdateOrderStatus(id string, status OrderStatus) error
 }
+
+var (
+	ErrOrderNotFound = errors.New("order not found")
+)

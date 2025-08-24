@@ -1,3 +1,4 @@
+//go:generate mockgen -source=user.go -destination=./mock/mock_user.go -package=mock
 package domain
 
 import (
@@ -22,7 +23,7 @@ const (
 
 // UserRepository defines the interface for user data operations
 type UserRepository interface {
-	Create(user *User) error
+	Create(user *User) (*User, error)
 	GetByID(id string) (*User, error)
 	GetByUsername(username string) (*User, error)
 	Update(user *User) error
@@ -32,7 +33,7 @@ type UserRepository interface {
 // UserUseCase defines the interface for user business logic
 type UserUseCase interface {
 	Register(username, password, role string) (*User, error)
-	Login(username, password string) (string, error)
+	Login(username, password string) (string, *User, error)
 	GetByID(id string) (*User, error)
 	UpdateRole(id, role string) error
 }

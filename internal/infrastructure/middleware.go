@@ -1,6 +1,8 @@
 package infrastructure
 
 import (
+	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,14 +20,14 @@ func JWTMiddleware(jwtSecret string) fiber.Handler {
 		// Get token from Authorization header
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return c.Status(401).JSON(fiber.Map{
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Authorization header is required",
 			})
 		}
 
 		// Check if header starts with "Bearer "
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			return c.Status(401).JSON(fiber.Map{
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid authorization header format",
 			})
 		}
@@ -34,7 +36,7 @@ func JWTMiddleware(jwtSecret string) fiber.Handler {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Parse and validate token
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 			// Validate signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, jwt.ErrSignatureInvalid
@@ -43,14 +45,14 @@ func JWTMiddleware(jwtSecret string) fiber.Handler {
 		})
 
 		if err != nil {
-			return c.Status(401).JSON(fiber.Map{
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token",
 			})
 		}
 
 		// Check if token is valid
 		if !token.Valid {
-			return c.Status(401).JSON(fiber.Map{
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token",
 			})
 		}
@@ -58,7 +60,7 @@ func JWTMiddleware(jwtSecret string) fiber.Handler {
 		// Extract claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			return c.Status(401).JSON(fiber.Map{
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token claims",
 			})
 		}
@@ -77,7 +79,7 @@ func AdminMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		role := c.Locals("role")
 		if role != "admin" {
-			return c.Status(403).JSON(fiber.Map{
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
 				"error": "Admin access required",
 			})
 		}
@@ -93,10 +95,8 @@ func isPublicEndpoint(path string) bool {
 		"/api/v1/products", // GET /products is public
 	}
 
-	for _, endpoint := range publicEndpoints {
-		if path == endpoint {
-			return true
-		}
+	if slices.Contains(publicEndpoints, path) {
+		return true
 	}
 
 	// GET /products/{id} is also public

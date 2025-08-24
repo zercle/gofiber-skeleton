@@ -1,4 +1,4 @@
-.PHONY: help build run test clean generate-mocks docker-build docker-run migrate-up migrate-down
+.PHONY: help build run test clean generate-mocks docker-build docker-run migrate-up migrate-down sqlc-generate lint fmt deps install-tools
 
 # Default target
 help:
@@ -12,6 +12,11 @@ help:
 	@echo "  docker-run    - Run with Docker Compose"
 	@echo "  migrate-up    - Run database migrations"
 	@echo "  migrate-down  - Rollback database migrations"
+	@echo "  sqlc-generate - Generate SQLC code"
+	@echo "  lint          - Lint code"
+	@echo "  fmt           - Format code"
+	@echo "  deps          - Install dependencies"
+	@echo "  install-tools - Install development tools"
 
 # Build the application
 build:
@@ -61,7 +66,7 @@ sqlc-generate:
 
 # Lint code
 lint:
-	golangci-lint run
+	golangci-lint run --fix
 
 # Format code
 fmt:

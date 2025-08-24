@@ -1,253 +1,155 @@
-# E-commerce Management System Backend Boilerplate 🛍️
+# E-commerce Backend Boilerplate
 
-A production-ready, scalable backend boilerplate for e-commerce management systems built with Go, following Clean Architecture principles and SOLID design patterns.
+This project provides a robust and scalable backend boilerplate for building e-commerce applications using Go. It is designed with **Clean Architecture** and **SOLID Principles** to ensure maintainability, testability, and clear separation of concerns.
 
 ## ✨ Features
 
-- **🔐 Authentication & Authorization**: JWT-based authentication with role-based access control
-- **📦 Product Management**: Full CRUD operations for products with stock management
-- **🛒 Order Management**: Complete order lifecycle with status tracking
-- **👥 User Management**: User registration, login, and role management
-- **🏗️ Clean Architecture**: Well-structured, maintainable codebase
-- **🧪 Testing Ready**: Mock interfaces and testing utilities included
-- **🐳 Docker Support**: Containerized application with PostgreSQL
-- **📊 Database**: PostgreSQL with SQLC for type-safe queries
-- **🔄 Migrations**: Database schema management with golang-migrate
+-   **Go Fiber**: High-performance web framework.
+-   **Clean Architecture**: Structured layers for clear separation of business logic from infrastructure.
+-   **PostgreSQL**: Reliable and powerful relational database.
+-   **SQLC**: Generates type-safe Go code from raw SQL queries, improving development speed and reducing errors.
+-   **golang-migrate**: Database migration management for seamless schema evolution.
+-   **JWT Authentication**: Secure and stateless user authentication.
+-   **Uber Go Mock**: Interface mocking for robust unit testing.
+-   **DATA-DOG/go-sqlmock**: Database mocking for isolated repository testing.
+-   **Viper**: Flexible configuration management (environment variables, YAML).
+-   **Docker & Docker Compose**: Containerization for consistent development and deployment environments.
+-   **Air**: Live-reloading for rapid development.
+-   **Observability**: Structured logging, metrics, and tracing for better system insights.
+-   **UUIDv7**: Index-friendly primary keys for optimized database performance.
 
-## 🏗️ Architecture
+## 🚀 Getting Started
 
-The project follows Clean Architecture principles with clear separation of concerns:
-
-```
-cmd/server/          # Application entry point
-internal/
-├── domain/          # Business entities and interfaces
-├── handler/         # HTTP request handlers
-├── usecase/         # Business logic layer
-├── repository/      # Data access layer
-└── infrastructure/  # Database and middleware setup
-pkg/                 # Shared utilities
-migrations/          # Database migrations
-queries/             # SQLC query definitions
-```
-
-## 🚀 Quick Start
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
 
-- Go 1.24.6 or higher
-- Docker and Docker Compose
-- PostgreSQL (if running locally)
+-   [Go](https://golang.org/doc/install) (version 1.24 or higher)
+-   [Docker](https://www.docker.com/get-started)
+-   [Docker Compose](https://docs.docker.com/compose/install/)
+-   [golang-migrate CLI](https://github.com/golang-migrate/migrate#installation)
+-   [SQLC](https://docs.sqlc.dev/en/stable/overview/install.html)
 
-### Option 1: Docker Compose (Recommended)
+### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd gofiber-skeleton
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/zercle/gofiber-skeleton.git
+    cd gofiber-skeleton
+    ```
 
-2. **Start the application**
-   ```bash
-   docker compose up --build
-   ```
+2.  **Set up environment variables:**
+    Copy the example environment file and modify it as needed.
+    ```bash
+    cp .env.example .env
+    ```
 
-3. **Access the API**
-   - API: http://localhost:8080
-   - Health check: http://localhost:8080/health
+3.  **Start Docker containers (PostgreSQL):**
+    ```bash
+    docker compose up -d postgres
+    ```
 
-### Option 2: Local Development
+4.  **Run database migrations:**
+    ```bash
+    migrate -path migrations -database "postgres://user:password@localhost:5432/ecommerce?sslmode=disable" up
+    ```
+    **Note**: Replace `user`, `password`, and `ecommerce` with your actual database credentials from `.env`.
 
-1. **Install dependencies**
-   ```bash
-   go mod download
-   ```
+5.  **Generate SQLC code:**
+    This command generates Go code for database interactions based on your SQL queries.
+    ```bash
+    sqlc generate
+    ```
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database credentials
-   ```
+6.  **Run the application with Air (for hot-reloading during development):**
+    ```bash
+    air
+    ```
+    The API will be available at `http://localhost:8080`.
 
-3. **Run database migrations**
-   ```bash
-   make migrate-up
-   ```
+### Building and Running without Air
 
-4. **Start the application**
-   ```bash
-   make run
-   ```
+1.  **Build the application:**
+    ```bash
+    go build -o bin/server cmd/server/main.go
+    ```
 
-## 📚 API Endpoints
+2.  **Run the compiled application:**
+    ```bash
+    ./bin/server
+    ```
 
-### Public Endpoints
-- `POST /api/v1/register` - User registration
-- `POST /api/v1/login` - User authentication
-- `GET /api/v1/products` - List all products
-- `GET /api/v1/products/{id}` - Get product details
+## 🧪 Running Tests
 
-### Protected Endpoints (Require JWT)
-- `POST /api/v1/products` - Create product (Admin only)
-- `PUT /api/v1/products/{id}` - Update product (Admin only)
-- `DELETE /api/v1/products/{id}` - Delete product (Admin only)
-- `POST /api/v1/orders/create` - Create order
-- `GET /api/v1/orders` - Get user orders
-- `GET /api/v1/orders/{id}` - Get order details
-- `GET /api/v1/orders/admin/all` - Get all orders (Admin only)
-- `PUT /api/v1/orders/{id}/status` - Update order status (Admin only)
+### Unit Tests
 
-## 🛠️ Development
-
-### Available Commands
-
+Unit tests are located alongside the code they test.
 ```bash
-make help              # Show available commands
-make build             # Build the application
-make run               # Run locally
-make test              # Run tests
-make generate-mocks    # Generate mock files
-make docker-build      # Build Docker image
-make docker-run        # Run with Docker Compose
-make migrate-up        # Run migrations
-make migrate-down      # Rollback migrations
-make lint              # Run linter
-make fmt               # Format code
+go test -v ./internal/...
 ```
 
-### Code Generation
+### Integration Tests
 
-The project uses several code generation tools:
-
-- **SQLC**: Generates Go code from SQL queries
-- **Go Mock**: Generates mock interfaces for testing
-
+Integration tests are located in the `tests/integration` directory. Ensure your PostgreSQL container is running before running integration tests.
 ```bash
-# Generate SQLC code
-make sqlc-generate
-
-# Generate mocks
-make generate-mocks
+go test -v ./tests/integration/...
 ```
 
-### Testing
+### All Tests
 
+To run all tests, including code generation and linting:
 ```bash
-# Run all tests
-make test
-
-# Run tests with coverage
-go test -v -cover ./...
+go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...
 ```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DB_HOST` | Database host | `localhost` |
-| `DB_PORT` | Database port | `5432` |
-| `DB_USER` | Database user | `postgres` |
-| `DB_PASSWORD` | Database password | `password` |
-| `DB_NAME` | Database name | `ecommerce` |
-| `DB_SSLMODE` | SSL mode | `disable` |
-| `JWT_SECRET` | JWT signing secret | `your-secret-key` |
-| `PORT` | Server port | `8080` |
-
-### Database Schema
-
-The application includes the following tables:
-- `users` - User accounts and authentication
-- `products` - Product catalog with inventory
-- `orders` - Customer orders
-- `order_items` - Individual items within orders
 
 ## 🐳 Docker
 
-### Building the Image
+The project includes a `Dockerfile` for building a production-ready Docker image.
+
+### Build Docker Image
 
 ```bash
-make docker-build
+docker build -t gofiber-ecommerce-backend .
 ```
 
-### Running with Docker Compose
+### Run Docker Container
 
 ```bash
-make docker-run
+docker run -p 8080:8080 -d gofiber-ecommerce-backend
 ```
 
-### Environment Variables in Docker
+## 📂 Project Structure
 
-The Docker Compose setup includes:
-- PostgreSQL 15 with persistent storage
-- Health checks for database readiness
-- Automatic migration execution
-- Network isolation
-
-## 📝 Database Migrations
-
-Migrations are managed using `golang-migrate`:
-
-```bash
-# Apply migrations
-make migrate-up
-
-# Rollback migrations
-make migrate-down
 ```
-
-## 🧪 Testing Strategy
-
-The project includes:
-- **Unit Tests**: Testing individual components with mocks
-- **Integration Tests**: Testing component interactions
-- **Mock Generation**: Automatic mock creation for interfaces
-- **Test Coverage**: Comprehensive testing of business logic
-
-## 🔒 Security Features
-
-- **JWT Authentication**: Secure token-based authentication
-- **Password Hashing**: Bcrypt password encryption
-- **Role-Based Access Control**: Admin and customer roles
-- **Input Validation**: Request payload validation
-- **SQL Injection Prevention**: Parameterized queries via SQLC
-
-## 📈 Performance Features
-
-- **Fiber Framework**: High-performance HTTP framework
-- **Connection Pooling**: Database connection management
-- **Efficient Queries**: SQLC-generated optimized queries
-- **Middleware Pipeline**: Optimized request processing
+.
+├── cmd/                # Application entry points
+│   └── server/         # Main server application
+├── configs/            # Configuration files
+├── internal/           # Internal application code (Clean Architecture layers)
+│   ├── domain/         # Core business entities and interfaces
+│   │   └── mock/       # Generated mocks for domain interfaces
+│   ├── infrastructure/ # Shared infrastructure components (database, config, SQLC generated code, middleware)
+│   ├── <domain>/       # Feature-specific modules (e.g., product, order, user)
+│   │   ├── handler/    # HTTP handlers and routers
+│   │   ├── repository/ # Database interaction implementations
+│   │   └── usecase/    # Business logic and orchestration
+├── migrations/         # Database migration files
+├── queries/            # SQL query files for SQLC
+├── tests/              # Integration tests
+├── .env.example        # Example environment variables
+├── compose.yml         # Docker Compose configuration
+├── Dockerfile          # Docker build instructions
+├── go.mod              # Go modules file
+├── go.sum              # Go module checksums
+├── Makefile            # Makefile for common commands
+├── README.md           # Project README
+└── sqlc.yaml           # SQLC configuration
+```
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+Contributions are welcome! Please feel free to open issues or submit pull requests.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the code examples
-
-## 🔮 Roadmap
-
-- [ ] GraphQL API support
-- [ ] Payment integration
-- [ ] Email notifications
-- [ ] Advanced search and filtering
-- [ ] Analytics and reporting
-- [ ] Multi-tenant support
-- [ ] API rate limiting
-- [ ] Caching layer
-- [ ] WebSocket support for real-time updates
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

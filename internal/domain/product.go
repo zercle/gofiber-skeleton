@@ -1,6 +1,8 @@
+//go:generate mockgen -source=product.go -destination=./mock/mock_product.go -package=mock
 package domain
 
 import (
+	"errors"
 	"time"
 )
 
@@ -16,22 +18,37 @@ type Product struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-// ProductRepository defines the interface for product data operations
+// ProductRepository defines the interface for product data operations.
 type ProductRepository interface {
+	// Create adds a new product to the repository.
 	Create(product *Product) error
+	// GetByID retrieves a product by its ID.
 	GetByID(id string) (*Product, error)
+	// GetAll retrieves all products.
 	GetAll() ([]*Product, error)
+	// Update updates an existing product.
 	Update(product *Product) error
+	// Delete removes a product by its ID.
 	Delete(id string) error
+	// UpdateStock updates the stock quantity for a product.
 	UpdateStock(id string, quantity int) error
 }
 
-// ProductUseCase defines the interface for product business logic
+// ProductUseCase defines the interface for product business logic.
 type ProductUseCase interface {
+	// CreateProduct creates a new product with the given details.
 	CreateProduct(name, description string, price float64, stock int, imageURL string) (*Product, error)
+	// GetProduct retrieves a product by its ID.
 	GetProduct(id string) (*Product, error)
+	// GetAllProducts retrieves all products.
 	GetAllProducts() ([]*Product, error)
+	// UpdateProduct updates an existing product with the given details.
 	UpdateProduct(id, name, description string, price float64, stock int, imageURL string) (*Product, error)
+	// DeleteProduct deletes a product by its ID.
 	DeleteProduct(id string) error
+	// UpdateStock updates the stock quantity for a product.
 	UpdateStock(id string, quantity int) error
 }
+
+// ErrProductNotFound indicates that a product was not found.
+var ErrProductNotFound = errors.New("product not found")

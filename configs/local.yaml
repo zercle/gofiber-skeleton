@@ -1,0 +1,18 @@
+# Server Configuration
+app:
+  env: local
+  host: localhost
+  port: 8080
+
+# Database Configuration
+db:
+  host: localhost
+  port: 5432
+  username: postgres
+  password: your_secure_password
+  name: common_database
+  sslmode: disable
+
+# JWT Configuration
+jwt:
+  secret: your-super-secret-jwt-key-change-in-production

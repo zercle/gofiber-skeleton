@@ -1,16 +1,15 @@
 # Context
 
-**Current Work Focus**  
-Initializing the memory bank for the E-commerce backend boilerplate, starting with core documentation files.
+**Current Work Focus**
+Finalizing the architectural update to centralize SQLC-generated code and query files.
 
-**Recent Changes**  
-- Created `brief.md` outlining project overview, structure, and MVP stories.  
-- Created `product.md` detailing project purpose, problems solved, and user experience goals.
-- Updated `architecture.md` to enforce that the domain layer contains only models and interfaces.
-- Updated `tech.md` to include guideline to use go generate for mocks instead of manual edits.
+**Recent Changes**
+- Centralized all SQLC-generated code into the `internal/infrastructure/sqlc` directory.
+- Moved all SQL query files to a single `queries` directory at the project root.
+- Updated `sqlc.yaml` to reflect the new centralized structure.
+- Updated `architecture.md` and `tech.md` to document the new SQLC configuration and file locations.
 
-**Next Steps**  
-1. Draft `context.md` to capture current focus and progression.  
-2. Create `architecture.md` to document system architecture and key design decisions.  
-3. Create `tech.md` to list technologies, setup instructions, dependencies, and constraints.  
-4. Review all memory bank files with the user for accuracy.
+**Next Steps**
+1. Review the updated memory bank files (`architecture.md`, `tech.md`, `context.md`) with the user for accuracy and approval.
+2. Proceed with regenerating the SQLC code to apply the new structure.
+3. Migrate existing identifiers and default primary key generation to use UUIDv7 for index-friendly primary keys.

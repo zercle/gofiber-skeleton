@@ -1,68 +1,93 @@
 # Architecture
 
 ## System Architecture Overview
-The E-commerce Backend Boilerplate follows a Clean Architecture approach, decoupling high-level business rules from framework and infrastructure concerns. The system comprises:
-- REST API entrypoint (Fiber)  
-- HTTP handlers orchestrating requests (internal/handler)  
-- Use case services encapsulating business logic (internal/usecase)  
-- Domain entities and interfaces defining business contracts (internal/domain)  
-- Repository implementations managing data persistence (internal/repository/db)  
-- Supporting shared utilities (pkg)  
-- Database migrations (migrations) and SQL query generation (SQLC)
+The E-commerce Backend Boilerplate follows a domain-driven Clean Architecture approach, decoupling business rules from framework and infrastructure concerns. The system comprises:
+- REST API entrypoint (Fiber)
+- Domain-specific HTTP handlers and routers (e.g., `internal/product/handler`)
+- Domain-specific use case services encapsulating business logic (e.g., `internal/product/usecase`)
+- Domain entities and interfaces defining business contracts (`internal/domain`)
+- Domain-specific repository implementations managing data persistence (e.g., `internal/product/repository/db`)
+- Shared infrastructure components (`internal/infrastructure`)
+- Database migrations (`migrations`) and SQL query generation (SQLC)
 
 ## Layered Architecture
-- Presentation / API Layer  
-  • Location: cmd/server/main.go  
-  • Responsibilities: Bootstraps Fiber app, registers routes and middleware.
-- Handler Layer  
-  • Location: internal/handler  
-  • Responsibilities: Validate request payloads, call use cases, format HTTP responses.
-- Use Case / Service Layer  
-  • Location: internal/usecase  
-  • Responsibilities: Encapsulate business rules and orchestrate repository calls.
-- Domain Layer
-  • Location: internal/domain
-  • Responsibilities: Contain only domain models (entities) and interfaces for repository and usecase boundaries; do not include business logic or implementations.
-- Repository / Infrastructure Layer  
-  • Location: internal/repository/db and internal/repository  
-  • Responsibilities: Implement domain repository interfaces using SQLC-generated queries, manage database connections.
-- Shared Utilities  
-  • Location: pkg  
-  • Responsibilities: Common helpers, error definitions, configuration loaders.
+- **Presentation / API Layer**
+  - **Location**: `cmd/server/main.go`, `internal/*/handler/router.go`
+  - **Responsibilities**: Bootstraps Fiber app, registers domain-specific routers and middleware. Each domain's router (`router.go`) defines its endpoints.
+- **Handler Layer**
+  - **Location**: `internal/<domain>/handler`
+  - **Responsibilities**: Validate request payloads, call use cases, format HTTP responses using JSend.
+- **Use Case / Service Layer**
+  - **Location**: `internal/<domain>/usecase`
+  - **Responsibilities**: Encapsulate business rules and orchestrate repository calls.
+- **Domain Layer**
+  - **Location**: `internal/domain`
+  - **Responsibilities**: Contain domain models (entities) and interfaces for repository and usecase boundaries.
+- **Repository / Infrastructure Layer**
+  - **Location**: `internal/<domain>/repository/db`, `internal/infrastructure/sqlc`
+  - **Responsibilities**: Implement domain repository interfaces using SQLC-generated queries. **Handles all database transactions** to support query aggregation and ensure data consistency. Shared SQLC interfaces or entities are placed in `internal/infrastructure/sqlc`.
+- **Shared Infrastructure**
+  - **Location**: `internal/infrastructure`
+  - **Responsibilities**: Database connections, configuration management (Viper), and other shared utilities.
 
 ## Component Relationships
-mermaid
-graph LR
-  A[cmd/server] --> B[internal/handler]
-  B --> C[internal/usecase]
-  C --> D[internal/domain/interfaces]
-  C --> E[internal/repository/db]
-  E --> F[(Postgres via SQLC)]
-  A --> G[pkg utilities]
+```mermaid
+graph TD
+    A[cmd/server] --> B{Register Routers}
+    B --> C[internal/product/handler/router.go]
+    B --> D[internal/order/handler/router.go]
+    
+    C --> E[internal/product/handler]
+    D --> F[internal/order/handler]
+
+    E --> G[internal/product/usecase]
+    F --> H[internal/order/usecase]
+
+    G --> I{Domain Interfaces}
+    H --> I
+
+    I --> J[internal/product/repository]
+    I --> K[internal/order/repository]
+
+    J --> L[internal/product/repository/db]
+    K --> M[internal/order/repository/db]
+
+    L --> N[(Postgres via SQLC)]
+    M --> N
+    
+    subgraph Shared Infrastructure
+        O[internal/infrastructure/database.go]
+        P[internal/infrastructure/sqlc]
+    end
+
+    L --> O
+    M --> O
+    L --> P
+    M --> P
+```
 
 ## Data Flow
-1. Client issues HTTP request to Fiber server.  
-2. Fiber router dispatches to appropriate handler.  
-3. Handler validates input and converts to domain model.  
-4. Handler invokes a use case service method.  
-5. Use case orchestrates domain logic and calls repository interface.  
-6. Repository implementation executes SQLC-generated queries against Postgres.  
-7. Results propagate back through use case and handler to the HTTP response.
+1.  Client issues HTTP request to Fiber server.
+2.  Fiber router dispatches to the appropriate domain's router (`router.go`).
+3.  The domain handler validates input and converts it to a domain model.
+4.  Handler invokes a use case service method.
+5.  Use case orchestrates domain logic and calls the repository interface.
+6.  Repository implementation executes SQLC-generated queries against Postgres, managing transactions internally.
+7.  Results propagate back through the use case and handler to the HTTP response.
 
 ## Design Patterns & Key Decisions
-- Clean Architecture for testable, modular boundaries.  
-- Dependency inversion: handlers and use cases depend on interfaces, not concrete implementations.  
-- SQLC for compile-time safe SQL queries and type generation.
-- SQLC-generated code acts as entity providers; repositories should orchestrate and aggregate data before returning to use cases.
-- Golang-migrate for reliable, reversible database migrations.  
-- JWT middleware for stateless authentication.  
-- Go-mock and go-sqlmock for interface and database mocks in unit tests.
-- Place generated mock files in a `mock` subpackage within each owner package (e.g., `internal/repository/mock`, `internal/usecase/mock`).
-- Docker Compose for isolated service orchestration (app + Postgres).
+- **Domain-Driven Clean Architecture**: For testable, modular, and scalable boundaries.
+- **Dependency Inversion**: Handlers and use cases depend on interfaces, not concrete implementations.
+- **SQLC for Type-Safe Queries**: SQLC generates Go code from SQL queries located in the `queries` directory at the project root. The generated code is centralized in `internal/infrastructure/sqlc` to provide a single data access layer.
+- **Repository-Managed Transactions**: Repositories are responsible for handling database transactions to support atomic operations and query aggregation.
+- **Domain-Specific Routing**: Each domain manages its own routes in a dedicated `router.go` file, which is registered in `cmd/server/main.go`.
+- **Viper for Configuration**: Application configuration is loaded from YAML files (`configs/`), `.env` files, and environment variables.
+- **Graceful Shutdown**: The application supports graceful shutdown to ensure all pending requests are handled before closing.
+- **GoMock for Testing**: Use `go generate` to create mocks for interfaces.
+- **UUID Strategy**: Use UUIDv7 for index-friendly primary keys to optimize database indexing.
 
 ## Critical Implementation Paths
-- Initializing and wiring up dependencies in cmd/server (constructor injection).  
-- SQLC code generation: queries in queries/*.sql → generate Go types and methods in internal/repository/db.  
-- Migrations: ensure schema aligns with SQLC queries and domain models.  
-- Middleware pipeline: logging, recovery, JWT validation before handler execution.  
-- Unit and integration tests validating handler-use case interactions with mocks.
+- **Dependency Injection**: Initializing and wiring up dependencies in `cmd/server/main.go`.
+- **SQLC Code Generation**: Queries in the `queries` directory generate Go types and methods into the centralized `internal/infrastructure/sqlc` directory.
+- **Configuration Loading**: Viper loads configuration from multiple sources (`yaml`, `.env`, `env vars`) into a shared `config` struct.
+- **Migrations**: Ensure the database schema aligns with SQLC queries and domain models.
