@@ -25,6 +25,9 @@ jobs:
       with:
         go-version: 'stable'
 
+    - name: Go Mod Tidy
+      run: go mod tidy
+
     - name: Install mockgen
       run: go install github.com/golang/mock/mockgen@latest
 
