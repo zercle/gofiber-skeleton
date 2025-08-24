@@ -2,6 +2,22 @@ package main
 
 import (
 	"log"
+	"time"
+
+	// @title E-commerce API
+	// @version 1.0
+	// @description This is a sample API for an e-commerce application.
+
+	// @contact.name API Support
+	// @contact.url https://zercle.tech
+	// @contact.email system-admin@zercle.tech
+
+	// @license.name MIT
+	// @license.url https://mit-license.org/
+
+	// @host localhost:8080
+	// @BasePath /api/v1
+	// @schemes http
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,13 +27,19 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure"
+	"github.com/zercle/gofiber-skeleton/internal/infrastructure/app"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config" // Import config package
 	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
 	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
+
+	swagger "github.com/arsmn/fiber-swagger/v2"
+	"github.com/samber/do/v2"
+	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
 func main() {
+
 	// Load configuration
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -31,9 +53,15 @@ func main() {
 	}
 	defer db.Close()
 
-	// Initialize SQLC queries
-
-	// Handlers are now initialized within their respective RegisterRoutes functions if needed
+	// Create a new Injector
+	injector := app.NewInjector(db, &cfg) // Pass pointer to cfg
+	defer func(i *do.RootScope) {
+		if i != nil {
+			if errMap := i.Shutdown().Errors; len(errMap) != 0 {
+				log.Printf("injector shutdown error: %v", err)
+			}
+		}
+	}(injector)
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -46,6 +74,7 @@ func main() {
 				"error": err.Error(),
 			})
 		},
+		ReadTimeout: 1 * time.Minute,
 	})
 
 	// Middleware
@@ -57,15 +86,32 @@ func main() {
 		AllowHeaders: "Origin,Content-Type,Accept,Authorization",
 	}))
 
-	// JWT middleware
-	app.Use(infrastructure.JWTMiddleware(cfg.JWT.Secret)) // Use JWT secret from config
+	// Swagger API docs
+	app.Get("/swagger/*", swagger.New(swagger.Config{
+		DeepLinking:  false,
+		DocExpansion: "none",
+		URL:          "/swagger/doc.json", // Correct URL to the generated swagger.json
+	}))
 
 	// API routes
+	apiV1Group := app.Group("/api/v1")
 
 	// Register domain-specific routes
-	producthandler.RegisterRoutes(app)
-	orderhandler.RegisterRoutes(app)
-	userhandler.RegisterRoutes(app)
+	// Resolve ProductHandler and initialize routes
+	productHandler := do.MustInvoke[*producthandler.ProductHandler](injector)
+
+	// Resolve OrderHandler and initialize routes
+	orderHandler := do.MustInvoke[*orderhandler.OrderHandler](injector)
+
+	// Resolve UserHandler and initialize routes
+	userHandler := do.MustInvoke[*userhandler.UserHandler](injector)
+
+	// Protected routes group
+	jwtHandler := infrastructure.JWTMiddleware(cfg.JWT.Secret)
+
+	userhandler.SetupRoutes(apiV1Group, jwtHandler, userHandler)
+	producthandler.SetupRoutes(apiV1Group, jwtHandler, productHandler)
+	orderhandler.SetupRoutes(apiV1Group, jwtHandler, orderHandler)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {

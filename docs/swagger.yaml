@@ -1,0 +1,423 @@
+basePath: /api/v1
+definitions:
+  github_com_zercle_gofiber-skeleton_internal_domain.Order:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.OrderItem'
+        type: array
+      status:
+        $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.OrderStatus'
+      total:
+        type: number
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  github_com_zercle_gofiber-skeleton_internal_domain.OrderItem:
+    properties:
+      id:
+        type: string
+      order_id:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
+    type: object
+  github_com_zercle_gofiber-skeleton_internal_domain.OrderStatus:
+    enum:
+    - pending
+    - confirmed
+    - shipped
+    - delivered
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - OrderStatusPending
+    - OrderStatusConfirmed
+    - OrderStatusShipped
+    - OrderStatusDelivered
+    - OrderStatusCancelled
+  github_com_zercle_gofiber-skeleton_internal_domain.Product:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      stock:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  github_com_zercle_gofiber-skeleton_internal_domain.User:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  github_com_zercle_gofiber-skeleton_internal_domain.UserLoginRes:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.User'
+    type: object
+  github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse:
+    properties:
+      code:
+        description: Error code
+        type: integer
+      message:
+        description: Message for error
+        type: string
+      status:
+        description: '"error"'
+        type: string
+    type: object
+  internal_user_handler.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  internal_user_handler.RegisterRequest:
+    properties:
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: system-admin@zercle.tech
+    name: API Support
+    url: https://zercle.tech
+  description: This is a sample API for an e-commerce application.
+  license:
+    name: MIT
+    url: https://mit-license.org/
+  title: E-commerce API
+  version: "1.0"
+paths:
+  /api/v1/orders:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Order'
+            type: array
+      summary: Get all orders
+      tags:
+      - orders
+  /api/v1/orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single order by its ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Order'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Get order by ID
+      tags:
+      - orders
+  /api/v1/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Updates the status of an order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New order status
+        in: body
+        name: status
+        required: true
+        schema:
+          enum:
+          - pending
+          - confirmed
+          - shipped
+          - delivered
+          - cancelled
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Order'
+        "400":
+          description: Invalid status
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Update order status
+      tags:
+      - orders
+  /api/v1/orders/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new order for a customer
+      parameters:
+      - description: Order details
+        in: body
+        name: order
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Order'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Create a new order
+      tags:
+      - orders
+  /api/v1/products:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Product'
+            type: array
+      summary: Get all products
+      tags:
+      - products
+    post:
+      consumes:
+      - application/json
+      description: Adds a new product to the inventory
+      parameters:
+      - description: Product details
+        in: body
+        name: product
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Product'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Create a new product
+      tags:
+      - products
+  /api/v1/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a single product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Product'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Get product by ID
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing product's details
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated product details
+        in: body
+        name: product
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.Product'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Update product information
+      tags:
+      - products
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with username and password
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_user_handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.UserLoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Login a user
+      tags:
+      - User
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username and password
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_user_handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_internal_domain.UserLoginRes'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_zercle_gofiber-skeleton_pkg_jsend.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - User
+schemes:
+- http
+swagger: "2.0"

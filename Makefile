@@ -17,6 +17,7 @@ help:
 	@echo "  fmt           - Format code"
 	@echo "  deps          - Install dependencies"
 	@echo "  install-tools - Install development tools"
+	@echo "  swag          - Generate API document"
 
 # Build the application
 build:
@@ -73,9 +74,13 @@ fmt:
 	go fmt ./...
 	goimports -w .
 
+swag:
+	swag init --generalInfo ./cmd/server/main.go --parseDependency --parseInternal --parseFuncBody
+
 # Install development tools
 install-tools:
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 	go install github.com/golang/mock/mockgen@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/cosmtrek/air@latest

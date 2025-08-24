@@ -37,3 +37,10 @@ type UserUseCase interface {
 	GetByID(id string) (*User, error)
 	UpdateRole(id, role string) error
 }
+
+// UserLoginRes represents the response structure for user login
+type UserLoginRes struct {
+	Token string `json:"token"`
+	User  *User  `json:"user"`
+}
+

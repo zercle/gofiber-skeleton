@@ -17,3 +17,6 @@ sql:
         emit_params_struct_pointers: false
         emit_methods_with_db_argument: false
         json_tags_case_style: "snake"
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"

@@ -81,8 +81,9 @@ func TestUserIntegration_Register(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "User registered successfully", responseBody["message"])
-		user := responseBody["user"].(map[string]any)
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "User registered successfully", data["message"])
+		user := data["user"].(map[string]any)
 		assert.Equal(t, registerInput.Username, user["username"])
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
@@ -153,6 +154,7 @@ func TestUserIntegration_Login(t *testing.T) {
 		assert.Equal(t, "success", responseBody["status"])
 		assert.Contains(t, responseBody, "data")
 		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Login successful", data["message"])
 		assert.Contains(t, data, "token")
 		assert.Contains(t, data, "user")
 		user := data["user"].(map[string]any)
@@ -180,7 +182,7 @@ func TestUserIntegration_Login(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "fail", responseBody["status"])
+		assert.Equal(t, "error", responseBody["status"])
 		assert.Equal(t, "invalid credentials", responseBody["message"])
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})

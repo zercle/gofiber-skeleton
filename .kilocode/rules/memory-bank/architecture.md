@@ -13,7 +13,7 @@ The E-commerce Backend Boilerplate follows a domain-driven Clean Architecture ap
 ## Layered Architecture
 - **Presentation / API Layer**
   - **Location**: `cmd/server/main.go`, `internal/*/handler/router.go`
-  - **Responsibilities**: Bootstraps Fiber app, registers domain-specific routers and middleware. Each domain's router (`router.go`) defines its endpoints.
+  - **Responsibilities**: Bootstraps Fiber app with dependency injection, registers domain-specific init modules, and invokes `SetupRoutes` in each handler. Init files include swagger annotations for API documentation.
 - **Handler Layer**
   - **Location**: `internal/<domain>/handler`
   - **Responsibilities**: Validate request payloads, call use cases, format HTTP responses using JSend.
@@ -80,14 +80,16 @@ graph TD
 - **Dependency Inversion**: Handlers and use cases depend on interfaces, not concrete implementations.
 - **SQLC for Type-Safe Queries**: SQLC generates Go code from SQL queries located in the `queries` directory at the project root. The generated code is centralized in `internal/infrastructure/sqlc` to provide a single data access layer.
 - **Repository-Managed Transactions**: Repositories are responsible for handling database transactions to support atomic operations and query aggregation.
-- **Domain-Specific Routing**: Each domain manages its own routes in a dedicated `router.go` file, which is registered in `cmd/server/main.go`.
+- **Domain-Specific Routing**: Each domain manages its own routes in a dedicated `router.go` file, includes swagger annotations for API documentation, and is registered in `cmd/server/main.go`.
 - **Viper for Configuration**: Application configuration is loaded from YAML files (`configs/`), `.env` files, and environment variables.
 - **Graceful Shutdown**: The application supports graceful shutdown to ensure all pending requests are handled before closing.
 - **GoMock for Testing**: Use `go generate` to create mocks for interfaces.
 - **UUID Strategy**: Use UUIDv7 for index-friendly primary keys to optimize database indexing.
+- **gofiber/swagger**: Automatically generate and serve API documentation following OpenAPI specification.
+- **Dependency Injection (samber/do)**: Use samber/do for application dependency injection to wire components.
 
 ## Critical Implementation Paths
-- **Dependency Injection**: Initializing and wiring up dependencies in `cmd/server/main.go`.
+- **Dependency Injection**: Using samber/do container to initialize and wire up dependencies in `cmd/server/main.go`.
 - **SQLC Code Generation**: Queries in the `queries` directory generate Go types and methods into the centralized `internal/infrastructure/sqlc` directory.
 - **Configuration Loading**: Viper loads configuration from multiple sources (`yaml`, `.env`, `env vars`) into a shared `config` struct.
 - **Migrations**: Ensure the database schema aligns with SQLC queries and domain models.

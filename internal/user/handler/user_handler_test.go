@@ -65,8 +65,9 @@ func TestUserHandler_Register(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "User registered successfully", responseBody["message"])
-		assert.NotNil(t, responseBody["user"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "User registered successfully", data["message"])
+		assert.NotNil(t, data["user"])
 	})
 
 	t.Run("invalid request body", func(t *testing.T) {
@@ -152,8 +153,8 @@ func TestUserHandler_Login(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		assert.Equal(t, "Login successful", responseBody["message"])
 		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Login successful", data["message"])
 		assert.Equal(t, expectedToken, data["token"])
 		user := data["user"].(map[string]any)
 		assert.Equal(t, expectedUser.Username, user["username"])
@@ -189,7 +190,7 @@ func TestUserHandler_Login(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "fail", responseBody["status"])
+		assert.Equal(t, "error", responseBody["status"])
 		assert.Equal(t, "Username and password are required", responseBody["message"])
 	})
 
@@ -206,7 +207,7 @@ func TestUserHandler_Login(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "fail", responseBody["status"])
+		assert.Equal(t, "error", responseBody["status"])
 		assert.Equal(t, "invalid credentials", responseBody["message"])
 	})
 }

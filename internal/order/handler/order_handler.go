@@ -123,28 +123,28 @@ func (h *OrderHandler) GetUserOrders(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"orders": orders,
 	})
 }
 
-// GetAllOrders handles getting all orders (admin only)
-func (h *OrderHandler) GetAllOrders(c *fiber.Ctx) error {
-	orders, err := h.orderUseCase.GetAllOrders()
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to fetch orders",
-		})
-	}
+ // GetAllOrders handles getting all orders (admin only)
+ func (h *OrderHandler) GetAllOrders(c *fiber.Ctx) error {
+ 	orders, err := h.orderUseCase.GetAllOrders()
+ 	if err != nil {
+ 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+ 			"status":  "error",
+ 			"message": "Failed to fetch orders",
+ 		})
+ 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"orders": orders,
-		},
-	})
-}
+ 	return c.Status(http.StatusOK).JSON(fiber.Map{
+ 		"status": "success",
+ 		"data": fiber.Map{
+ 			"orders": orders,
+ 		},
+ 	})
+ }
 
 // UpdateOrderStatus handles updating order status
 func (h *OrderHandler) UpdateOrderStatus(c *fiber.Ctx) error {
@@ -173,7 +173,7 @@ func (h *OrderHandler) UpdateOrderStatus(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
+	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "Order status updated successfully",
 	})
 }

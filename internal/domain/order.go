@@ -56,6 +56,7 @@ type OrderUseCase interface {
 	UpdateOrderStatus(id string, status OrderStatus) error
 }
 
+
 var (
 	ErrOrderNotFound = errors.New("order not found")
 )

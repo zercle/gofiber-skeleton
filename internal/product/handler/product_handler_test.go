@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -162,6 +162,7 @@ func TestProductHandler_GetProduct(t *testing.T) {
 	})
 
 	t.Run("invalid product ID", func(t *testing.T) {
+		// Use uuidv4.Parse for validation of existing UUIDs if needed, or remove if all are UUIDv7
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/products/invalid-uuid", nil)
 		resp, err := app.Test(req)
 		require.NoError(t, err)

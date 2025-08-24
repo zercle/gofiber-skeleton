@@ -16,6 +16,8 @@
 - go-playground/validator (github.com/go-playground/validator/v10)
 - jsend (github.com/omniti-labs/jsend)
 - uuidv7 (e.g., github.com/your/uuidv7-lib) for index-friendly primary keys
+- gofiber/swagger (github.com/gofiber/swagger): For API documentation.
+- samber/do (github.com/samber/do): For application dependency injection
 
 ## Development Setup
 1. Install Go (>=1.24.6) and set GOPATH.

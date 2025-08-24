@@ -98,3 +98,4 @@ We will start by building the essential features required for the first version 
 * **air**: For hot reloading during development.
 * **Docker & Docker-Compose**: For environment management and multi-stage builds.
 * **Clean Architecture & SOLID Principles**: Design principles for creating well-structured and scalable code.
+* **gofiber/swagger**: For API documentation.

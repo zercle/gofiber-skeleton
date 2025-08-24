@@ -61,7 +61,6 @@ func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create product
 	product, err := h.productUseCase.CreateProduct(req.Name, req.Description, req.Price, req.Stock, req.ImageURL)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
@@ -177,7 +176,6 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 		})
 	}
 
-	// Update product
 	product, err := h.productUseCase.UpdateProduct(id, req.Name, req.Description, req.Price, req.Stock, req.ImageURL)
 	if err != nil {
 		if errors.Is(err, domain.ErrProductNotFound) {
@@ -238,6 +236,65 @@ func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"message": "Product deleted successfully",
+		},
+	})
+}
+
+// UpdateStock handles updating the stock quantity of a product via HTTP PUT request.
+// It extracts the product ID from the URL parameters, parses and validates the request body,
+// and calls the product use case to update the product's stock.
+// Returns a 200 OK status with the updated product on success, a 404 Not Found if the product does not exist,
+// or other error statuses on failure.
+func (h *ProductHandler) UpdateStock(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status": "fail",
+			"data":   fiber.Map{"message": "Product ID is required"},
+		})
+	}
+
+	if _, err := uuid.Parse(id); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status": "fail",
+			"data":   fiber.Map{"message": "Invalid product ID format"},
+		})
+	}
+
+	var req struct {
+		Stock int `json:"stock" validate:"min=0"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status": "fail",
+			"data":   fiber.Map{"message": "Invalid request body"},
+		})
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"status": "fail",
+			"data":   fiber.Map{"message": err.Error()},
+		})
+	}
+
+	if err := h.productUseCase.UpdateStock(id, req.Stock); err != nil {
+		if errors.Is(err, domain.ErrProductNotFound) {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+				"status":  "fail",
+				"message": "Product not found",
+			})
+		}
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"message": "Product stock updated successfully",
 		},
 	})
 }
