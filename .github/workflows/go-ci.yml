@@ -25,11 +25,13 @@ jobs:
       with:
         go-version: 'stable'
 
-    - name: Go Mod Download
-      run: go mod download
-
+<<<<<<< HEAD
     - name: Install mockgen
-      run: go install go.uber.org/mock/mockgen@latest
+      run: go install github.com/golang/mock/mockgen@latest
+=======
+    - name: Install mockgen
+      run: go install github.com/golang/mock/mockgen@latest
+>>>>>>> 694eae1 (ci(workflows): install mockgen in Go CI pipeline)
 
     - name: Go Generate
       run: go generate ./...
