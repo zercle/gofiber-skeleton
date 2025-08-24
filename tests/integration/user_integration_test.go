@@ -12,10 +12,10 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
@@ -43,7 +43,9 @@ func setupUserIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.D
 
 func TestUserIntegration_Register(t *testing.T) {
 	app, mock, db := setupUserIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	registerInput := userhandler.RegisterRequest{
 		Username: "testuser",
@@ -53,7 +55,7 @@ func TestUserIntegration_Register(t *testing.T) {
 	mockTime := time.Now()
 
 	t.Run("successful user registration", func(t *testing.T) {
-		
+
 		// Mock query to check if username exists
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
@@ -89,7 +91,7 @@ func TestUserIntegration_Register(t *testing.T) {
 	})
 
 	t.Run("registration with existing username", func(t *testing.T) {
-		
+
 		// Mock query to check if username exists and return existing user
 		rows := sqlmock.NewRows([]string{"id", "username", "password_hash", "role", "created_at", "updated_at"}).
 			AddRow(uuid.New(), registerInput.Username, "hashedpassword", domain.RoleCustomer, mockTime, mockTime)
@@ -118,7 +120,9 @@ func TestUserIntegration_Register(t *testing.T) {
 
 func TestUserIntegration_Login(t *testing.T) {
 	app, mock, db := setupUserIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	loginInput := userhandler.LoginRequest{
 		Username: "testuser",
@@ -163,7 +167,7 @@ func TestUserIntegration_Login(t *testing.T) {
 	})
 
 	t.Run("login with invalid credentials", func(t *testing.T) {
-		
+
 		// Mock query to find user by username (simulating user not found or wrong password check)
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
