@@ -21,17 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+    - uses: actions:setup-go@v5
       with:
         go-version: 'stable'
 
-<<<<<<< HEAD
     - name: Install mockgen
       run: go install github.com/golang/mock/mockgen@latest
-=======
-    - name: Install mockgen
-      run: go install github.com/golang/mock/mockgen@latest
->>>>>>> 694eae1 (ci(workflows): install mockgen in Go CI pipeline)
 
     - name: Go Generate
       run: go generate ./...
