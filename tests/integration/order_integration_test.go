@@ -25,7 +25,6 @@ import (
 	productrepository "github.com/zercle/gofiber-skeleton/internal/product/repository"
 )
 
-
 func setupOrderIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.DB) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
@@ -66,7 +65,9 @@ func setupOrderIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.
 
 func TestOrderIntegration_GetAllOrders(t *testing.T) {
 	app, mock, db := setupOrderIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	order1ID := uuid.New()
 	order2ID := uuid.New()
@@ -114,7 +115,9 @@ func TestOrderIntegration_GetAllOrders(t *testing.T) {
 
 func TestOrderIntegration_GetOrder(t *testing.T) {
 	app, mock, db := setupOrderIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	orderID := uuid.New()
 	expectedOrder := domain.Order{
@@ -182,7 +185,9 @@ func TestOrderIntegration_GetOrder(t *testing.T) {
 
 func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 	app, mock, db := setupOrderIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	userID := uuid.New().String() // Add userID for authentication
 	orderID := uuid.New()
@@ -271,7 +276,9 @@ func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 func TestOrderIntegration_CreateOrder(t *testing.T) {
 	userID := uuid.New().String()
 	app, mock, db := setupOrderIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	productID := uuid.New()
 	mockTime := time.Now()
@@ -337,7 +344,6 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
-
 	t.Run("insufficient stock", func(t *testing.T) {
 		// Mock GetByID for product validation and stock check (insufficient stock)
 		productRows := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
@@ -347,10 +353,10 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 		)).
 			WithArgs(productID).
 			WillReturnRows(productRows)
-body, _ := json.Marshal(createOrderInput)
-req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(body))
-req.Header.Set("Content-Type", "application/json")
-req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userID)) // Simulate JWT token
+		body, _ := json.Marshal(createOrderInput)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", userID)) // Simulate JWT token
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)

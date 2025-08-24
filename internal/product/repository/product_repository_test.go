@@ -20,7 +20,9 @@ import (
 func TestProductRepository_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
@@ -31,7 +33,6 @@ func TestProductRepository_Create(t *testing.T) {
 		Stock:       10,
 		ImageURL:    "http://example.com/new.jpg",
 	}
-
 
 	t.Run("successful product creation", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
@@ -68,7 +69,9 @@ func TestProductRepository_Create(t *testing.T) {
 func TestProductRepository_GetByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
@@ -83,7 +86,6 @@ func TestProductRepository_GetByID(t *testing.T) {
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
-
 
 	t.Run("successful product retrieval by ID", func(t *testing.T) {
 		rowsProduct := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
@@ -137,7 +139,9 @@ func TestProductRepository_GetByID(t *testing.T) {
 func TestProductRepository_GetAll(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
@@ -176,7 +180,9 @@ func TestProductRepository_GetAll(t *testing.T) {
 func TestProductRepository_Update(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
@@ -190,13 +196,12 @@ func TestProductRepository_Update(t *testing.T) {
 		ImageURL:    "http://example.com/updated.jpg",
 	}
 
-
 	t.Run("successful product update", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE products SET name = $2, description = $3, price = $4, stock = $5, image_url = $6, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
 			WithArgs(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-				AddRow(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL, time.Now(), time.Now()))
+			AddRow(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL, time.Now(), time.Now()))
 
 		err := repo.Update(productToUpdate)
 		require.NoError(t, err)
@@ -227,7 +232,9 @@ func TestProductRepository_Update(t *testing.T) {
 func TestProductRepository_Delete(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
@@ -268,20 +275,21 @@ func TestProductRepository_Delete(t *testing.T) {
 func TestProductRepository_UpdateStock(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	repo := NewProductRepository(sqlc.New(db))
 
 	productID := uuid.New()
 	quantity := 5
 
-
 	t.Run("successful stock update", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE products SET stock = stock + $2, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
 			WithArgs(productID, int32(quantity)).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-				AddRow(productID, "Test Product", "Desc", fmt.Sprintf("%.2f", 10.00), int32(15), "url", time.Now(), time.Now()))
+			AddRow(productID, "Test Product", "Desc", fmt.Sprintf("%.2f", 10.00), int32(15), "url", time.Now(), time.Now()))
 
 		err := repo.UpdateStock(productID.String(), quantity)
 		require.NoError(t, err)

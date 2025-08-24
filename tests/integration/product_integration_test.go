@@ -46,7 +46,9 @@ func setupProductIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sq
 
 func TestProductIntegration_CreateProduct(t *testing.T) {
 	app, mock, db := setupProductIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	productInput := producthandler.CreateProductRequest{
 		Name:        "Integration Product",
@@ -90,7 +92,9 @@ func TestProductIntegration_CreateProduct(t *testing.T) {
 
 func TestProductIntegration_GetProduct(t *testing.T) {
 	app, mock, db := setupProductIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	productID := uuid.New()
 	expectedProduct := domain.Product{
@@ -154,7 +158,9 @@ func TestProductIntegration_GetProduct(t *testing.T) {
 
 func TestProductIntegration_GetAllProducts(t *testing.T) {
 	app, mock, db := setupProductIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	product1ID := uuid.New()
 	product2ID := uuid.New()
@@ -189,7 +195,9 @@ func TestProductIntegration_GetAllProducts(t *testing.T) {
 
 func TestProductIntegration_UpdateProduct(t *testing.T) {
 	app, mock, db := setupProductIntegrationTest(t)
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	productID := uuid.New()
 	updateInput := producthandler.UpdateProductRequest{
@@ -267,7 +275,9 @@ func TestProductIntegration_DeleteProduct(t *testing.T) {
 
 	t.Run("successful end-to-end product deletion", func(t *testing.T) {
 		app, mock, db := setupProductIntegrationTest(t)
-		defer db.Close()
+		defer func() {
+			_ = db.Close()
+		}()
 
 		// Expect Delete call, which returns rows affected
 		mock.ExpectExec(regexp.QuoteMeta(
@@ -292,7 +302,9 @@ func TestProductIntegration_DeleteProduct(t *testing.T) {
 
 	t.Run("product not found end-to-end delete", func(t *testing.T) {
 		app, mock, db := setupProductIntegrationTest(t)
-		defer db.Close()
+		defer func() {
+			_ = db.Close()
+		}()
 
 		mock.ExpectExec(regexp.QuoteMeta(
 			`DELETE FROM products WHERE id = $1`,

@@ -24,7 +24,9 @@ func TestUserRepository_Create(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	mockQuerier := sqlc.New(db)
 	repo := NewUserRepository(mockQuerier)
@@ -74,7 +76,9 @@ func TestUserRepository_GetByID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	mockQuerier := sqlc.New(db)
 	repo := NewUserRepository(mockQuerier)
@@ -139,7 +143,9 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	mockQuerier := sqlc.New(db)
 	repo := NewUserRepository(mockQuerier)
