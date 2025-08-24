@@ -9,15 +9,19 @@ This guide provides step-by-step instructions for creating a **Backend Boilerpla
 The project will be organized using a Clean Architecture approach to make the code manageable and easy to maintain.
 
 * **`cmd/server`**: Application entry point.
-* **`internal/infrastruture`**: Holds the infrastruture for projects.
+* **`internal/infrastructure`**: Holds the infrastructure for projects.
 * **`internal/domain`**: Defines interfaces for communication between different layers.
 * **`internal/handler`**: Manages HTTP requests and responses.
 * **`internal/repository`**: Handles database interactions.
 * **`internal/usecase`**: Contains business logic and calls the repository.
 * **`pkg`**: Stores shared packages.
+* **`migrations`**: Manages database migrations.
+* **`queries`**: Stores SQL query files.
+* **`docs`**: Contains API documentation and swagger definitions.
+* **`configs`**: Holds configuration files.
+* **`tests`**: Contains integration test suite.
 * **`compose.yml`**: Manages Docker services.
 * **`Dockerfile`**: Builds the Docker image.
-* **`migrations`**: Manages database migrations.
 
 ---
 

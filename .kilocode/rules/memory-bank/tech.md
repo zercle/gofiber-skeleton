@@ -14,6 +14,7 @@
 - Air (github.com/cosmtrek/air)
 - golangci-lint (github.com/golangci/golangci-lint)
 - go-playground/validator (github.com/go-playground/validator/v10)
+- Viper (github.com/spf13/viper)
 - jsend (github.com/omniti-labs/jsend)
 - uuidv7 (e.g., github.com/your/uuidv7-lib) for index-friendly primary keys
 - gofiber/swagger (github.com/gofiber/swagger): For API documentation.
@@ -22,10 +23,11 @@
 ## Development Setup
 1. Install Go (>=1.24.6) and set GOPATH.
 2. Install Docker and Docker Compose.
-3. Install migrate CLI: `brew install golang-migrate` or appropriate package manager.
-4. Install SQLC: `go install github.com/kyleconroy/sqlc/cmd/sqlc@latest`.
-5. Install Air: `go install github.com/cosmtrek/air@latest`.
-6. Install golangci-lint: `go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`.
+3. Install golang-migrate CLI (`go install github.com/golang-migrate/migrate/cmd/migrate@latest`) or via your package manager.
+4. Install SQLC (`go install github.com/kyleconroy/sqlc/cmd/sqlc@latest`).
+5. Install Air (`go install github.com/cosmtrek/air@latest`).
+6. Install golangci-lint (`go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest`).
+7. Copy `.env.example` to `.env` and update environment variables; Viper will load configurations at startup.
 
 ## Commands
 ```bash

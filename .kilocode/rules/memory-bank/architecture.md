@@ -36,34 +36,46 @@ graph TD
     A[cmd/server] --> B{Register Routers}
     B --> C[internal/product/handler/router.go]
     B --> D[internal/order/handler/router.go]
+    B --> U[internal/user/handler/router.go]
     
     C --> E[internal/product/handler]
     D --> F[internal/order/handler]
+    U --> X[internal/user/handler]
 
     E --> G[internal/product/usecase]
     F --> H[internal/order/usecase]
+    X --> Y[internal/user/usecase]
 
     G --> I{Domain Interfaces}
     H --> I
+    Y --> I
 
     I --> J[internal/product/repository]
     I --> K[internal/order/repository]
+    I --> Z[internal/user/repository]
 
     J --> L[internal/product/repository/db]
     K --> M[internal/order/repository/db]
+    Z --> AA[internal/user/repository/db]
 
     L --> N[(Postgres via SQLC)]
     M --> N
+    AA --> N
     
     subgraph Shared Infrastructure
         O[internal/infrastructure/database.go]
         P[internal/infrastructure/sqlc]
+        Q[internal/infrastructure/app/di.go]
+        R[internal/infrastructure/config/config.go]
+        S[docs/swagger.yaml]
     end
 
     L --> O
     M --> O
+    AA --> O
     L --> P
     M --> P
+    AA --> P
 ```
 
 ## Data Flow
