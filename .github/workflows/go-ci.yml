@@ -26,7 +26,7 @@ jobs:
         go-version: 'stable'
 
     - name: Install mockgen
-      run: go install github.com/golang/mock/mockgen@latest
+      run: go install go.uber.org/mock/mockgen@latest
 
     - name: Go Generate
       run: go generate ./...
