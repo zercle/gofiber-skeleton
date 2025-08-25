@@ -19,6 +19,11 @@ func ConnectDatabase(dbCfg config.DBConfig) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// apply connection pool
+	db.SetMaxOpenConns(dbCfg.MaxOpenConns)
+	db.SetConnMaxLifetime(dbCfg.MaxConnLifetime)
+	db.SetConnMaxIdleTime(dbCfg.MaxConnIdleTime)
+
 	// Test the connection
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
