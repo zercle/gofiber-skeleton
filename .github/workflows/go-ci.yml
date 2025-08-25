@@ -25,8 +25,8 @@ jobs:
       with:
         go-version: 'stable'
 
-    - name: Go Mod Tidy
-      run: go mod tidy
+    - name: Go Mod Download
+      run: go mod download
 
     - name: Install mockgen
       run: go install go.uber.org/mock/mockgen@latest
@@ -37,7 +37,7 @@ jobs:
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v8
       with:
-        version: v2.1
+          version: latest
 
     - name: Run Tests
       run: go test -v -race ./...
