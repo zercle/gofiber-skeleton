@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
@@ -203,7 +203,9 @@ func TestUserRepository_Update(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	mockQuerier := sqlc.New(db)
 	repo := NewUserRepository(mockQuerier)
@@ -261,7 +263,9 @@ func TestUserRepository_Delete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	defer db.Close()
+	defer func() {
+		_ = db.Close()
+	}()
 
 	mockQuerier := sqlc.New(db)
 	repo := NewUserRepository(mockQuerier)
