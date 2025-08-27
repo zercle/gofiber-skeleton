@@ -2,26 +2,12 @@ package main
 
 import (
 	"log"
-	"time"
-
-	// @title E-commerce API
-	// @version 1.0
-	// @description This is a sample API for an e-commerce application.
-
-	// @contact.name API Support
-	// @contact.url https://zercle.tech
-	// @contact.email system-admin@zercle.tech
-
-	// @license.name MIT
-	// @license.url https://mit-license.org/
-
-	// @host localhost:8080
-	// @BasePath /api/v1
-	// @schemes http
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -39,6 +25,20 @@ import (
 	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
+// @title E-commerce API
+// @version 1.0
+// @description This is a sample API for an e-commerce application.
+
+// @contact.name API Support
+// @contact.url https://zercle.tech
+// @contact.email system-admin@zercle.tech
+
+// @license.name MIT
+// @license.url https://mit-license.org/
+
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http
 func main() {
 
 	// Load configuration
@@ -78,6 +78,9 @@ func main() {
 			})
 		},
 		ReadTimeout: 1 * time.Minute,
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+		Prefork:     true,
 	})
 
 	// Middleware

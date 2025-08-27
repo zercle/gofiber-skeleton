@@ -2,21 +2,19 @@ package producthandler
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"go.uber.org/mock/gomock"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	"github.com/zercle/gofiber-skeleton/internal/domain/mock"
 )

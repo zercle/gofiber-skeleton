@@ -3,7 +3,6 @@ package integration
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,14 +12,13 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-playground/validator/v10"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
-
 	productrepository "github.com/zercle/gofiber-skeleton/internal/product/repository"
 	productusecase "github.com/zercle/gofiber-skeleton/internal/product/usecase"
 )

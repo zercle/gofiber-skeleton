@@ -2,22 +2,21 @@ package integration
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	"github.com/zercle/gofiber-skeleton/internal/domain/mock"
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
+	"go.uber.org/mock/gomock"
 )
 
 func setupUserIntegrationTest(t *testing.T) (*fiber.App, *mock.MockUserUseCase) {

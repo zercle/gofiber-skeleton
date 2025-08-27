@@ -3,7 +3,6 @@ package integration
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,11 +11,11 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
 	orderrepository "github.com/zercle/gofiber-skeleton/internal/order/repository"
@@ -356,7 +355,6 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 		)).
 			WithArgs(productID).
 			WillReturnRows(productRows)
-
 
 		body, _ := json.Marshal(createOrderInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(body))
