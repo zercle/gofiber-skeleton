@@ -1,19 +1,21 @@
 # Context
 
 **Current Work Focus**
-Completed architectural consolidation: centralized SQLC-generated code and SQL queries, integrated swagger annotations for API documentation, configured dependency injection with samber/do, and migrated primary keys to UUIDv7.
+
+Simplifying boilerplate by removing standalone demo endpoints and integrating guidance for complex multi-stage queries within domain repositories.
 
 **Recent Changes**
-- Centralized all SQLC-generated code into `internal/infrastructure/sqlc`.
-- Consolidated SQL queries under the `queries` directory.
-- Added swagger annotations in each handler `router.go` for API docs.
-- Configured samber/do DI container in `internal/infrastructure/app/di.go`.
-- Updated configuration loading with Viper in `internal/infrastructure/config/config.go`.
-- Applied UUIDv7 functions in database migrations for index-friendly primary keys.
+
+- Removed demo transaction and demo join endpoints.
+- Updated memory bank instructions to focus on core CRUD stories and multi-stage query guidance.
+- Consolidated multi-stage join query examples into product, order, and user repository documentation.
+- Adjusted SQLC configuration for `emit_methods_with_db_argument` to support multi-stage queries in domain repositories.
 
 **Next Steps**
-1. Regenerate SQLC code (`sqlc generate`) and rebuild the server.
+
+1. Regenerate SQLC code (`sqlc generate`) after adjusting configuration.
 2. Apply database migrations (`migrate -path migrations -database "$DATABASE_URL" up`).
-3. Run linting and test suite (`golangci-lint run && go test ./...`).
-4. Implement the customer order flow endpoint (`POST /api/v1/orders/create`) and update product stock logic.
-5. Update documentation and integration tests for the new endpoint.
+3. Run linting and tests (`golangci-lint run && go test ./...`).
+4. Implement multi-stage join queries in repository implementations and add example code.
+5. Write integration tests for multi-stage query functionality.
+6. Update documentation and memory bank files to reflect changes.

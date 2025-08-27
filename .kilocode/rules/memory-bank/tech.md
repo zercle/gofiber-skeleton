@@ -19,6 +19,7 @@
 - uuidv7 (e.g., github.com/your/uuidv7-lib) for index-friendly primary keys
 - gofiber/swagger (github.com/gofiber/swagger): For API documentation.
 - samber/do (github.com/samber/do): For application dependency injection
+- github.com/guregu/null/v6: For improved null handling in SQLC models.
 
 ## Development Setup
 1. Install Go (>=1.24.6) and set GOPATH.
@@ -54,6 +55,7 @@ docker compose up --build
 - Treat SQLC-generated code as entity providers; repositories should orchestrate and aggregate data before returning to use cases. The generated code is centralized in `internal/infrastructure/sqlc` and queries are located in the `queries` directory at the project root.
 - Use UUIDv7 instead of UUIDv4 for index-friendly primary keys.
 - Do not edit mock or generated files manually; use go generate to regenerate mocks and other generated code.
+- Enable SQLC `emit_methods_with_db_argument: true` for repository-level transaction management.
 
 ## Testing
 - **Unit Tests**: Should be located in the same package as the code they are testing, using the `_test.go` suffix.

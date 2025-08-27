@@ -3,7 +3,6 @@ package integration
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,13 +12,12 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-playground/validator/v10"
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
-	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
 	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
 	productrepository "github.com/zercle/gofiber-skeleton/internal/product/repository"
 	productusecase "github.com/zercle/gofiber-skeleton/internal/product/usecase"
@@ -29,8 +27,7 @@ func setupProductIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sq
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
-	sqlcQueries := sqlc.New(db)
-	productRepo := productrepository.NewProductRepository(sqlcQueries)
+	productRepo := productrepository.NewProductRepository(db)
 	productUseCase := productusecase.NewProductUseCase(productRepo)
 	productHandler := producthandler.NewProductHandler(productUseCase, validator.New())
 

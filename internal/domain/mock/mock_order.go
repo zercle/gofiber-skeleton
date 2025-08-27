@@ -10,8 +10,10 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	domain "github.com/zercle/gofiber-skeleton/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -40,91 +42,94 @@ func (m *MockOrderRepository) EXPECT() *MockOrderRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockOrderRepository) Create(order *domain.Order) error {
+// CreateOrder mocks base method.
+func (m *MockOrderRepository) CreateOrder(ctx context.Context, order domain.Order, orderItems []domain.OrderItem) (domain.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", order)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockOrderRepositoryMockRecorder) Create(order any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderRepository)(nil).Create), order)
-}
-
-// GetAll mocks base method.
-func (m *MockOrderRepository) GetAll() ([]*domain.Order, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]*domain.Order)
+	ret := m.ctrl.Call(m, "CreateOrder", ctx, order, orderItems)
+	ret0, _ := ret[0].(domain.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAll indicates an expected call of GetAll.
-func (mr *MockOrderRepositoryMockRecorder) GetAll() *gomock.Call {
+// CreateOrder indicates an expected call of CreateOrder.
+func (mr *MockOrderRepositoryMockRecorder) CreateOrder(ctx, order, orderItems any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockOrderRepository)(nil).GetAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrder", reflect.TypeOf((*MockOrderRepository)(nil).CreateOrder), ctx, order, orderItems)
 }
 
-// GetByID mocks base method.
-func (m *MockOrderRepository) GetByID(id string) (*domain.Order, error) {
+// GetAllOrders mocks base method.
+func (m *MockOrderRepository) GetAllOrders(ctx context.Context) ([]domain.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByID", id)
-	ret0, _ := ret[0].(*domain.Order)
+	ret := m.ctrl.Call(m, "GetAllOrders", ctx)
+	ret0, _ := ret[0].([]domain.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByID indicates an expected call of GetByID.
-func (mr *MockOrderRepositoryMockRecorder) GetByID(id any) *gomock.Call {
+// GetAllOrders indicates an expected call of GetAllOrders.
+func (mr *MockOrderRepositoryMockRecorder) GetAllOrders(ctx any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockOrderRepository)(nil).GetByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllOrders", reflect.TypeOf((*MockOrderRepository)(nil).GetAllOrders), ctx)
 }
 
-// GetByUserID mocks base method.
-func (m *MockOrderRepository) GetByUserID(userID string) ([]*domain.Order, error) {
+// GetOrderByID mocks base method.
+func (m *MockOrderRepository) GetOrderByID(ctx context.Context, id uuid.UUID) (domain.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserID", userID)
-	ret0, _ := ret[0].([]*domain.Order)
+	ret := m.ctrl.Call(m, "GetOrderByID", ctx, id)
+	ret0, _ := ret[0].(domain.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByUserID indicates an expected call of GetByUserID.
-func (mr *MockOrderRepositoryMockRecorder) GetByUserID(userID any) *gomock.Call {
+// GetOrderByID indicates an expected call of GetOrderByID.
+func (mr *MockOrderRepositoryMockRecorder) GetOrderByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockOrderRepository)(nil).GetByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderByID", reflect.TypeOf((*MockOrderRepository)(nil).GetOrderByID), ctx, id)
 }
 
-// Update mocks base method.
-func (m *MockOrderRepository) Update(order *domain.Order) error {
+// GetOrdersByUserID mocks base method.
+func (m *MockOrderRepository) GetOrdersByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", order)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GetOrdersByUserID", ctx, userID)
+	ret0, _ := ret[0].([]domain.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Update indicates an expected call of Update.
-func (mr *MockOrderRepositoryMockRecorder) Update(order any) *gomock.Call {
+// GetOrdersByUserID indicates an expected call of GetOrdersByUserID.
+func (mr *MockOrderRepositoryMockRecorder) GetOrdersByUserID(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOrderRepository)(nil).Update), order)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrdersByUserID", reflect.TypeOf((*MockOrderRepository)(nil).GetOrdersByUserID), ctx, userID)
 }
 
-// UpdateStatus mocks base method.
-func (m *MockOrderRepository) UpdateStatus(id string, status domain.OrderStatus) error {
+// UpdateOrder mocks base method.
+func (m *MockOrderRepository) UpdateOrder(ctx context.Context, order domain.Order) (domain.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStatus", id, status)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdateOrder", ctx, order)
+	ret0, _ := ret[0].(domain.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// UpdateStatus indicates an expected call of UpdateStatus.
-func (mr *MockOrderRepositoryMockRecorder) UpdateStatus(id, status any) *gomock.Call {
+// UpdateOrder indicates an expected call of UpdateOrder.
+func (mr *MockOrderRepositoryMockRecorder) UpdateOrder(ctx, order any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockOrderRepository)(nil).UpdateStatus), id, status)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrder", reflect.TypeOf((*MockOrderRepository)(nil).UpdateOrder), ctx, order)
+}
+
+// UpdateOrderStatus mocks base method.
+func (m *MockOrderRepository) UpdateOrderStatus(ctx context.Context, id uuid.UUID, status string) (domain.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOrderStatus", ctx, id, status)
+	ret0, _ := ret[0].(domain.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateOrderStatus indicates an expected call of UpdateOrderStatus.
+func (mr *MockOrderRepositoryMockRecorder) UpdateOrderStatus(ctx, id, status any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrderStatus", reflect.TypeOf((*MockOrderRepository)(nil).UpdateOrderStatus), ctx, id, status)
 }
 
 // MockOrderUseCase is a mock of OrderUseCase interface.

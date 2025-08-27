@@ -34,19 +34,15 @@ func TestOrderUseCase_CreateOrder(t *testing.T) {
 			ID: productID, Name: "Test Product", Price: productPrice, Stock: 10,
 		}, nil)
 		mockProductRepo.EXPECT().UpdateStock(productID, -2).Return(nil)
-		mockOrderRepo.EXPECT().Create(gomock.Any()).DoAndReturn(func(order *domain.Order) error {
-			order.ID = uuid.New().String() // Simulate repository setting the ID
-			order.CreatedAt = time.Now()
-			order.UpdatedAt = time.Now()
-			assert.Equal(t, userID, order.UserID)
-			assert.Equal(t, domain.OrderStatusPending, order.Status)
-			assert.Equal(t, productPrice*2, order.Total)
-			assert.Len(t, order.Items, 1)
-			assert.Equal(t, productID, order.Items[0].ProductID)
-			assert.Equal(t, 2, order.Items[0].Quantity)
-			assert.Equal(t, productPrice, order.Items[0].Price)
-			return nil
-		})
+		mockOrderRepo.EXPECT().CreateOrder(gomock.Any(), gomock.Any(), gomock.Any()).Return(domain.Order{
+			ID:        uuid.New().String(),
+			UserID:    userID,
+			Status:    domain.OrderStatusPending,
+			Total:     productPrice * 2,
+			Items:     orderItems,
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}, nil)
 
 		order, err := usecase.CreateOrder(userID, orderItems)
 		require.NoError(t, err)
@@ -113,7 +109,7 @@ func TestOrderUseCase_CreateOrder(t *testing.T) {
 			ID: productID, Name: "Test Product", Price: productPrice, Stock: 10,
 		}, nil)
 		mockProductRepo.EXPECT().UpdateStock(productID, -2).Return(nil)
-		mockOrderRepo.EXPECT().Create(gomock.Any()).Return(errors.New("db create error"))
+		mockOrderRepo.EXPECT().CreateOrder(gomock.Any(), gomock.Any(), gomock.Any()).Return(domain.Order{}, errors.New("db create error"))
 
 		order, err := usecase.CreateOrder(userID, orderItems)
 		assert.Error(t, err)
@@ -137,7 +133,7 @@ func TestOrderUseCase_GetOrder(t *testing.T) {
 	}
 
 	t.Run("successful order retrieval", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetByID(orderID).Return(expectedOrder, nil)
+		mockOrderRepo.EXPECT().GetOrderByID(gomock.Any(), uuid.MustParse(orderID)).Return(*expectedOrder, nil)
 
 		order, err := usecase.GetOrder(orderID)
 		require.NoError(t, err)
@@ -153,12 +149,12 @@ func TestOrderUseCase_GetOrder(t *testing.T) {
 	})
 
 	t.Run("repository returns error", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetByID(orderID).Return(nil, errors.New("db error"))
+		mockOrderRepo.EXPECT().GetOrderByID(gomock.Any(), uuid.MustParse(orderID)).Return(domain.Order{}, errors.New("db error"))
 
 		order, err := usecase.GetOrder(orderID)
 		assert.Error(t, err)
 		assert.Nil(t, order)
-		assert.EqualError(t, err, "db error")
+		assert.EqualError(t, err, "failed to fetch order")
 	})
 }
 
@@ -177,7 +173,11 @@ func TestOrderUseCase_GetUserOrders(t *testing.T) {
 	}
 
 	t.Run("successful retrieval of user orders", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetByUserID(userID).Return(expectedOrders, nil)
+		// The use case now returns []domain.Order, so the mock should return that.
+		// Then, we convert it to []*domain.Order for comparison in the test.
+		mockOrderRepo.EXPECT().GetOrdersByUserID(gomock.Any(), uuid.MustParse(userID)).Return([]domain.Order{
+			*expectedOrders[0], *expectedOrders[1],
+		}, nil)
 
 		orders, err := usecase.GetUserOrders(userID)
 		require.NoError(t, err)
@@ -194,12 +194,12 @@ func TestOrderUseCase_GetUserOrders(t *testing.T) {
 	})
 
 	t.Run("repository returns error", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetByUserID(userID).Return(nil, errors.New("db error"))
+		mockOrderRepo.EXPECT().GetOrdersByUserID(gomock.Any(), uuid.MustParse(userID)).Return(nil, errors.New("failed to fetch user orders"))
 
 		orders, err := usecase.GetUserOrders(userID)
 		assert.Error(t, err)
 		assert.Nil(t, orders)
-		assert.EqualError(t, err, "db error")
+		assert.EqualError(t, err, "failed to fetch user orders")
 	})
 }
 
@@ -217,7 +217,9 @@ func TestOrderUseCase_GetAllOrders(t *testing.T) {
 	}
 
 	t.Run("successful retrieval of all orders", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetAll().Return(expectedOrders, nil)
+		mockOrderRepo.EXPECT().GetAllOrders(gomock.Any()).Return([]domain.Order{
+			*expectedOrders[0], *expectedOrders[1],
+		}, nil)
 
 		orders, err := usecase.GetAllOrders()
 		require.NoError(t, err)
@@ -227,12 +229,12 @@ func TestOrderUseCase_GetAllOrders(t *testing.T) {
 	})
 
 	t.Run("repository returns error", func(t *testing.T) {
-		mockOrderRepo.EXPECT().GetAll().Return(nil, errors.New("db error"))
+		mockOrderRepo.EXPECT().GetAllOrders(gomock.Any()).Return(nil, errors.New("failed to fetch all orders"))
 
 		orders, err := usecase.GetAllOrders()
 		assert.Error(t, err)
 		assert.Nil(t, orders)
-		assert.EqualError(t, err, "db error")
+		assert.EqualError(t, err, "failed to fetch all orders")
 	})
 }
 
@@ -247,7 +249,7 @@ func TestOrderUseCase_UpdateOrderStatus(t *testing.T) {
 	orderID := uuid.New().String()
 
 	t.Run("successful status update", func(t *testing.T) {
-		mockOrderRepo.EXPECT().UpdateStatus(orderID, domain.OrderStatusShipped).Return(nil)
+		mockOrderRepo.EXPECT().UpdateOrderStatus(gomock.Any(), uuid.MustParse(orderID), string(domain.OrderStatusShipped)).Return(domain.Order{}, nil)
 
 		err := usecase.UpdateOrderStatus(orderID, domain.OrderStatusShipped)
 		require.NoError(t, err)
@@ -266,10 +268,10 @@ func TestOrderUseCase_UpdateOrderStatus(t *testing.T) {
 	})
 
 	t.Run("repository returns error", func(t *testing.T) {
-		mockOrderRepo.EXPECT().UpdateStatus(orderID, domain.OrderStatusShipped).Return(errors.New("db error"))
+		mockOrderRepo.EXPECT().UpdateOrderStatus(gomock.Any(), uuid.MustParse(orderID), string(domain.OrderStatusShipped)).Return(domain.Order{}, errors.New("failed to update order status"))
 
 		err := usecase.UpdateOrderStatus(orderID, domain.OrderStatusShipped)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "db error")
+		assert.EqualError(t, err, "failed to update order status")
 	})
 }

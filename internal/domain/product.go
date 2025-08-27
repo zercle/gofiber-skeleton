@@ -50,6 +50,5 @@ type ProductUseCase interface {
 	UpdateStock(id string, quantity int) error
 }
 
-
 // ErrProductNotFound indicates that a product was not found.
 var ErrProductNotFound = errors.New("product not found")

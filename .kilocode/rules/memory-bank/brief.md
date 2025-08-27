@@ -35,19 +35,19 @@ We will start by building the essential features required for the first version 
 
 ### Backend (Go)
 
-1.  **Design and Create Database Schema**:
-    * Create a `products` table with fields like **`id`, `name`, `description`, `price`, `stock`, `image_url`, and `created_at`**.
-    * Use **golang-migrate** to handle migrations.
-2.  **Create API Endpoints**:
-    * **`POST /api/v1/products`**: To add a new product.
-    * **`PUT /api/v1/products/{id}`**: To update product information.
-    * **`DELETE /api/v1/products/{id}`**: To delete a product.
-    * **`GET /api/v1/products`**: To retrieve all products.
-    * **`GET /api/v1/products/{id}`**: To retrieve a specific product.
-3.  **Mock Interfaces**:
-    * Mocks live alongside their interfaces in a mock subpackage.
-4.  **Write Unit Tests**:
-    * Test the functionality of each API endpoint and related business logic with mock interfaces.
+1. **Design and Create Database Schema**:
+   * Create a `products` table with fields like **`id`, `name`, `description`, `price`, `stock`, `image_url`, and `created_at`**.
+   * Use **golang-migrate** to handle migrations.
+2. **Create API Endpoints**:
+   * **`POST /api/v1/products`**: To add a new product.
+   * **`PUT /api/v1/products/{id}`**: To update product information.
+   * **`DELETE /api/v1/products/{id}`**: To delete a product.
+   * **`GET /api/v1/products`**: To retrieve all products.
+   * **`GET /api/v1/products/{id}`**: To retrieve a specific product.
+3. **Mock Interfaces**:
+   * Mocks live alongside their interfaces in a mock subpackage.
+4. **Write Unit Tests**:
+   * Test the functionality of each API endpoint and related business logic with mock interfaces.
 
 ### Story 2: Order Management
 
@@ -55,14 +55,14 @@ We will start by building the essential features required for the first version 
 
 ### Backend (Go)
 
-1.  **Design and Create Database Schema**:
-    * Create `orders` and `order_items` tables.
-2.  **Create API Endpoints**:
-    * **`GET /api/v1/orders`**: To retrieve all orders.
-    * **`GET /api/v1/orders/{id}`**: To retrieve a specific order.
-    * **`PUT /api/v1/orders/{id}/status`**: To update an order's status.
-3.  **Write Unit Tests**:
-    * Test all API and business logic functionality.
+1. **Design and Create Database Schema**:
+   * Create `orders` and `order_items` tables.
+2. **Create API Endpoints**:
+   * **`GET /api/v1/orders`**: To retrieve all orders.
+   * **`GET /api/v1/orders/{id}`**: To retrieve a specific order.
+   * **`PUT /api/v1/orders/{id}/status`**: To update an order's status.
+3. **Write Unit Tests**:
+   * Test all API and business logic functionality.
 
 ### Story 3: User Authentication & Authorization
 
@@ -70,13 +70,13 @@ We will start by building the essential features required for the first version 
 
 ### Backend (Go)
 
-1.  **Design and Create Database Schema**:
-    * Create a `users` table with fields like **`id`, `username`, `password_hash`, and `role`**.
-2.  **Create API Endpoints**:
-    * **`POST /api/v1/register`**: For user registration.
-    * **`POST /api/v1/login`**: For user login.
-3.  **Implement JWT and Middleware**:
-    * Create **middleware** to validate the JWT for all authenticated API endpoints.
+1. **Design and Create Database Schema**:
+   * Create a `users` table with fields like **`id`, `username`, `password_hash`, and `role`**.
+2. **Create API Endpoints**:
+   * **`POST /api/v1/register`**: For user registration.
+   * **`POST /api/v1/login`**: For user login.
+3. **Implement JWT and Middleware**:
+   * Create **middleware** to validate the JWT for all authenticated API endpoints.
 
 ### Story 4: Customer Order Flow
 
@@ -84,19 +84,37 @@ We will start by building the essential features required for the first version 
 
 ### Backend (Go)
 
-1.  **Create API Endpoint**:
-    * **`POST /api/v1/orders/create`**: For customers to create a new order.
-2.  **Update Logic**:
-    * Modify the `POST /api/v1/products` and `PUT /api/v1/products/{id}` APIs to reduce stock count when a product is purchased.
+1. **Create API Endpoint**:
+   * **`POST /api/v1/orders/create`**: For customers to create a new order.
+2. **Update Logic**:
+   * Modify the `POST /api/v1/products` and `PUT /api/v1/products/{id}` APIs to reduce stock count when a product is purchased.
+
+### Story 5: Multi-Stage Query Guidance
+
+---
+
+### Backend (Go)
+
+1. **Demonstrate Complex Joins**:
+   * Write advanced SQL joins combining `orders`, `order_items`, and `products`.
+   * Place queries in `queries/order_product_join.sql`.
+2. **Use SQLC for Multi-Stage Queries**:
+   * Configure SQLC to generate methods for join queries.
+   * Centralize generated code in `internal/infrastructure/sqlc`.
+3. **Implement in Domain Repositories**:
+   * Include example multi-stage query usage in repository implementations.
+   * Guide developers on structuring multi-step data retrieval with transactions if needed.
+4. **Write Integration Tests**:
+   * Validate multi-stage query results in `tests/integration`.
 
 ---
 
 ## 🛠️ Tools & Technologies
 
 * **Go Fiber**: A high-performance web framework.
-* **golang-migrate**: For database chema & query migration (Postgres).
-* **DATA-DOG/go-sqlmock**: For simulate any sql driver behavior in tests, without needing a real database connection.
-* **uber-go/mock**: For mocking interface for tests.
+* **golang-migrate**: For database schema & query migration (Postgres).
+* **DATA-DOG/go-sqlmock**: To simulate SQL driver behavior in tests, without needing a real database connection.
+* **uber-go/mock**: For mocking interfaces in tests.
 * **SQLC**: Generates Go code from SQL queries for increased safety and performance.
 * **JWT**: For managing authentication.
 * **air**: For hot reloading during development.

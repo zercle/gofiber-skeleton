@@ -2,26 +2,12 @@ package main
 
 import (
 	"log"
-	"time"
-
-	// @title E-commerce API
-	// @version 1.0
-	// @description This is a sample API for an e-commerce application.
-
-	// @contact.name API Support
-	// @contact.url https://zercle.tech
-	// @contact.email system-admin@zercle.tech
-
-	// @license.name MIT
-	// @license.url https://mit-license.org/
-
-	// @host localhost:8080
-	// @BasePath /api/v1
-	// @schemes http
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -34,10 +20,24 @@ import (
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
 
 	swagger "github.com/arsmn/fiber-swagger/v2"
-	"github.com/samber/do/v2"
+	do_v2 "github.com/samber/do/v2"
 	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
+// @title E-commerce API
+// @version 1.0
+// @description This is a sample API for an e-commerce application.
+
+// @contact.name API Support
+// @contact.url https://zercle.tech
+// @contact.email system-admin@zercle.tech
+
+// @license.name MIT
+// @license.url https://mit-license.org/
+
+// @host localhost:8080
+// @BasePath /api/v1
+// @schemes http
 func main() {
 
 	// Load configuration
@@ -57,7 +57,7 @@ func main() {
 
 	// Create a new Injector
 	injector := app.NewInjector(db, &cfg) // Pass pointer to cfg
-	defer func(i *do.RootScope) {
+	defer func(i *do_v2.RootScope) {
 		if i != nil {
 			if errMap := i.Shutdown().Errors; len(errMap) != 0 {
 				log.Printf("injector shutdown error: %v", err)
@@ -77,6 +77,9 @@ func main() {
 			})
 		},
 		ReadTimeout: 1 * time.Minute,
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+		Prefork:     true,
 	})
 
 	// Middleware
@@ -100,13 +103,14 @@ func main() {
 
 	// Register domain-specific routes
 	// Resolve ProductHandler and initialize routes
-	productHandler := do.MustInvoke[*producthandler.ProductHandler](injector)
+	productHandler := do_v2.MustInvoke[*producthandler.ProductHandler](injector)
 
 	// Resolve OrderHandler and initialize routes
-	orderHandler := do.MustInvoke[*orderhandler.OrderHandler](injector)
+	orderHandler := do_v2.MustInvoke[*orderhandler.OrderHandler](injector)
 
 	// Resolve UserHandler and initialize routes
-	userHandler := do.MustInvoke[*userhandler.UserHandler](injector)
+	userHandler := do_v2.MustInvoke[*userhandler.UserHandler](injector)
+
 
 	// Protected routes group
 	jwtHandler := infrastructure.JWTMiddleware(cfg.JWT.Secret)

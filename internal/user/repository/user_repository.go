@@ -2,6 +2,7 @@ package userrepository
 
 import (
 	"context"
+	"database/sql" // Import database/sql
 
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/domain"
@@ -9,18 +10,22 @@ import (
 )
 
 type userRepository struct {
-	db sqlc.Querier
+	q     *sqlc.Queries // The generated Queries struct (holds methods)
+	rawDB *sql.DB       // The underlying DB connection (passed as DBTX)
 }
 
 // NewUserRepository creates a new user repository
-func NewUserRepository(db sqlc.Querier) domain.UserRepository {
-	return &userRepository{db: db}
+func NewUserRepository(db *sql.DB) domain.UserRepository {
+	return &userRepository{
+		q:     sqlc.New(), // Call the parameterless New()
+		rawDB: db,         // Store the actual DB connection
+	}
 }
 
 func (r *userRepository) Create(user *domain.User) (*domain.User, error) {
 	ctx := context.Background()
 
-	dbUser, err := r.db.CreateUser(ctx, sqlc.CreateUserParams{
+	dbUser, err := r.q.CreateUser(ctx, r.rawDB, sqlc.CreateUserParams{
 		Username:     user.Username,
 		PasswordHash: user.PasswordHash,
 		Role:         user.Role,
@@ -43,7 +48,7 @@ func (r *userRepository) GetByID(id string) (*domain.User, error) {
 		return nil, err
 	}
 
-	dbUser, err := r.db.GetUserByID(ctx, parsedUUID)
+	dbUser, err := r.q.GetUserByID(ctx, r.rawDB, parsedUUID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +66,7 @@ func (r *userRepository) GetByID(id string) (*domain.User, error) {
 func (r *userRepository) GetByUsername(username string) (*domain.User, error) {
 	ctx := context.Background()
 
-	dbUser, err := r.db.GetUserByUsername(ctx, username)
+	dbUser, err := r.q.GetUserByUsername(ctx, r.rawDB, username)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +89,7 @@ func (r *userRepository) Update(user *domain.User) error {
 		return err
 	}
 
-	dbUser, err := r.db.UpdateUser(ctx, sqlc.UpdateUserParams{
+	dbUser, err := r.q.UpdateUser(ctx, r.rawDB, sqlc.UpdateUserParams{
 		ID:           parsedUUID,
 		Username:     user.Username,
 		PasswordHash: user.PasswordHash,
@@ -106,5 +111,5 @@ func (r *userRepository) Delete(id string) error {
 		return err
 	}
 
-	return r.db.DeleteUser(ctx, parsedUUID)
+	return r.q.DeleteUser(ctx, r.rawDB, parsedUUID)
 }

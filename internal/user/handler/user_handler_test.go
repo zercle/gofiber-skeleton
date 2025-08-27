@@ -2,21 +2,20 @@ package userhandler
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
-
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	"github.com/zercle/gofiber-skeleton/internal/domain/mock"
+	"go.uber.org/mock/gomock"
 )
 
 // mockAuthMiddleware is a Fiber middleware that sets a user ID in c.Locals for testing.

@@ -3,7 +3,7 @@ package productrepository
 import (
 	"database/sql"
 	"errors"
-	"fmt" // Add fmt import
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
 )
 
 func TestProductRepository_Create(t *testing.T) {
@@ -24,7 +23,7 @@ func TestProductRepository_Create(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	product := &domain.Product{
 		Name:        "New Product",
@@ -36,12 +35,12 @@ func TestProductRepository_Create(t *testing.T) {
 
 	t.Run("successful product creation", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-			AddRow(uuid.New(), product.Name, product.Description, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), product.ImageURL, time.Now(), time.Now())
+			AddRow(uuid.New(), product.Name, sql.NullString{String: product.Description, Valid: product.Description != ""}, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), sql.NullString{String: product.ImageURL, Valid: product.ImageURL != ""}, sql.NullTime{Time: time.Now(), Valid: true}, sql.NullTime{Time: time.Now(), Valid: true})
 
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`INSERT INTO products (name, description, price, stock, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
-			WithArgs(product.Name, product.Description, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), product.ImageURL).
+			WithArgs(product.Name, sql.NullString{String: product.Description, Valid: product.Description != ""}, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), sql.NullString{String: product.ImageURL, Valid: product.ImageURL != ""}).
 			WillReturnRows(rows)
 
 		err := repo.Create(product)
@@ -56,7 +55,7 @@ func TestProductRepository_Create(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`INSERT INTO products (name, description, price, stock, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
-			WithArgs(product.Name, product.Description, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), product.ImageURL).
+			WithArgs(product.Name, sql.NullString{String: product.Description, Valid: product.Description != ""}, fmt.Sprintf("%.2f", product.Price), int32(product.Stock), sql.NullString{String: product.ImageURL, Valid: product.ImageURL != ""}).
 			WillReturnError(errors.New("db insert error"))
 
 		err := repo.Create(product)
@@ -73,7 +72,7 @@ func TestProductRepository_GetByID(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	productID := uuid.New()
 	expectedProduct := domain.Product{
@@ -89,7 +88,7 @@ func TestProductRepository_GetByID(t *testing.T) {
 
 	t.Run("successful product retrieval by ID", func(t *testing.T) {
 		rowsProduct := sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-			AddRow(productID, expectedProduct.Name, expectedProduct.Description, fmt.Sprintf("%.2f", expectedProduct.Price), int32(expectedProduct.Stock), expectedProduct.ImageURL, expectedProduct.CreatedAt, expectedProduct.UpdatedAt)
+			AddRow(productID, expectedProduct.Name, sql.NullString{String: expectedProduct.Description, Valid: expectedProduct.Description != ""}, fmt.Sprintf("%.2f", expectedProduct.Price), int32(expectedProduct.Stock), sql.NullString{String: expectedProduct.ImageURL, Valid: expectedProduct.ImageURL != ""}, sql.NullTime{Time: expectedProduct.CreatedAt, Valid: true}, sql.NullTime{Time: expectedProduct.UpdatedAt, Valid: true})
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products WHERE id = $1`,
 		)).
@@ -143,7 +142,7 @@ func TestProductRepository_GetAll(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	product1ID := uuid.New()
 	product2ID := uuid.New()
@@ -153,8 +152,8 @@ func TestProductRepository_GetAll(t *testing.T) {
 			`SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products ORDER BY created_at DESC`,
 		)).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-				AddRow(product1ID, "Product 1", "Desc 1", fmt.Sprintf("%.2f", 10.00), int32(10), "url1", time.Now(), time.Now()).
-				AddRow(product2ID, "Product 2", "Desc 2", fmt.Sprintf("%.2f", 20.00), int32(20), "url2", time.Now(), time.Now()))
+				AddRow(product1ID, "Product 1", sql.NullString{String: "Desc 1", Valid: true}, fmt.Sprintf("%.2f", 10.00), int32(10), sql.NullString{String: "url1", Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}).
+				AddRow(product2ID, "Product 2", sql.NullString{String: "Desc 2", Valid: true}, fmt.Sprintf("%.2f", 20.00), int32(20), sql.NullString{String: "url2", Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}))
 
 		products, err := repo.GetAll()
 		require.NoError(t, err)
@@ -184,7 +183,7 @@ func TestProductRepository_Update(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	productID := uuid.New()
 	productToUpdate := &domain.Product{
@@ -200,8 +199,8 @@ func TestProductRepository_Update(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE products SET name = $2, description = $3, price = $4, stock = $5, image_url = $6, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
-			WithArgs(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-			AddRow(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL, time.Now(), time.Now()))
+			WithArgs(productID, productToUpdate.Name, sql.NullString{String: productToUpdate.Description, Valid: productToUpdate.Description != ""}, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), sql.NullString{String: productToUpdate.ImageURL, Valid: productToUpdate.ImageURL != ""}).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
+			AddRow(productID, productToUpdate.Name, sql.NullString{String: productToUpdate.Description, Valid: true}, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), sql.NullString{String: productToUpdate.ImageURL, Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}))
 
 		err := repo.Update(productToUpdate)
 		require.NoError(t, err)
@@ -220,11 +219,11 @@ func TestProductRepository_Update(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE products SET name = $2, description = $3, price = $4, stock = $5, image_url = $6, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
-			WithArgs(productID, productToUpdate.Name, productToUpdate.Description, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), productToUpdate.ImageURL).WillReturnError(errors.New("db update error"))
+			WithArgs(productID, productToUpdate.Name, sql.NullString{String: productToUpdate.Description, Valid: productToUpdate.Description != ""}, fmt.Sprintf("%.2f", productToUpdate.Price), int32(productToUpdate.Stock), sql.NullString{String: productToUpdate.ImageURL, Valid: productToUpdate.ImageURL != ""}).WillReturnError(errors.New("db error"))
 
 		err := repo.Update(productToUpdate)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "db update error")
+		assert.Contains(t, err.Error(), "db error")
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
@@ -236,7 +235,7 @@ func TestProductRepository_Delete(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	productID := uuid.New()
 
@@ -263,11 +262,11 @@ func TestProductRepository_Delete(t *testing.T) {
 			`DELETE FROM products WHERE id = $1`,
 		)).
 			WithArgs(productID).
-			WillReturnError(errors.New("db delete error"))
+			WillReturnError(errors.New("db error"))
 
 		err := repo.Delete(productID.String())
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "db delete error")
+		assert.Contains(t, err.Error(), "db error")
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
@@ -279,7 +278,7 @@ func TestProductRepository_UpdateStock(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	repo := NewProductRepository(sqlc.New(db))
+	repo := NewProductRepository(db)
 
 	productID := uuid.New()
 	quantity := 5
@@ -289,7 +288,7 @@ func TestProductRepository_UpdateStock(t *testing.T) {
 			`UPDATE products SET stock = stock + $2, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
 			WithArgs(productID, int32(quantity)).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-			AddRow(productID, "Test Product", "Desc", fmt.Sprintf("%.2f", 10.00), int32(15), "url", time.Now(), time.Now()))
+			AddRow(productID, "Test Product", sql.NullString{String: "Desc", Valid: true}, fmt.Sprintf("%.2f", 10.00), int32(15), sql.NullString{String: "url", Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}, sql.NullTime{Time: time.Now(), Valid: true}))
 
 		err := repo.UpdateStock(productID.String(), quantity)
 		require.NoError(t, err)

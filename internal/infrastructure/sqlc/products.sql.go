@@ -26,8 +26,8 @@ type CreateProductParams struct {
 	ImageUrl    sql.NullString `json:"image_url"`
 }
 
-func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
-	row := q.db.QueryRowContext(ctx, createProduct,
+func (q *Queries) CreateProduct(ctx context.Context, db DBTX, arg CreateProductParams) (Product, error) {
+	row := db.QueryRowContext(ctx, createProduct,
 		arg.Name,
 		arg.Description,
 		arg.Price,
@@ -52,8 +52,8 @@ const deleteProduct = `-- name: DeleteProduct :exec
 DELETE FROM products WHERE id = $1
 `
 
-func (q *Queries) DeleteProduct(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteProduct, id)
+func (q *Queries) DeleteProduct(ctx context.Context, db DBTX, id uuid.UUID) error {
+	_, err := db.ExecContext(ctx, deleteProduct, id)
 	return err
 }
 
@@ -61,8 +61,8 @@ const getAllProducts = `-- name: GetAllProducts :many
 SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products ORDER BY created_at DESC
 `
 
-func (q *Queries) GetAllProducts(ctx context.Context) ([]Product, error) {
-	rows, err := q.db.QueryContext(ctx, getAllProducts)
+func (q *Queries) GetAllProducts(ctx context.Context, db DBTX) ([]Product, error) {
+	rows, err := db.QueryContext(ctx, getAllProducts)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ const getProductByID = `-- name: GetProductByID :one
 SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products WHERE id = $1
 `
 
-func (q *Queries) GetProductByID(ctx context.Context, id uuid.UUID) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProductByID, id)
+func (q *Queries) GetProductByID(ctx context.Context, db DBTX, id uuid.UUID) (Product, error) {
+	row := db.QueryRowContext(ctx, getProductByID, id)
 	var i Product
 	err := row.Scan(
 		&i.ID,
@@ -129,8 +129,8 @@ type UpdateProductParams struct {
 	ImageUrl    sql.NullString `json:"image_url"`
 }
 
-func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
-	row := q.db.QueryRowContext(ctx, updateProduct,
+func (q *Queries) UpdateProduct(ctx context.Context, db DBTX, arg UpdateProductParams) (Product, error) {
+	row := db.QueryRowContext(ctx, updateProduct,
 		arg.ID,
 		arg.Name,
 		arg.Description,
@@ -164,8 +164,8 @@ type UpdateProductStockParams struct {
 	Stock int32     `json:"stock"`
 }
 
-func (q *Queries) UpdateProductStock(ctx context.Context, arg UpdateProductStockParams) (Product, error) {
-	row := q.db.QueryRowContext(ctx, updateProductStock, arg.ID, arg.Stock)
+func (q *Queries) UpdateProductStock(ctx context.Context, db DBTX, arg UpdateProductStockParams) (Product, error) {
+	row := db.QueryRowContext(ctx, updateProductStock, arg.ID, arg.Stock)
 	var i Product
 	err := row.Scan(
 		&i.ID,

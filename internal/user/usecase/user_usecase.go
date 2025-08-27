@@ -11,15 +11,20 @@ import (
 )
 
 type userUseCase struct {
-	userRepo  domain.UserRepository
-	jwtSecret string
+	userRepo   domain.UserRepository
+	jwtSecret  string
+	bcryptCost int // New field for bcrypt cost
 }
 
 // NewUserUseCase creates a new user use case
-func NewUserUseCase(userRepo domain.UserRepository, jwtSecret string) domain.UserUseCase {
+func NewUserUseCase(userRepo domain.UserRepository, jwtSecret string, bcryptCost int) domain.UserUseCase {
+	if bcryptCost == 0 { // Default to bcrypt.DefaultCost if not provided
+		bcryptCost = bcrypt.DefaultCost
+	}
 	return &userUseCase{
-		userRepo:  userRepo,
-		jwtSecret: jwtSecret,
+		userRepo:   userRepo,
+		jwtSecret:  jwtSecret,
+		bcryptCost: bcryptCost,
 	}
 }
 
@@ -36,7 +41,7 @@ func (uc *userUseCase) Register(username, password, role string) (*domain.User, 
 	}
 
 	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), uc.bcryptCost)
 	if err != nil {
 		return nil, err
 	}

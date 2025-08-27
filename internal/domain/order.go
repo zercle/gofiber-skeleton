@@ -2,8 +2,11 @@
 package domain
 
 import (
+	"context"
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // OrderStatus represents the status of an order
@@ -39,12 +42,12 @@ type OrderItem struct {
 
 // OrderRepository defines the interface for order data operations
 type OrderRepository interface {
-	Create(order *Order) error
-	GetByID(id string) (*Order, error)
-	GetByUserID(userID string) ([]*Order, error)
-	GetAll() ([]*Order, error)
-	UpdateStatus(id string, status OrderStatus) error
-	Update(order *Order) error
+	CreateOrder(ctx context.Context, order Order, orderItems []OrderItem) (Order, error)
+	GetOrderByID(ctx context.Context, id uuid.UUID) (Order, error)
+	GetOrdersByUserID(ctx context.Context, userID uuid.UUID) ([]Order, error)
+	GetAllOrders(ctx context.Context) ([]Order, error)
+	UpdateOrder(ctx context.Context, order Order) (Order, error)
+	UpdateOrderStatus(ctx context.Context, id uuid.UUID, status string) (Order, error)
 }
 
 // OrderUseCase defines the interface for order business logic
@@ -55,7 +58,6 @@ type OrderUseCase interface {
 	GetAllOrders() ([]*Order, error)
 	UpdateOrderStatus(id string, status OrderStatus) error
 }
-
 
 var (
 	ErrOrderNotFound = errors.New("order not found")
