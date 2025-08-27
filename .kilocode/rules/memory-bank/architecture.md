@@ -79,22 +79,22 @@ graph TD
 ```
 
 ## Data Flow
-1.  Client issues HTTP request to Fiber server.
-2.  Fiber router dispatches to the appropriate domain's router (`router.go`).
-3.  The domain handler validates input and converts it to a domain model.
-4.  Handler invokes a use case service method.
-5.  Use case orchestrates domain logic and calls the repository interface.
-6.  Repository implementation executes SQLC-generated queries against Postgres, managing transactions internally.
-7.  Results propagate back through the use case and handler to the HTTP response.
+1. Client issues HTTP request to Fiber server.
+2. Fiber router dispatches to the appropriate domain's router (`router.go`).
+3. The domain handler validates input and converts it to a domain model.
+4. Handler invokes a use case service method.
+5. Use case orchestrates domain logic and calls the repository interface.
+6. Repository implementation executes SQLC-generated queries against Postgres, managing transactions internally.
+7. Results propagate back through the use case and handler to the HTTP response.
 
 ## Design Patterns & Key Decisions
 - **Domain-Driven Clean Architecture**: For testable, modular, and scalable boundaries.
 - **Dependency Inversion**: Handlers and use cases depend on interfaces, not concrete implementations.
 - **SQLC for Type-Safe Queries**: SQLC generates Go code from SQL queries located in the `queries` directory at the project root. The generated code is centralized in `internal/infrastructure/sqlc` to provide a single data access layer.
 - **Repository-Managed Transactions**: Repositories are responsible for handling database transactions to support atomic operations and query aggregation.
-- **SQLC emit_methods_with_db_argument**: Set to true to pass the `*sql.DB` or `*sql.Tx` argument for repository-level transaction control.
+- **Enable SQLC emit_methods_with_db_argument**: Configure SQLC to pass the `*sql.DB` or `*sql.Tx` argument for multi-stage query support and transaction control within repositories.
+- **Provide guidance on multi-stage queries**: Demonstrate structuring complex joins and transactions in domain repositories for efficient, maintainable data retrieval.
 - **Guregu null types**: Use `github.com/guregu/null/v6` instead of generated `null` types for robust handling of nullable columns.
-- **Advanced Query Demonstration**: Showcase complex SQL joins (orders, order_items, products) via SQLC-generated methods for advanced data retrieval.
 - **Domain-Specific Routing**: Each domain manages its own routes in a dedicated `router.go` file, includes swagger annotations for API documentation, and is registered in `cmd/server/main.go`.
 - **Viper for Configuration**: Application configuration is loaded from YAML files (`configs/`), `.env` files, and environment variables.
 - **Graceful Shutdown**: The application supports graceful shutdown to ensure all pending requests are handled before closing.

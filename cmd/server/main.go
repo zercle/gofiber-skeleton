@@ -12,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	demohandler "github.com/zercle/gofiber-skeleton/internal/demo/handler"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/app"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config" // Import config package
@@ -21,7 +20,7 @@ import (
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
 
 	swagger "github.com/arsmn/fiber-swagger/v2"
-	"github.com/samber/do/v2"
+	do_v2 "github.com/samber/do/v2"
 	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
@@ -58,7 +57,7 @@ func main() {
 
 	// Create a new Injector
 	injector := app.NewInjector(db, &cfg) // Pass pointer to cfg
-	defer func(i *do.RootScope) {
+	defer func(i *do_v2.RootScope) {
 		if i != nil {
 			if errMap := i.Shutdown().Errors; len(errMap) != 0 {
 				log.Printf("injector shutdown error: %v", err)
@@ -104,16 +103,14 @@ func main() {
 
 	// Register domain-specific routes
 	// Resolve ProductHandler and initialize routes
-	productHandler := do.MustInvoke[*producthandler.ProductHandler](injector)
+	productHandler := do_v2.MustInvoke[*producthandler.ProductHandler](injector)
 
 	// Resolve OrderHandler and initialize routes
-	orderHandler := do.MustInvoke[*orderhandler.OrderHandler](injector)
+	orderHandler := do_v2.MustInvoke[*orderhandler.OrderHandler](injector)
 
 	// Resolve UserHandler and initialize routes
-	userHandler := do.MustInvoke[*userhandler.UserHandler](injector)
+	userHandler := do_v2.MustInvoke[*userhandler.UserHandler](injector)
 
-	// Resolve DemoHandler and initialize routes
-	demoHandler := do.MustInvoke[*demohandler.DemoHandler](injector)
 
 	// Protected routes group
 	jwtHandler := infrastructure.JWTMiddleware(cfg.JWT.Secret)
@@ -121,7 +118,6 @@ func main() {
 	userhandler.SetupRoutes(apiV1Group, jwtHandler, userHandler)
 	producthandler.SetupRoutes(apiV1Group, jwtHandler, productHandler)
 	orderhandler.SetupRoutes(apiV1Group, jwtHandler, orderHandler)
-	demohandler.SetupRoutes(app, &cfg, demoHandler)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {

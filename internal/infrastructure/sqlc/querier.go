@@ -23,7 +23,6 @@ type Querier interface {
 	GetOrderByID(ctx context.Context, db DBTX, id uuid.UUID) (Order, error)
 	GetOrderItemsByOrderID(ctx context.Context, db DBTX, orderID uuid.UUID) ([]OrderItem, error)
 	GetOrdersByUserID(ctx context.Context, db DBTX, userID uuid.UUID) ([]Order, error)
-	GetOrdersWithItemsAndProducts(ctx context.Context, db DBTX) ([]GetOrdersWithItemsAndProductsRow, error)
 	GetProductByID(ctx context.Context, db DBTX, id uuid.UUID) (Product, error)
 	GetUserByID(ctx context.Context, db DBTX, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, db DBTX, username string) (User, error)

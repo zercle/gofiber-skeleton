@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"log"
+
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
@@ -43,7 +45,9 @@ func (r *orderRepository) CreateOrder(ctx context.Context, order domain.Order, o
 	}
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				log.Printf("rollback failed: %v", err)
+			}
 			panic(p) // Re-throw panic after Rollback
 		} else if err != nil {
 			if rbErr := tx.Rollback(); rbErr != nil { // err is not nil, so Rollback
