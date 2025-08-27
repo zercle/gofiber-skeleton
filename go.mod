@@ -1,12 +1,13 @@
 module github.com/zercle/gofiber-skeleton
 
-go 1.24.6
+go 1.25
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/fiber/v2 v2.52.0
+	github.com/gofiber/jwt/v3 v3.3.10
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
@@ -33,6 +34,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -65,5 +67,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/golang/mock => go.uber.org/mock v1.12.0

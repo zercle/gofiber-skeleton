@@ -26,6 +26,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	demohandler "github.com/zercle/gofiber-skeleton/internal/demo/handler"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/app"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config" // Import config package
@@ -108,12 +109,16 @@ func main() {
 	// Resolve UserHandler and initialize routes
 	userHandler := do.MustInvoke[*userhandler.UserHandler](injector)
 
+	// Resolve DemoHandler and initialize routes
+	demoHandler := do.MustInvoke[*demohandler.DemoHandler](injector)
+
 	// Protected routes group
 	jwtHandler := infrastructure.JWTMiddleware(cfg.JWT.Secret)
 
 	userhandler.SetupRoutes(apiV1Group, jwtHandler, userHandler)
 	producthandler.SetupRoutes(apiV1Group, jwtHandler, productHandler)
 	orderhandler.SetupRoutes(apiV1Group, jwtHandler, orderHandler)
+	demohandler.SetupRoutes(app, &cfg, demoHandler)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {

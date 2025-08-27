@@ -91,6 +91,38 @@ We will start by building the essential features required for the first version 
 
 ---
 
+### Story 5: Transaction Control Demonstration
+
+---
+
+#### Backend (Go)
+
+1.  **Configure SQLC**:
+    * Enable `emit_methods_with_db_argument: true` to pass the DB argument for transaction control.
+2.  **Improve Model Types**:
+    * Replace generated `null` types with `github.com/guregu/null/v6` for robust null handling.
+3.  **Create API Endpoint**:
+    * **`POST /api/v1/demo/transaction`**: Demonstrate full transaction flow (begin, operations, commit/rollback).
+4.  **Write Tests**:
+    * Unit tests for repository transaction methods and endpoint using mocks.
+
+### Story 6: Complex Query Demonstration
+
+---
+
+#### Backend (Go)
+
+1.  **Write Advanced SQL**:
+    * Add a join query in `queries/demo_join.sql` combining orders, order_items, and products.
+2.  **Generate SQLC Code**:
+    * Run `sqlc generate` and use generated methods in `internal/infrastructure/sqlc`.
+3.  **Create API Endpoint**:
+    * **`GET /api/v1/demo/joined`**: Return joined data via SQLC-generated query.
+4.  **Write Tests**:
+    * Integration tests validating complex join results.
+
+---
+
 ## 🛠️ Tools & Technologies
 
 * **Go Fiber**: A high-performance web framework.

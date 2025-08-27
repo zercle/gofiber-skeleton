@@ -18,7 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
-	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
 	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
 	orderrepository "github.com/zercle/gofiber-skeleton/internal/order/repository"
 	orderusecase "github.com/zercle/gofiber-skeleton/internal/order/usecase"
@@ -29,9 +28,8 @@ func setupOrderIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 
-	sqlcQueries := sqlc.New(db)
-	orderRepo := orderrepository.NewOrderRepository(sqlcQueries)
-	productRepo := productrepository.NewProductRepository(sqlcQueries)
+	orderRepo := orderrepository.NewOrderRepository(db)
+	productRepo := productrepository.NewProductRepository(db)
 	orderUseCase := orderusecase.NewOrderUseCase(orderRepo, productRepo)
 	orderHandler := orderhandler.NewOrderHandler(orderUseCase)
 
@@ -245,7 +243,7 @@ func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "order not found", responseBody["message"]) // Error message from repository
+		assert.Equal(t, "failed to update order status", responseBody["message"]) // Error message from repository
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
@@ -298,33 +296,38 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 			`SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products WHERE id = $1`,
 		)).
 			WithArgs(productID).
-			WillReturnRows(productRows)
+			WillReturnRows(productRows).
+			RowsWillBeClosed()
 
-		// Mock UpdateStock for product
-		mock.ExpectQuery(regexp.QuoteMeta( // Changed from ExpectExec
-			`UPDATE products SET stock = stock + $2, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`, // Added RETURNING
+		// Mock UpdateStock for product (happens before transaction in usecase)
+		mock.ExpectQuery(regexp.QuoteMeta(
+			`UPDATE products SET stock = stock + $2, updated_at = NOW() WHERE id = $1 RETURNING id, name, description, price, stock, image_url, created_at, updated_at`,
 		)).
 			WithArgs(productID, -int32(createOrderInput.Items[0].Quantity)).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description", "price", "stock", "image_url", "created_at", "updated_at"}).
-				AddRow(productID, "Test Product", "Desc", "50.00", 8, "url", mockTime, mockTime)) // Return a product row with updated stock
+				AddRow(productID, "Test Product", "Desc", "50.00", 8, "url", mockTime, mockTime))
 
-		// Mock Create order
+		mock.ExpectBegin() // Expect a transaction to begin
+
+		// Mock Create order (happens within transaction)
 		orderRows := sqlmock.NewRows([]string{"id", "user_id", "status", "total", "created_at", "updated_at"}).
 			AddRow(uuid.New(), uuid.MustParse(userID), domain.OrderStatusPending, "100.00", mockTime, mockTime)
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`INSERT INTO orders (user_id, status, total) VALUES ($1, $2, $3) RETURNING id, user_id, status, total, created_at, updated_at`,
 		)).
-			WithArgs(uuid.MustParse(userID), domain.OrderStatusPending, "100.00"). // Total is string in sqlc.CreateOrderParams
+			WithArgs(uuid.MustParse(userID), domain.OrderStatusPending, "100.00").
 			WillReturnRows(orderRows)
 
-		// Mock Create order items
+		// Mock Create order items (happens within transaction)
 		orderItemRows := sqlmock.NewRows([]string{"id", "order_id", "product_id", "quantity", "price"}).
-			AddRow(uuid.New(), uuid.New(), productID, int32(2), "50.00") // Changed sqlmock.AnyArg() to uuid.New()
+			AddRow(uuid.New(), uuid.New(), productID, int32(2), "50.00")
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`INSERT INTO order_items (order_id, product_id, quantity, price) VALUES ($1, $2, $3, $4) RETURNING id, order_id, product_id, quantity, price`,
 		)).
 			WithArgs(sqlmock.AnyArg(), productID, int32(2), "50.00").
 			WillReturnRows(orderItemRows)
+
+		mock.ExpectCommit() // Expect the transaction to commit
 
 		body, _ := json.Marshal(createOrderInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(body))
@@ -353,6 +356,8 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 		)).
 			WithArgs(productID).
 			WillReturnRows(productRows)
+
+
 		body, _ := json.Marshal(createOrderInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")

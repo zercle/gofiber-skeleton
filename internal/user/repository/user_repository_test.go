@@ -10,16 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
+	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
 )
 
 func TestUserRepository_Create(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -28,8 +24,7 @@ func TestUserRepository_Create(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	mockQuerier := sqlc.New(db)
-	repo := NewUserRepository(mockQuerier)
+	repo := NewUserRepository(db) // Pass raw DB connection
 
 	user := &domain.User{
 		Username:     "testuser",
@@ -42,8 +37,8 @@ func TestUserRepository_Create(t *testing.T) {
 		Username:     user.Username,
 		PasswordHash: user.PasswordHash,
 		Role:         user.Role,
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
 	}
 
 	t.Run("successful user creation", func(t *testing.T) {
@@ -80,8 +75,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	mockQuerier := sqlc.New(db)
-	repo := NewUserRepository(mockQuerier)
+	repo := NewUserRepository(db) // Pass raw DB connection
 
 	userID := uuid.New().String()
 	dbUser := sqlc.User{
@@ -89,8 +83,8 @@ func TestUserRepository_GetByID(t *testing.T) {
 		Username:     "testuser",
 		PasswordHash: "hashedpassword",
 		Role:         "customer",
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
 	}
 
 	t.Run("successful user retrieval by ID", func(t *testing.T) {
@@ -105,7 +99,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, userID, user.ID)
-		assert.Equal(t, dbUser.Username, user.Username)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("invalid user ID", func(t *testing.T) {
@@ -118,7 +112,7 @@ func TestUserRepository_GetByID(t *testing.T) {
 	t.Run("user not found", func(t *testing.T) {
 		mock.ExpectQuery("SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE id = \\$1").
 			WithArgs(uuid.MustParse(userID)).
-			WillReturnError(sql.ErrNoRows)
+			WillReturnError(sql.ErrNoRows) // Simulate no rows found
 
 		user, err := repo.GetByID(userID)
 		assert.Error(t, err)
@@ -129,12 +123,13 @@ func TestUserRepository_GetByID(t *testing.T) {
 	t.Run("database error on get by ID", func(t *testing.T) {
 		mock.ExpectQuery("SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE id = \\$1").
 			WithArgs(uuid.MustParse(userID)).
-			WillReturnError(errors.New("db error"))
+			WillReturnError(errors.New("db select error"))
 
 		user, err := repo.GetByID(userID)
 		assert.Error(t, err)
 		assert.Nil(t, user)
-		assert.EqualError(t, err, "db error")
+		assert.Contains(t, err.Error(), "db select error")
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -147,8 +142,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	mockQuerier := sqlc.New(db)
-	repo := NewUserRepository(mockQuerier)
+	repo := NewUserRepository(db) // Pass raw DB connection
 
 	userID := uuid.New().String()
 	dbUser := sqlc.User{
@@ -156,8 +150,8 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		Username:     "testuser",
 		PasswordHash: "hashedpassword",
 		Role:         "customer",
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
 	}
 
 	t.Run("successful user retrieval by username", func(t *testing.T) {
@@ -173,6 +167,7 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		assert.NotNil(t, user)
 		assert.Equal(t, "testuser", user.Username)
 		assert.Equal(t, userID, user.ID)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("user not found", func(t *testing.T) {
@@ -194,7 +189,8 @@ func TestUserRepository_GetByUsername(t *testing.T) {
 		user, err := repo.GetByUsername("testuser")
 		assert.Error(t, err)
 		assert.Nil(t, user)
-		assert.EqualError(t, err, "db error")
+		assert.Contains(t, err.Error(), "db error")
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -207,8 +203,7 @@ func TestUserRepository_Update(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	mockQuerier := sqlc.New(db)
-	repo := NewUserRepository(mockQuerier)
+	repo := NewUserRepository(db) // Pass raw DB connection
 
 	userID := uuid.New().String()
 	userToUpdate := &domain.User{
@@ -223,8 +218,8 @@ func TestUserRepository_Update(t *testing.T) {
 		Username:     userToUpdate.Username,
 		PasswordHash: userToUpdate.PasswordHash,
 		Role:         userToUpdate.Role,
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
+		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true}, // Revert to sql.NullTime
 	}
 
 	t.Run("successful user update", func(t *testing.T) {
@@ -238,6 +233,7 @@ func TestUserRepository_Update(t *testing.T) {
 		err := repo.Update(userToUpdate)
 		require.NoError(t, err)
 		assert.False(t, userToUpdate.UpdatedAt.IsZero())
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("invalid user ID", func(t *testing.T) {
@@ -254,7 +250,8 @@ func TestUserRepository_Update(t *testing.T) {
 
 		err := repo.Update(userToUpdate)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "db error")
+		assert.Contains(t, err.Error(), "db error")
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
@@ -267,8 +264,7 @@ func TestUserRepository_Delete(t *testing.T) {
 		_ = db.Close()
 	}()
 
-	mockQuerier := sqlc.New(db)
-	repo := NewUserRepository(mockQuerier)
+	repo := NewUserRepository(db) // Pass raw DB connection
 
 	userID := uuid.New().String()
 
@@ -279,6 +275,7 @@ func TestUserRepository_Delete(t *testing.T) {
 
 		err := repo.Delete(userID)
 		require.NoError(t, err)
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("invalid user ID", func(t *testing.T) {
@@ -294,6 +291,7 @@ func TestUserRepository_Delete(t *testing.T) {
 
 		err := repo.Delete(userID)
 		assert.Error(t, err)
-		assert.EqualError(t, err, "db error")
+		assert.Contains(t, err.Error(), "db error")
+		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }

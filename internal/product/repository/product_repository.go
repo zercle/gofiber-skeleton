@@ -14,19 +14,23 @@ import (
 
 // productRepository implements the domain.ProductRepository interface.
 type productRepository struct {
-	db sqlc.Querier
+	q     *sqlc.Queries // The generated Queries struct (holds methods)
+	rawDB *sql.DB       // The underlying DB connection (passed as DBTX)
 }
 
 // NewProductRepository creates a new ProductRepository instance.
-func NewProductRepository(db sqlc.Querier) domain.ProductRepository {
-	return &productRepository{db: db}
+func NewProductRepository(db *sql.DB) domain.ProductRepository {
+	return &productRepository{
+		q:     sqlc.New(), // Call the parameterless New()
+		rawDB: db,         // Store the actual DB connection
+	}
 }
 
 // Create adds a new product to the database.
 func (r *productRepository) Create(product *domain.Product) error {
 	ctx := context.Background()
 
-	dbProduct, err := r.db.CreateProduct(ctx, sqlc.CreateProductParams{
+	dbProduct, err := r.q.CreateProduct(ctx, r.rawDB, sqlc.CreateProductParams{
 		Name:        product.Name,
 		Description: sql.NullString{String: product.Description, Valid: product.Description != ""},
 		Price:       fmt.Sprintf("%.2f", product.Price),
@@ -52,7 +56,7 @@ func (r *productRepository) GetByID(id string) (*domain.Product, error) {
 		return nil, err
 	}
 
-	dbProduct, err := r.db.GetProductByID(ctx, parsedUUID)
+	dbProduct, err := r.q.GetProductByID(ctx, r.rawDB, parsedUUID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, domain.ErrProductNotFound
@@ -81,7 +85,7 @@ func (r *productRepository) GetByID(id string) (*domain.Product, error) {
 func (r *productRepository) GetAll() ([]*domain.Product, error) {
 	ctx := context.Background()
 
-	dbProducts, err := r.db.GetAllProducts(ctx)
+	dbProducts, err := r.q.GetAllProducts(ctx, r.rawDB)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +121,7 @@ func (r *productRepository) Update(product *domain.Product) error {
 	}
 
 	priceStr := fmt.Sprintf("%.2f", product.Price) // Convert float64 to string for DB
-	dbProduct, err := r.db.UpdateProduct(ctx, sqlc.UpdateProductParams{
+	dbProduct, err := r.q.UpdateProduct(ctx, r.rawDB, sqlc.UpdateProductParams{
 		ID:          parsedUUID,
 		Name:        product.Name,
 		Description: sql.NullString{String: product.Description, Valid: product.Description != ""},
@@ -142,7 +146,7 @@ func (r *productRepository) Delete(id string) error {
 		return err
 	}
 
-	err = r.db.DeleteProduct(ctx, parsedUUID)
+	err = r.q.DeleteProduct(ctx, r.rawDB, parsedUUID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.ErrProductNotFound
@@ -161,7 +165,7 @@ func (r *productRepository) UpdateStock(id string, delta int) error {
 		return err
 	}
 
-	_, err = r.db.UpdateProductStock(ctx, sqlc.UpdateProductStockParams{
+	_, err = r.q.UpdateProductStock(ctx, r.rawDB, sqlc.UpdateProductStockParams{
 		ID:    parsedUUID,
 		Stock: int32(delta),
 	})

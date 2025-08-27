@@ -23,8 +23,8 @@ type CreateOrderParams struct {
 	Total  string    `json:"total"`
 }
 
-func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
-	row := q.db.QueryRowContext(ctx, createOrder, arg.UserID, arg.Status, arg.Total)
+func (q *Queries) CreateOrder(ctx context.Context, db DBTX, arg CreateOrderParams) (Order, error) {
+	row := db.QueryRowContext(ctx, createOrder, arg.UserID, arg.Status, arg.Total)
 	var i Order
 	err := row.Scan(
 		&i.ID,
@@ -41,8 +41,8 @@ const getAllOrders = `-- name: GetAllOrders :many
 SELECT id, user_id, status, total, created_at, updated_at FROM orders ORDER BY created_at DESC
 `
 
-func (q *Queries) GetAllOrders(ctx context.Context) ([]Order, error) {
-	rows, err := q.db.QueryContext(ctx, getAllOrders)
+func (q *Queries) GetAllOrders(ctx context.Context, db DBTX) ([]Order, error) {
+	rows, err := db.QueryContext(ctx, getAllOrders)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +75,8 @@ const getOrderByID = `-- name: GetOrderByID :one
 SELECT id, user_id, status, total, created_at, updated_at FROM orders WHERE id = $1
 `
 
-func (q *Queries) GetOrderByID(ctx context.Context, id uuid.UUID) (Order, error) {
-	row := q.db.QueryRowContext(ctx, getOrderByID, id)
+func (q *Queries) GetOrderByID(ctx context.Context, db DBTX, id uuid.UUID) (Order, error) {
+	row := db.QueryRowContext(ctx, getOrderByID, id)
 	var i Order
 	err := row.Scan(
 		&i.ID,
@@ -93,8 +93,8 @@ const getOrdersByUserID = `-- name: GetOrdersByUserID :many
 SELECT id, user_id, status, total, created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetOrdersByUserID(ctx context.Context, userID uuid.UUID) ([]Order, error) {
-	rows, err := q.db.QueryContext(ctx, getOrdersByUserID, userID)
+func (q *Queries) GetOrdersByUserID(ctx context.Context, db DBTX, userID uuid.UUID) ([]Order, error) {
+	rows, err := db.QueryContext(ctx, getOrdersByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +137,8 @@ type UpdateOrderParams struct {
 	Total  string    `json:"total"`
 }
 
-func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error) {
-	row := q.db.QueryRowContext(ctx, updateOrder,
+func (q *Queries) UpdateOrder(ctx context.Context, db DBTX, arg UpdateOrderParams) (Order, error) {
+	row := db.QueryRowContext(ctx, updateOrder,
 		arg.ID,
 		arg.UserID,
 		arg.Status,
@@ -168,8 +168,8 @@ type UpdateOrderStatusParams struct {
 	Status string    `json:"status"`
 }
 
-func (q *Queries) UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error) {
-	row := q.db.QueryRowContext(ctx, updateOrderStatus, arg.ID, arg.Status)
+func (q *Queries) UpdateOrderStatus(ctx context.Context, db DBTX, arg UpdateOrderStatusParams) (Order, error) {
+	row := db.QueryRowContext(ctx, updateOrderStatus, arg.ID, arg.Status)
 	var i Order
 	err := row.Scan(
 		&i.ID,

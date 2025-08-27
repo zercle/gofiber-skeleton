@@ -1,8 +1,11 @@
 package orderusecase
 
 import (
+	"context"
 	"errors"
+	"fmt" // Added fmt import
 
+	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/domain"
 )
 
@@ -39,8 +42,10 @@ func (uc *orderUseCase) CreateOrder(userID string, items []domain.OrderItem) (*d
 		}
 
 		// Get product to check stock and price
+		fmt.Printf("Looking up product with ID: %s\n", item.ProductID) // Debug print
 		product, err := uc.productRepo.GetByID(item.ProductID)
 		if err != nil {
+			fmt.Printf("Error looking up product %s: %v\n", item.ProductID, err) // Debug print
 			return nil, errors.New("product not found")
 		}
 
@@ -60,18 +65,19 @@ func (uc *orderUseCase) CreateOrder(userID string, items []domain.OrderItem) (*d
 	}
 
 	// Create order
-	order := &domain.Order{
-		UserID:    userID,
-		Status:    domain.OrderStatusPending,
-		Total:     total,
-		Items:     processedItems,
+	order := domain.Order{
+		UserID: userID,
+		Status: domain.OrderStatusPending,
+		Total:  total,
+		Items:  processedItems,
 	}
 
-	if err := uc.orderRepo.Create(order); err != nil {
+	createdOrder, err := uc.orderRepo.CreateOrder(context.Background(), order, processedItems)
+	if err != nil {
 		return nil, err
 	}
 
-	return order, nil
+	return &createdOrder, nil
 }
 
 func (uc *orderUseCase) GetOrder(id string) (*domain.Order, error) {
@@ -79,7 +85,20 @@ func (uc *orderUseCase) GetOrder(id string) (*domain.Order, error) {
 		return nil, errors.New("order ID is required")
 	}
 
-	return uc.orderRepo.GetByID(id)
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.New("invalid order ID format")
+	}
+
+	order, err := uc.orderRepo.GetOrderByID(context.Background(), parsedID)
+	if err != nil {
+		if errors.Is(err, domain.ErrOrderNotFound) { // Assuming domain.ErrOrderNotFound is defined
+			return nil, err
+		}
+		return nil, errors.New("failed to fetch order")
+	}
+
+	return &order, nil
 }
 
 func (uc *orderUseCase) GetUserOrders(userID string) ([]*domain.Order, error) {
@@ -87,11 +106,36 @@ func (uc *orderUseCase) GetUserOrders(userID string) ([]*domain.Order, error) {
 		return nil, errors.New("user ID is required")
 	}
 
-	return uc.orderRepo.GetByUserID(userID)
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID format")
+	}
+
+	orders, err := uc.orderRepo.GetOrdersByUserID(context.Background(), parsedUserID)
+	if err != nil {
+		return nil, errors.New("failed to fetch user orders")
+	}
+
+	// Convert []domain.Order to []*domain.Order
+	result := make([]*domain.Order, len(orders))
+	for i := range orders {
+		result[i] = &orders[i]
+	}
+	return result, nil
 }
 
 func (uc *orderUseCase) GetAllOrders() ([]*domain.Order, error) {
-	return uc.orderRepo.GetAll()
+	orders, err := uc.orderRepo.GetAllOrders(context.Background())
+	if err != nil {
+		return nil, errors.New("failed to fetch all orders")
+	}
+
+	// Convert []domain.Order to []*domain.Order
+	result := make([]*domain.Order, len(orders))
+	for i := range orders {
+		result[i] = &orders[i]
+	}
+	return result, nil
 }
 
 func (uc *orderUseCase) UpdateOrderStatus(id string, status domain.OrderStatus) error {
@@ -99,26 +143,30 @@ func (uc *orderUseCase) UpdateOrderStatus(id string, status domain.OrderStatus) 
 		return errors.New("order ID is required")
 	}
 
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return errors.New("invalid order ID format")
+	}
+
 	// Validate status
-	validStatuses := []domain.OrderStatus{
-		domain.OrderStatusPending,
-		domain.OrderStatusConfirmed,
-		domain.OrderStatusShipped,
-		domain.OrderStatusDelivered,
-		domain.OrderStatusCancelled,
+	validStatuses := map[domain.OrderStatus]struct{}{
+		domain.OrderStatusPending:   {},
+		domain.OrderStatusConfirmed: {},
+		domain.OrderStatusShipped:   {},
+		domain.OrderStatusDelivered: {},
+		domain.OrderStatusCancelled: {},
 	}
 
-	isValid := false
-	for _, validStatus := range validStatuses {
-		if status == validStatus {
-			isValid = true
-			break
-		}
-	}
-
-	if !isValid {
+	if _, isValid := validStatuses[status]; !isValid {
 		return errors.New("invalid order status")
 	}
 
-	return uc.orderRepo.UpdateStatus(id, status)
+	_, err = uc.orderRepo.UpdateOrderStatus(context.Background(), parsedID, string(status))
+	if err != nil {
+		if errors.Is(err, domain.ErrOrderNotFound) {
+			return err
+		}
+		return errors.New("failed to update order status")
+	}
+	return nil
 }

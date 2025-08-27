@@ -20,7 +20,7 @@ func TestUserUseCase_Register(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mock.NewMockUserRepository(ctrl)
-	usecase := NewUserUseCase(mockUserRepo, "test_secret")
+	usecase := NewUserUseCase(mockUserRepo, "test_secret", bcrypt.MinCost)
 
 	username := "testuser"
 	password := "password123"
@@ -96,7 +96,7 @@ func TestUserUseCase_Login(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mock.NewMockUserRepository(ctrl)
-	usecase := NewUserUseCase(mockUserRepo, "test_secret")
+	usecase := NewUserUseCase(mockUserRepo, "test_secret", bcrypt.MinCost)
 
 	username := "testuser"
 	password := "password123"
@@ -154,7 +154,7 @@ func TestUserUseCase_GetByID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mock.NewMockUserRepository(ctrl)
-	usecase := NewUserUseCase(mockUserRepo, "test_secret")
+	usecase := NewUserUseCase(mockUserRepo, "test_secret", bcrypt.MinCost)
 
 	userID := uuid.New().String()
 	expectedUser := &domain.User{ID: userID, Username: "testuser"}
@@ -183,7 +183,7 @@ func TestUserUseCase_UpdateRole(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUserRepo := mock.NewMockUserRepository(ctrl)
-	usecase := NewUserUseCase(mockUserRepo, "test_secret")
+	usecase := NewUserUseCase(mockUserRepo, "test_secret", bcrypt.MinCost)
 
 	userID := uuid.New().String()
 	originalUser := &domain.User{

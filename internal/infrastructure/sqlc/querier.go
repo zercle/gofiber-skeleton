@@ -11,27 +11,28 @@ import (
 )
 
 type Querier interface {
-	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
-	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
-	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
-	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	DeleteOrderItem(ctx context.Context, id uuid.UUID) error
-	DeleteProduct(ctx context.Context, id uuid.UUID) error
-	DeleteUser(ctx context.Context, id uuid.UUID) error
-	GetAllOrders(ctx context.Context) ([]Order, error)
-	GetAllProducts(ctx context.Context) ([]Product, error)
-	GetOrderByID(ctx context.Context, id uuid.UUID) (Order, error)
-	GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) ([]OrderItem, error)
-	GetOrdersByUserID(ctx context.Context, userID uuid.UUID) ([]Order, error)
-	GetProductByID(ctx context.Context, id uuid.UUID) (Product, error)
-	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
-	GetUserByUsername(ctx context.Context, username string) (User, error)
-	UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error)
-	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) (Order, error)
-	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
-	UpdateProductStock(ctx context.Context, arg UpdateProductStockParams) (Product, error)
-	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
-	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
+	CreateOrder(ctx context.Context, db DBTX, arg CreateOrderParams) (Order, error)
+	CreateOrderItem(ctx context.Context, db DBTX, arg CreateOrderItemParams) (OrderItem, error)
+	CreateProduct(ctx context.Context, db DBTX, arg CreateProductParams) (Product, error)
+	CreateUser(ctx context.Context, db DBTX, arg CreateUserParams) (User, error)
+	DeleteOrderItem(ctx context.Context, db DBTX, id uuid.UUID) error
+	DeleteProduct(ctx context.Context, db DBTX, id uuid.UUID) error
+	DeleteUser(ctx context.Context, db DBTX, id uuid.UUID) error
+	GetAllOrders(ctx context.Context, db DBTX) ([]Order, error)
+	GetAllProducts(ctx context.Context, db DBTX) ([]Product, error)
+	GetOrderByID(ctx context.Context, db DBTX, id uuid.UUID) (Order, error)
+	GetOrderItemsByOrderID(ctx context.Context, db DBTX, orderID uuid.UUID) ([]OrderItem, error)
+	GetOrdersByUserID(ctx context.Context, db DBTX, userID uuid.UUID) ([]Order, error)
+	GetOrdersWithItemsAndProducts(ctx context.Context, db DBTX) ([]GetOrdersWithItemsAndProductsRow, error)
+	GetProductByID(ctx context.Context, db DBTX, id uuid.UUID) (Product, error)
+	GetUserByID(ctx context.Context, db DBTX, id uuid.UUID) (User, error)
+	GetUserByUsername(ctx context.Context, db DBTX, username string) (User, error)
+	UpdateOrder(ctx context.Context, db DBTX, arg UpdateOrderParams) (Order, error)
+	UpdateOrderStatus(ctx context.Context, db DBTX, arg UpdateOrderStatusParams) (Order, error)
+	UpdateProduct(ctx context.Context, db DBTX, arg UpdateProductParams) (Product, error)
+	UpdateProductStock(ctx context.Context, db DBTX, arg UpdateProductStockParams) (Product, error)
+	UpdateUser(ctx context.Context, db DBTX, arg UpdateUserParams) (User, error)
+	UpdateUserRole(ctx context.Context, db DBTX, arg UpdateUserRoleParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

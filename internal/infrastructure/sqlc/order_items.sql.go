@@ -24,8 +24,8 @@ type CreateOrderItemParams struct {
 	Price     string    `json:"price"`
 }
 
-func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error) {
-	row := q.db.QueryRowContext(ctx, createOrderItem,
+func (q *Queries) CreateOrderItem(ctx context.Context, db DBTX, arg CreateOrderItemParams) (OrderItem, error) {
+	row := db.QueryRowContext(ctx, createOrderItem,
 		arg.OrderID,
 		arg.ProductID,
 		arg.Quantity,
@@ -46,8 +46,8 @@ const deleteOrderItem = `-- name: DeleteOrderItem :exec
 DELETE FROM order_items WHERE id = $1
 `
 
-func (q *Queries) DeleteOrderItem(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteOrderItem, id)
+func (q *Queries) DeleteOrderItem(ctx context.Context, db DBTX, id uuid.UUID) error {
+	_, err := db.ExecContext(ctx, deleteOrderItem, id)
 	return err
 }
 
@@ -55,8 +55,8 @@ const getOrderItemsByOrderID = `-- name: GetOrderItemsByOrderID :many
 SELECT id, order_id, product_id, quantity, price FROM order_items WHERE order_id = $1
 `
 
-func (q *Queries) GetOrderItemsByOrderID(ctx context.Context, orderID uuid.UUID) ([]OrderItem, error) {
-	rows, err := q.db.QueryContext(ctx, getOrderItemsByOrderID, orderID)
+func (q *Queries) GetOrderItemsByOrderID(ctx context.Context, db DBTX, orderID uuid.UUID) ([]OrderItem, error) {
+	rows, err := db.QueryContext(ctx, getOrderItemsByOrderID, orderID)
 	if err != nil {
 		return nil, err
 	}

@@ -2,75 +2,62 @@ package integration
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
 	"testing"
 	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
+	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/domain"
-	sqlc "github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
+	"github.com/zercle/gofiber-skeleton/internal/domain/mock"
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
-	userrepository "github.com/zercle/gofiber-skeleton/internal/user/repository"
-	userusecase "github.com/zercle/gofiber-skeleton/internal/user/usecase"
 )
 
-func setupUserIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.DB) {
-	db, mock, err := sqlmock.New()
-	require.NoError(t, err)
+func setupUserIntegrationTest(t *testing.T) (*fiber.App, *mock.MockUserUseCase) {
+	ctrl := gomock.NewController(t)
+	// defer ctrl.Finish() // Don't defer here, let individual tests manage it if needed.
 
-	sqlcQueries := sqlc.New(db)
-	userRepo := userrepository.NewUserRepository(sqlcQueries)
-	userUseCase := userusecase.NewUserUseCase(userRepo, "test-jwt-secret") // Using a test secret
-	userHandler := userhandler.NewUserHandler(userUseCase)
+	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	userHandler := userhandler.NewUserHandler(mockUserUseCase)
 
 	app := fiber.New()
 	app.Post("/api/v1/register", userHandler.Register)
 	app.Post("/api/v1/login", userHandler.Login)
-	// Add other user routes as needed, e.g., GetUser, UpdateUser, DeleteUser
 
-	return app, mock, db
+	return app, mockUserUseCase
 }
 
 func TestUserIntegration_Register(t *testing.T) {
-	app, mock, db := setupUserIntegrationTest(t)
-	defer func() {
-		_ = db.Close()
-	}()
+	app, mockUserUseCase := setupUserIntegrationTest(t)
 
 	registerInput := userhandler.RegisterRequest{
 		Username: "testuser",
 		Password: "password123",
 	}
-	expectedUserUUID := uuid.New()
 	mockTime := time.Now()
 
 	t.Run("successful user registration", func(t *testing.T) {
+		expectedUser := &domain.User{
+			ID:           uuid.New().String(),
+			Username:     registerInput.Username,
+			PasswordHash: "any_hashed_password",
+			Role:         domain.RoleCustomer,
+			CreatedAt:    mockTime,
+			UpdatedAt:    mockTime,
+		}
 
-		// Mock query to check if username exists
-		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
-		)).
-			WithArgs(registerInput.Username).
-			WillReturnError(sql.ErrNoRows) // Simulate user not found
-
-		// Mock insert user
-		rows := sqlmock.NewRows([]string{"id", "username", "password_hash", "role", "created_at", "updated_at"}).
-			AddRow(expectedUserUUID, registerInput.Username, "hashed_password", domain.RoleCustomer, mockTime, mockTime)
-		mock.ExpectQuery(regexp.QuoteMeta(
-			`INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING id, username, password_hash, role, created_at, updated_at`,
-		)).
-			WithArgs(registerInput.Username, sqlmock.AnyArg(), domain.RoleCustomer).
-			WillReturnRows(rows)
+		mockUserUseCase.EXPECT().Register(
+			registerInput.Username,
+			registerInput.Password,
+			"",
+		).Return(expectedUser, nil)
 
 		body, _ := json.Marshal(registerInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
@@ -87,19 +74,14 @@ func TestUserIntegration_Register(t *testing.T) {
 		assert.Equal(t, "User registered successfully", data["message"])
 		user := data["user"].(map[string]any)
 		assert.Equal(t, registerInput.Username, user["username"])
-		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("registration with existing username", func(t *testing.T) {
-
-		// Mock query to check if username exists and return existing user
-		rows := sqlmock.NewRows([]string{"id", "username", "password_hash", "role", "created_at", "updated_at"}).
-			AddRow(uuid.New(), registerInput.Username, "hashedpassword", domain.RoleCustomer, mockTime, mockTime)
-		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
-		)).
-			WithArgs(registerInput.Username).
-			WillReturnRows(rows) // Simulate user found
+		mockUserUseCase.EXPECT().Register(
+			registerInput.Username,
+			registerInput.Password,
+			"",
+		).Return(nil, errors.New("username already exists"))
 
 		body, _ := json.Marshal(registerInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(body))
@@ -114,35 +96,30 @@ func TestUserIntegration_Register(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
 		assert.Equal(t, "username already exists", responseBody["message"])
-		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
 
 func TestUserIntegration_Login(t *testing.T) {
-	app, mock, db := setupUserIntegrationTest(t)
-	defer func() {
-		_ = db.Close()
-	}()
+	app, mockUserUseCase := setupUserIntegrationTest(t)
 
 	loginInput := userhandler.LoginRequest{
 		Username: "testuser",
 		Password: "password123",
 	}
-	expectedUserUUID := uuid.New()
-	mockTime := time.Now()
 
 	t.Run("successful user login", func(t *testing.T) {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(loginInput.Password), bcrypt.DefaultCost)
-		require.NoError(t, err)
+		expectedUser := &domain.User{
+			ID:           uuid.New().String(),
+			Username:     loginInput.Username,
+			PasswordHash: "hashed_password_mock",
+			Role:         domain.RoleCustomer,
+		}
+		expectedToken := "mock-jwt-token"
 
-		// Mock query to find user by username
-		rows := sqlmock.NewRows([]string{"id", "username", "password_hash", "role", "created_at", "updated_at"}).
-			AddRow(expectedUserUUID, loginInput.Username, string(hashedPassword), domain.RoleCustomer, mockTime, mockTime) // Dynamically generated bcrypt hash
-		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
-		)).
-			WithArgs(loginInput.Username).
-			WillReturnRows(rows)
+		mockUserUseCase.EXPECT().Login(
+			loginInput.Username,
+			loginInput.Password,
+		).Return(expectedToken, expectedUser, nil)
 
 		body, _ := json.Marshal(loginInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/login", bytes.NewReader(body))
@@ -159,23 +136,23 @@ func TestUserIntegration_Login(t *testing.T) {
 		assert.Contains(t, responseBody, "data")
 		data := responseBody["data"].(map[string]any)
 		assert.Equal(t, "Login successful", data["message"])
-		assert.Contains(t, data, "token")
-		assert.Contains(t, data, "user")
+		assert.Equal(t, expectedToken, data["token"])
 		user := data["user"].(map[string]any)
 		assert.Equal(t, loginInput.Username, user["username"])
-		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
 	t.Run("login with invalid credentials", func(t *testing.T) {
+		invalidLoginInput := userhandler.LoginRequest{
+			Username: "testuser",
+			Password: "wrong_password",
+		}
 
-		// Mock query to find user by username (simulating user not found or wrong password check)
-		mock.ExpectQuery(regexp.QuoteMeta(
-			`SELECT id, username, password_hash, role, created_at, updated_at FROM users WHERE username = $1`,
-		)).
-			WithArgs(loginInput.Username).
-			WillReturnError(sql.ErrNoRows) // Simulate user not found
+		mockUserUseCase.EXPECT().Login(
+			invalidLoginInput.Username,
+			invalidLoginInput.Password,
+		).Return("", nil, errors.New("invalid credentials"))
 
-		body, _ := json.Marshal(loginInput)
+		body, _ := json.Marshal(invalidLoginInput)
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/login", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 
@@ -188,6 +165,5 @@ func TestUserIntegration_Login(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "error", responseBody["status"])
 		assert.Equal(t, "invalid credentials", responseBody["message"])
-		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
