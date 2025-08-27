@@ -20,7 +20,7 @@ import (
 	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
 
 	swagger "github.com/arsmn/fiber-swagger/v2"
-	do_v2 "github.com/samber/do/v2"
+	"github.com/samber/do/v2"
 	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
@@ -57,7 +57,7 @@ func main() {
 
 	// Create a new Injector
 	injector := app.NewInjector(db, &cfg) // Pass pointer to cfg
-	defer func(i *do_v2.RootScope) {
+	defer func(i *do.RootScope) {
 		if i != nil {
 			if errMap := i.Shutdown().Errors; len(errMap) != 0 {
 				log.Printf("injector shutdown error: %v", err)
@@ -103,13 +103,13 @@ func main() {
 
 	// Register domain-specific routes
 	// Resolve ProductHandler and initialize routes
-	productHandler := do_v2.MustInvoke[*producthandler.ProductHandler](injector)
+	productHandler := do.MustInvoke[*producthandler.ProductHandler](injector)
 
 	// Resolve OrderHandler and initialize routes
-	orderHandler := do_v2.MustInvoke[*orderhandler.OrderHandler](injector)
+	orderHandler := do.MustInvoke[*orderhandler.OrderHandler](injector)
 
 	// Resolve UserHandler and initialize routes
-	userHandler := do_v2.MustInvoke[*userhandler.UserHandler](injector)
+	userHandler := do.MustInvoke[*userhandler.UserHandler](injector)
 
 
 	// Protected routes group
