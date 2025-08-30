@@ -51,7 +51,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 4.  **Run database migrations:**
     ```bash
-    migrate -path migrations -database "postgres://user:password@localhost:5432/ecommerce?sslmode=disable" up
+    migrate -path db/migrations -database "postgres://user:password@localhost:5432/ecommerce?sslmode=disable" up
     ```
     **Note**: Replace `user`, `password`, and `ecommerce` with your actual database credentials from `.env`.
 
@@ -133,8 +133,8 @@ docker run -p 8080:8080 -d gofiber-ecommerce-backend
 │   │   ├── handler/    # HTTP handlers and routers
 │   │   ├── repository/ # Database interaction implementations
 │   │   └── usecase/    # Business logic and orchestration
-├── migrations/         # Database migration files
-├── queries/            # SQL query files for SQLC
+├── db/migrations/         # Database migration files
+├── db/queries/            # SQL query files for SQLC
 ├── tests/              # Integration tests
 ├── .env.example        # Example environment variables
 ├── compose.yml         # Docker Compose configuration

@@ -50,11 +50,11 @@ docker-run:
 
 # Run database migrations
 migrate-up:
-	migrate -path migrations -database "postgres://postgres:password@localhost:5432/ecommerce?sslmode=disable" up
+	migrate -path db/migrations -database "postgres://postgres:password@localhost:5432/ecommerce?sslmode=disable" up
 
 # Rollback database migrations
 migrate-down:
-	migrate -path migrations -database "postgres://postgres:password@localhost:5432/ecommerce?sslmode=disable" down
+	migrate -path db/migrations -database "postgres://postgres:password@localhost:5432/ecommerce?sslmode=disable" down
 
 # Install dependencies
 deps:

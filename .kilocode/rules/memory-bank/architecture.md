@@ -5,10 +5,10 @@ The E-commerce Backend Boilerplate follows a domain-driven Clean Architecture ap
 - REST API entrypoint (Fiber)
 - Domain-specific HTTP handlers and routers (e.g., `internal/product/handler`)
 - Domain-specific use case services encapsulating business logic (e.g., `internal/product/usecase`)
-- Domain entities and interfaces defining business contracts (`internal/domain`)
+- Domain entities and interfaces defining business contracts (`internal/<domain>` packages)
 - Domain-specific repository implementations managing data persistence (e.g., `internal/product/repository/db`)
 - Shared infrastructure components (`internal/infrastructure`)
-- Database migrations (`migrations`) and SQL query generation (SQLC)
+- Database migrations (`db/migrations`) and SQL queries for code generation (`db/queries`)
 
 ## Layered Architecture
 - **Presentation / API Layer**
@@ -21,8 +21,8 @@ The E-commerce Backend Boilerplate follows a domain-driven Clean Architecture ap
   - **Location**: `internal/<domain>/usecase`
   - **Responsibilities**: Encapsulate business rules and orchestrate repository calls.
 - **Domain Layer**
-  - **Location**: `internal/domain`
-  - **Responsibilities**: Contain domain models (entities) and interfaces for repository and usecase boundaries.
+  - **Location**: `internal/<domain>` packages (e.g., `internal/product`, `internal/order`, `internal/user`)
+  - **Responsibilities**: Contain domain models and interfaces for repository and use case boundaries within each domain package.
 - **Repository / Infrastructure Layer**
   - **Location**: `internal/<domain>/repository/db`, `internal/infrastructure/sqlc`
   - **Responsibilities**: Implement domain repository interfaces using SQLC-generated queries. **Handles all database transactions** to support query aggregation and ensure data consistency. Shared SQLC interfaces or entities are placed in `internal/infrastructure/sqlc`.
@@ -90,7 +90,7 @@ graph TD
 ## Design Patterns & Key Decisions
 - **Domain-Driven Clean Architecture**: For testable, modular, and scalable boundaries.
 - **Dependency Inversion**: Handlers and use cases depend on interfaces, not concrete implementations.
-- **SQLC for Type-Safe Queries**: SQLC generates Go code from SQL queries located in the `queries` directory at the project root. The generated code is centralized in `internal/infrastructure/sqlc` to provide a single data access layer.
+- **SQLC for Type-Safe Queries**: SQLC generates Go code from SQL queries located in the `db/queries` directory at the project root. The generated code is centralized in `internal/infrastructure/sqlc` to provide a single data access layer.
 - **Repository-Managed Transactions**: Repositories are responsible for handling database transactions to support atomic operations and query aggregation.
 - **Enable SQLC emit_methods_with_db_argument**: Configure SQLC to pass the `*sql.DB` or `*sql.Tx` argument for multi-stage query support and transaction control within repositories.
 - **Provide guidance on multi-stage queries**: Demonstrate structuring complex joins and transactions in domain repositories for efficient, maintainable data retrieval.
@@ -105,6 +105,6 @@ graph TD
 
 ## Critical Implementation Paths
 - **Dependency Injection**: Using samber/do container to initialize and wire up dependencies in `cmd/server/main.go`.
-- **SQLC Code Generation**: Queries in the `queries` directory generate Go types and methods into the centralized `internal/infrastructure/sqlc` directory.
+- **SQLC Code Generation**: Queries in the `db/queries` directory generate Go types and methods into the centralized `internal/infrastructure/sqlc` directory.
 - **Configuration Loading**: Viper loads configuration from multiple sources (`yaml`, `.env`, `env vars`) into a shared `config` struct.
 - **Migrations**: Ensure the database schema aligns with SQLC queries and domain models.

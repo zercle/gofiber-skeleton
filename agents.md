@@ -25,13 +25,13 @@ To offer a clean, maintainable, and scalable codebase implementing core e-commer
 - **`pkg`**: Stores shared packages (currently not explicitly used as per memory bank).
 - **`compose.yml`**: Manages Docker services.
 - **`Dockerfile`**: Builds the Docker image.
-- **`migrations`**: Manages database migrations.
-- **`queries`**: SQL query files used by SQLC.
+- **`db/migrations`**: Manages database migrations.
+- **`db/queries`**: SQL query files used by SQLC.
 
 ## 2. Build and Test Commands
 
 **Development Setup:**
-1. Install Go (>=1.24.6) and set GOPATH.
+1. Install Go (>=1.25) and set GOPATH.
 2. Install Docker and Docker Compose.
 3. Install `migrate` CLI.
 4. Install `sqlc`: `go install github.com/kyleconroy/sqlc/cmd/sqlc@latest`.
@@ -40,7 +40,7 @@ To offer a clean, maintainable, and scalable codebase implementing core e-commer
 
 **Common Commands:**
 - Generate SQLC code: `sqlc generate`
-- Run database migrations: `migrate -path migrations -database "$DATABASE_URL" up`
+- Run database migrations: `migrate -path db/migrations -database "$DATABASE_URL" up`
 - Build the server executable: `go build -o bin/server cmd/server/main.go`
 - Run services with Docker Compose: `docker compose up --build`
 - Verify works (linting, testing): `go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...`

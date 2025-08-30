@@ -2,7 +2,7 @@
 
 **Current Work Focus**
 
-Simplifying boilerplate by removing standalone demo endpoints and integrating guidance for complex multi-stage queries within domain repositories.
+Refactoring domain interfaces into each domain package, relocating database migrations and SQL query files under `db/migrations` and `db/queries`, and ensuring all database interactions are testable without a real database.
 
 **Recent Changes**
 
@@ -13,9 +13,8 @@ Simplifying boilerplate by removing standalone demo endpoints and integrating gu
 
 **Next Steps**
 
-1. Regenerate SQLC code (`sqlc generate`) after adjusting configuration.
-2. Apply database migrations (`migrate -path migrations -database "$DATABASE_URL" up`).
-3. Run linting and tests (`golangci-lint run && go test ./...`).
-4. Implement multi-stage join queries in repository implementations and add example code.
-5. Write integration tests for multi-stage query functionality.
-6. Update documentation and memory bank files to reflect changes.
+1. Regenerate SQLC code (`sqlc generate`) after updating query paths for code generation. (Completed)
+2. Relocate `migrations` and `queries` directories under `db/` and adjust any path references. (Completed)
+3. Update tests to use `go-sqlmock` for all database interactions (no real DB connections).
+4. Run linting and unit tests (`golangci-lint run && go test ./...`).
+5. Update documentation and memory bank files to reflect interface relocations and folder restructures.

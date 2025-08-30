@@ -1,7 +1,7 @@
 # Tech
 
 ## Technologies Used
-- Go (>=1.24.6)
+- Go (>=1.25)
 - Fiber v2 (github.com/gofiber/fiber/v2)
 - SQLC (github.com/kyleconroy/sqlc)
 - golang-migrate (github.com/golang-migrate/migrate)
@@ -16,13 +16,13 @@
 - go-playground/validator (github.com/go-playground/validator/v10)
 - Viper (github.com/spf13/viper)
 - jsend (github.com/omniti-labs/jsend)
-- uuidv7 (e.g., github.com/your/uuidv7-lib) for index-friendly primary keys
+- uuidv7 (e.g., github.com/google/uuid) for index-friendly primary keys
 - gofiber/swagger (github.com/gofiber/swagger): For API documentation.
 - samber/do (github.com/samber/do): For application dependency injection
 - github.com/guregu/null/v6: For improved null handling in SQLC models.
 
 ## Development Setup
-1. Install Go (>=1.24.6) and set GOPATH.
+1. Install Go (>=1.25) and set GOPATH.
 2. Install Docker and Docker Compose.
 3. Install golang-migrate CLI (`go install github.com/golang-migrate/migrate/cmd/migrate@latest`) or via your package manager.
 4. Install SQLC (`go install github.com/kyleconroy/sqlc/cmd/sqlc@latest`).
@@ -33,7 +33,7 @@
 ## Commands
 ```bash
 sqlc generate
-migrate -path migrations -database "$DATABASE_URL" up
+migrate -path db/migrations -database "$DATABASE_URL" up
 go build -o bin/server cmd/server/main.go
 docker compose up --build
 ```
@@ -52,13 +52,13 @@ docker compose up --build
 - Validate inputs using `go-playground/validator`.
 - Keep migrations aligned with SQLC queries and domain models.
 - Mocks live alongside their interfaces in a mock subpackage.
-- Treat SQLC-generated code as entity providers; repositories should orchestrate and aggregate data before returning to use cases. The generated code is centralized in `internal/infrastructure/sqlc` and queries are located in the `queries` directory at the project root.
+- Treat SQLC-generated code as entity providers; repositories should orchestrate and aggregate data before returning to use cases. The generated code is centralized in `internal/infrastructure/sqlc` and queries are located in the `db/queries` directory at the project root.
 - Use UUIDv7 instead of UUIDv4 for index-friendly primary keys.
 - Do not edit mock or generated files manually; use go generate to regenerate mocks and other generated code.
 - Enable SQLC `emit_methods_with_db_argument: true` for repository-level transaction management.
 
 ## Testing
 - **Unit Tests**: Should be located in the same package as the code they are testing, using the `_test.go` suffix.
-- **Integration Tests**: Should be located in a top-level `tests/` directory, mirroring the structure of the `internal/` directory.
-- **Mocks**: All tests must use mocks for database access and other external services. No tests should interact with a live database.
-- **Verify Works:** Linting and testing with `go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...` and fix any promlems.
+- **Integration Tests**: Should be located in a top-level `tests/` directory, mirroring the structure of the `internal/` directory. All database interactions in integration tests must use go-sqlmock; no real database connections.
+- **Mocks**: All database-related tests must use go-sqlmock for SQL interactions, and mocks for other external services. No tests should connect to a real database.
+- **Verify Works:** Linting and testing with `go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...` and fix any problems.

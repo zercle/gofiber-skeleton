@@ -9,14 +9,14 @@ This guide provides step-by-step instructions for creating a **Backend Boilerpla
 The project will be organized using a Clean Architecture approach to make the code manageable and easy to maintain.
 
 * **`cmd/server`**: Application entry point.
-* **`internal/infrastructure`**: Holds the infrastructure for projects.
-* **`internal/domain`**: Defines interfaces for communication between different layers.
-* **`internal/handler`**: Manages HTTP requests and responses.
-* **`internal/repository`**: Handles database interactions.
-* **`internal/usecase`**: Contains business logic and calls the repository.
-* **`pkg`**: Stores shared packages.
-* **`migrations`**: Manages database migrations.
-* **`queries`**: Stores SQL query files.
+* **`internal/infrastructure`**: Holds shared infrastructure components.
+* **`internal/<domain>`**: Each domain package (e.g., `internal/product`, `internal/order`, `internal/user`) contains domain models and interfaces.
+* **`internal/<domain>/handler`**: Manages HTTP requests and responses for its domain.
+* **`internal/<domain>/usecase`**: Contains business logic (use cases) for its domain.
+* **`internal/<domain>/repository`**: Handles domain-specific data persistence.
+* **`pkg`**: Stores shared utility packages.
+* **`db/migrations`**: Manages database migrations.
+* **`db/queries`**: Stores SQL query files for code generation.
 * **`docs`**: Contains API documentation and swagger definitions.
 * **`configs`**: Holds configuration files.
 * **`tests`**: Contains integration test suite.
@@ -97,7 +97,7 @@ We will start by building the essential features required for the first version 
 
 1. **Demonstrate Complex Joins**:
    * Write advanced SQL joins combining `orders`, `order_items`, and `products`.
-   * Place queries in `queries/order_product_join.sql`.
+   * Place queries in `db/queries/order_product_join.sql`.
 2. **Use SQLC for Multi-Stage Queries**:
    * Configure SQLC to generate methods for join queries.
    * Centralize generated code in `internal/infrastructure/sqlc`.
