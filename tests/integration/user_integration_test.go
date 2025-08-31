@@ -13,17 +13,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zercle/gofiber-skeleton/internal/domain"
-	"github.com/zercle/gofiber-skeleton/internal/domain/mock"
-	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
+	"github.com/zercle/gofiber-skeleton/internal/usermodule"
+	usermock "github.com/zercle/gofiber-skeleton/internal/usermodule/mock"
+	userhandler "github.com/zercle/gofiber-skeleton/internal/usermodule/handler"
 	"go.uber.org/mock/gomock"
 )
 
-func setupUserIntegrationTest(t *testing.T) (*fiber.App, *mock.MockUserUseCase) {
+func setupUserIntegrationTest(t *testing.T) (*fiber.App, *usermock.MockUserUseCase) {
 	ctrl := gomock.NewController(t)
 	// defer ctrl.Finish() // Don't defer here, let individual tests manage it if needed.
 
-	mockUserUseCase := mock.NewMockUserUseCase(ctrl)
+	mockUserUseCase := usermock.NewMockUserUseCase(ctrl)
 	userHandler := userhandler.NewUserHandler(mockUserUseCase)
 
 	app := fiber.New()
@@ -43,11 +43,11 @@ func TestUserIntegration_Register(t *testing.T) {
 	mockTime := time.Now()
 
 	t.Run("successful user registration", func(t *testing.T) {
-		expectedUser := &domain.User{
+		expectedUser := &usermodule.User{
 			ID:           uuid.New().String(),
 			Username:     registerInput.Username,
 			PasswordHash: "any_hashed_password",
-			Role:         domain.RoleCustomer,
+			Role:         usermodule.RoleCustomer,
 			CreatedAt:    mockTime,
 			UpdatedAt:    mockTime,
 		}
@@ -107,11 +107,11 @@ func TestUserIntegration_Login(t *testing.T) {
 	}
 
 	t.Run("successful user login", func(t *testing.T) {
-		expectedUser := &domain.User{
+		expectedUser := &usermodule.User{
 			ID:           uuid.New().String(),
 			Username:     loginInput.Username,
 			PasswordHash: "hashed_password_mock",
-			Role:         domain.RoleCustomer,
+			Role:         usermodule.RoleCustomer,
 		}
 		expectedToken := "mock-jwt-token"
 

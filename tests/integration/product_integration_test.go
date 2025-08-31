@@ -17,10 +17,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zercle/gofiber-skeleton/internal/domain"
-	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
-	productrepository "github.com/zercle/gofiber-skeleton/internal/product/repository"
-	productusecase "github.com/zercle/gofiber-skeleton/internal/product/usecase"
+	"github.com/zercle/gofiber-skeleton/internal/productmodule"
+	producthandler "github.com/zercle/gofiber-skeleton/internal/productmodule/handler"
+	productrepository "github.com/zercle/gofiber-skeleton/internal/productmodule/repository"
+	productusecase "github.com/zercle/gofiber-skeleton/internal/productmodule/usecase"
 )
 
 func setupProductIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.DB) {
@@ -94,7 +94,7 @@ func TestProductIntegration_GetProduct(t *testing.T) {
 	}()
 
 	productID := uuid.New()
-	expectedProduct := domain.Product{
+	expectedProduct := productmodule.Product{
 		ID:          productID.String(),
 		Name:        "Fetched Product",
 		Description: "Fetched description",

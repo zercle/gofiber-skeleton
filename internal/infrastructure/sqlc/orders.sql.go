@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/zercle/gofiber-skeleton/internal/domain"
+	"github.com/zercle/gofiber-skeleton/internal/ordermodule"
 )
 
 const createOrder = `-- name: CreateOrder :one
@@ -20,7 +20,7 @@ RETURNING id, user_id, status, total, created_at, updated_at
 
 type CreateOrderParams struct {
 	UserID uuid.UUID           `json:"user_id"`
-	Status domain.OrderStatus  `json:"status"`
+	Status ordermodule.OrderStatus  `json:"status"`
 	Total  string              `json:"total"`
 }
 
@@ -166,7 +166,7 @@ RETURNING id, user_id, status, total, created_at, updated_at
 
 type UpdateOrderStatusParams struct {
 	ID     uuid.UUID          `json:"id"`
-	Status domain.OrderStatus `json:"status"`
+	Status ordermodule.OrderStatus `json:"status"`
 }
 
 func (q *Queries) UpdateOrderStatus(ctx context.Context, db DBTX, arg UpdateOrderStatusParams) (Order, error) {

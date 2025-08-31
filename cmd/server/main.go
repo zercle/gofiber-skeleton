@@ -15,9 +15,9 @@ import (
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/app"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config" // Import config package
-	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
-	producthandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
-	userhandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
+	orderhandler "github.com/zercle/gofiber-skeleton/internal/ordermodule/handler"
+	producthandler "github.com/zercle/gofiber-skeleton/internal/productmodule/handler"
+	userhandler "github.com/zercle/gofiber-skeleton/internal/usermodule/handler"
 
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/samber/do/v2"

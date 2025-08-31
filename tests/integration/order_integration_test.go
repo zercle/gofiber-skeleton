@@ -16,11 +16,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zercle/gofiber-skeleton/internal/domain"
-	orderhandler "github.com/zercle/gofiber-skeleton/internal/order/handler"
-	orderrepository "github.com/zercle/gofiber-skeleton/internal/order/repository"
-	orderusecase "github.com/zercle/gofiber-skeleton/internal/order/usecase"
-	productrepository "github.com/zercle/gofiber-skeleton/internal/product/repository"
+	"github.com/zercle/gofiber-skeleton/internal/ordermodule"
+	orderhandler "github.com/zercle/gofiber-skeleton/internal/ordermodule/handler"
+	orderrepository "github.com/zercle/gofiber-skeleton/internal/ordermodule/repository"
+	orderusecase "github.com/zercle/gofiber-skeleton/internal/ordermodule/usecase"
+	productrepository "github.com/zercle/gofiber-skeleton/internal/productmodule/repository"
 )
 
 func setupOrderIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.DB) {
@@ -72,8 +72,8 @@ func TestOrderIntegration_GetAllOrders(t *testing.T) {
 
 	t.Run("successful end-to-end get all orders", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "user_id", "status", "total", "created_at", "updated_at"}).
-			AddRow(order1ID, uuid.New(), domain.OrderStatusPending, "100.00", mockTime, mockTime).
-			AddRow(order2ID, uuid.New(), domain.OrderStatusConfirmed, "200.00", mockTime, mockTime)
+			AddRow(order1ID, uuid.New(), ordermodule.OrderStatusPending, "100.00", mockTime, mockTime).
+			AddRow(order2ID, uuid.New(), ordermodule.OrderStatusConfirmed, "200.00", mockTime, mockTime)
 
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`SELECT id, user_id, status, total, created_at, updated_at FROM orders ORDER BY created_at DESC`,
@@ -117,10 +117,10 @@ func TestOrderIntegration_GetOrder(t *testing.T) {
 	}()
 
 	orderID := uuid.New()
-	expectedOrder := domain.Order{
+	expectedOrder := ordermodule.Order{
 		ID:        orderID.String(),
 		UserID:    uuid.New().String(),
-		Status:    domain.OrderStatusPending,
+		Status:    ordermodule.OrderStatusPending,
 		Total:     99.99,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -189,7 +189,7 @@ func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 	userID := uuid.New().String() // Add userID for authentication
 	orderID := uuid.New()
 	updateStatusInput := orderhandler.UpdateOrderStatusRequest{
-		Status: string(domain.OrderStatusShipped),
+		Status: string(ordermodule.OrderStatusShipped),
 	}
 	mockTime := time.Now()
 
@@ -197,12 +197,12 @@ func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 
 		// Expect UpdateStatus call
 		updatedOrderRows := sqlmock.NewRows([]string{"id", "user_id", "status", "total", "created_at", "updated_at"}).
-			AddRow(orderID, uuid.New(), domain.OrderStatusShipped, "100.00", mockTime, mockTime) // Assuming mockTime is still available
+			AddRow(orderID, uuid.New(), ordermodule.OrderStatusShipped, "100.00", mockTime, mockTime) // Assuming mockTime is still available
 
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE orders SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, status, total, created_at, updated_at`,
 		)).
-			WithArgs(orderID, domain.OrderStatusShipped).
+			WithArgs(orderID, ordermodule.OrderStatusShipped).
 			WillReturnRows(updatedOrderRows)
 
 		body, _ := json.Marshal(updateStatusInput)
@@ -226,7 +226,7 @@ func TestOrderIntegration_UpdateOrderStatus(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`UPDATE orders SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING id, user_id, status, total, created_at, updated_at`,
 		)).
-			WithArgs(orderID, domain.OrderStatusShipped).
+			WithArgs(orderID, ordermodule.OrderStatusShipped).
 			WillReturnError(sql.ErrNoRows) // Simulate order not found for update
 
 		body, _ := json.Marshal(updateStatusInput)
@@ -281,7 +281,7 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 	mockTime := time.Now()
 
 	createOrderInput := orderhandler.CreateOrderRequest{
-		Items: []domain.OrderItem{
+		Items: []ordermodule.OrderItem{
 			{ProductID: productID.String(), Quantity: 2},
 		},
 	}
@@ -310,11 +310,11 @@ func TestOrderIntegration_CreateOrder(t *testing.T) {
 
 		// Mock Create order (happens within transaction)
 		orderRows := sqlmock.NewRows([]string{"id", "user_id", "status", "total", "created_at", "updated_at"}).
-			AddRow(uuid.New(), uuid.MustParse(userID), domain.OrderStatusPending, "100.00", mockTime, mockTime)
+			AddRow(uuid.New(), uuid.MustParse(userID), ordermodule.OrderStatusPending, "100.00", mockTime, mockTime)
 		mock.ExpectQuery(regexp.QuoteMeta(
 			`INSERT INTO orders (user_id, status, total) VALUES ($1, $2, $3) RETURNING id, user_id, status, total, created_at, updated_at`,
 		)).
-			WithArgs(uuid.MustParse(userID), domain.OrderStatusPending, "100.00").
+			WithArgs(uuid.MustParse(userID), ordermodule.OrderStatusPending, "100.00").
 			WillReturnRows(orderRows)
 
 		// Mock Create order items (happens within transaction)

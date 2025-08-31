@@ -4,22 +4,22 @@ VALUES ($1, $2, $3)
 RETURNING id, user_id, status, total, created_at, updated_at
 
 -- name: GetOrderByID :one
-SELECT * FROM orders WHERE id = $1;
+SELECT id, user_id, status, total, created_at, updated_at FROM orders WHERE id = $1;
 
 -- name: GetOrdersByUserID :many
-SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC;
+SELECT id, user_id, status, total, created_at, updated_at FROM orders WHERE user_id = $1 ORDER BY created_at DESC;
 
 -- name: GetAllOrders :many
-SELECT * FROM orders ORDER BY created_at DESC;
+SELECT id, user_id, status, total, created_at, updated_at FROM orders ORDER BY created_at DESC;
 
 -- name: UpdateOrderStatus :one
 UPDATE orders 
 SET status = $2, updated_at = NOW()
 WHERE id = $1
-RETURNING *;
+RETURNING id, user_id, status, total, created_at, updated_at;
 
 -- name: UpdateOrder :one
 UPDATE orders 
 SET user_id = $2, status = $3, total = $4, updated_at = NOW()
 WHERE id = $1
-RETURNING *;
+RETURNING id, user_id, status, total, created_at, updated_at;
