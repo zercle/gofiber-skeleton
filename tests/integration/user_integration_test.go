@@ -8,14 +8,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zercle/gofiber-skeleton/internal/usermodule"
-	usermock "github.com/zercle/gofiber-skeleton/internal/usermodule/mock"
 	userhandler "github.com/zercle/gofiber-skeleton/internal/usermodule/handler"
+	usermock "github.com/zercle/gofiber-skeleton/internal/usermodule/mock"
 	"go.uber.org/mock/gomock"
 )
 
@@ -24,7 +25,7 @@ func setupUserIntegrationTest(t *testing.T) (*fiber.App, *usermock.MockUserUseCa
 	// defer ctrl.Finish() // Don't defer here, let individual tests manage it if needed.
 
 	mockUserUseCase := usermock.NewMockUserUseCase(ctrl)
-	userHandler := userhandler.NewUserHandler(mockUserUseCase)
+	userHandler := userhandler.NewUserHandler(mockUserUseCase, validator.New())
 
 	app := fiber.New()
 	app.Post("/api/v1/register", userHandler.Register)

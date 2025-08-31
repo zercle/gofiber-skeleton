@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/productmodule"
+	"github.com/zercle/gofiber-skeleton/pkg/jsend"
 )
 
 // ProductHandler handles HTTP requests related to products.
@@ -48,34 +49,22 @@ type UpdateProductRequest struct {
 func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 	var req CreateProductRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid request body"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
 	if err := h.validator.Struct(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": err.Error()},
-		})
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	product, err := h.productUseCase.CreateProduct(req.Name, req.Description, req.Price, req.Stock, req.ImageURL)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		return jsend.Error(c, err.Error(), 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"message": "Product created successfully",
-			"product": product,
-		},
-	})
+	return jsend.SuccessWithStatus(c, fiber.Map{
+		"message": "Product created successfully",
+		"product": product,
+	}, http.StatusCreated)
 }
 
 // GetProduct handles retrieving a single product by its ID via HTTP GET request.
@@ -85,38 +74,23 @@ func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) GetProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Product ID is required"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Product ID is required")
 	}
 
 	if _, err := uuid.Parse(id); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid product ID format"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid product ID format")
 	}
 
 	product, err := h.productUseCase.GetProduct(id)
 	if err != nil {
 		if errors.Is(err, productmodule.ErrProductNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "Product not found",
-			})
+			return jsend.Fail(c, jsend.Empty, "Product not found")
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		return jsend.Error(c, err.Error(), 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"product": product,
-		},
+	return jsend.Success(c, fiber.Map{
+		"product": product,
 	})
 }
 
@@ -126,17 +100,11 @@ func (h *ProductHandler) GetProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) GetAllProducts(c *fiber.Ctx) error {
 	products, err := h.productUseCase.GetAllProducts()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to fetch products",
-		})
+		return jsend.Error(c, "Failed to fetch products", 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"products": products,
-		},
+	return jsend.Success(c, fiber.Map{
+		"products": products,
 	})
 }
 
@@ -148,54 +116,33 @@ func (h *ProductHandler) GetAllProducts(c *fiber.Ctx) error {
 func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Product ID is required"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Product ID is required")
 	}
 
 	if _, err := uuid.Parse(id); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid product ID format"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid product ID format")
 	}
 
 	var req UpdateProductRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid request body"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
 	if err := h.validator.Struct(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": err.Error()},
-		})
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	product, err := h.productUseCase.UpdateProduct(id, req.Name, req.Description, req.Price, req.Stock, req.ImageURL)
 	if err != nil {
 		if errors.Is(err, productmodule.ErrProductNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "Product not found",
-			})
+			return jsend.Fail(c, jsend.Empty, "Product not found")
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		return jsend.Error(c, err.Error(), 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"message": "Product updated successfully",
-			"product": product,
-		},
+	return jsend.Success(c, fiber.Map{
+		"message": "Product updated successfully",
+		"product": product,
 	})
 }
 
@@ -206,37 +153,22 @@ func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Product ID is required"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Product ID is required")
 	}
 
 	if _, err := uuid.Parse(id); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid product ID format"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid product ID format")
 	}
 
 	if err := h.productUseCase.DeleteProduct(id); err != nil {
 		if errors.Is(err, productmodule.ErrProductNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "Product not found",
-			})
+			return jsend.Fail(c, jsend.Empty, "Product not found")
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		return jsend.Error(c, err.Error(), 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"message": "Product deleted successfully",
-		},
+	return jsend.Success(c, fiber.Map{
+		"message": "Product deleted successfully",
 	})
 }
 
@@ -248,53 +180,32 @@ func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
 func (h *ProductHandler) UpdateStock(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Product ID is required"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Product ID is required")
 	}
 
 	if _, err := uuid.Parse(id); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid product ID format"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid product ID format")
 	}
 
 	var req struct {
 		Stock int `json:"stock" validate:"min=0"`
 	}
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": "Invalid request body"},
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
 	if err := h.validator.Struct(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status": "fail",
-			"data":   fiber.Map{"message": err.Error()},
-		})
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	if err := h.productUseCase.UpdateStock(id, req.Stock); err != nil {
 		if errors.Is(err, productmodule.ErrProductNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "Product not found",
-			})
+			return jsend.Fail(c, jsend.Empty, "Product not found")
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
+		return jsend.Error(c, err.Error(), 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"message": "Product stock updated successfully",
-		},
+	return jsend.Success(c, fiber.Map{
+		"message": "Product stock updated successfully",
 	})
 }

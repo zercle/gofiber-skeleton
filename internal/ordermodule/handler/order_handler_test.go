@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -33,7 +34,7 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 
 	mockOrderUseCase := ordermock.NewMockOrderUseCase(ctrl)
 	app := fiber.New()
-	handler := NewOrderHandler(mockOrderUseCase)
+	handler := NewOrderHandler(mockOrderUseCase, validator.New())
 
 	userID := uuid.New().String()
 	orderItems := []ordermodule.OrderItem{
@@ -68,8 +69,9 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "Order created successfully", responseBody["message"])
-		assert.NotNil(t, responseBody["order"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Order created successfully", data["message"])
+		assert.NotNil(t, data["order"])
 	})
 
 	t.Run("unauthenticated user", func(t *testing.T) {
@@ -82,13 +84,13 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 
 		resp, err := unauthApp.Test(req)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "User not authenticated", responseBody["message"])
+		assert.Equal(t, "User not authenticated", responseBody["data"])
 	})
 
 	t.Run("invalid request body", func(t *testing.T) {
@@ -103,7 +105,7 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Invalid request body", responseBody["message"])
+		assert.Equal(t, "Invalid request body", responseBody["data"])
 	})
 
 	t.Run("empty items in request", func(t *testing.T) {
@@ -121,7 +123,73 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Order must contain at least one item", responseBody["message"])
+		assert.Contains(t, responseBody["data"], "Key: 'CreateOrderRequest.Items' Error:Field validation for 'Items' failed on the 'min' tag")
+	})
+
+	t.Run("invalid item product ID", func(t *testing.T) {
+		invalidItemsReq := CreateOrderRequest{
+			Items: []ordermodule.OrderItem{
+				{ProductID: "invalid-uuid", Quantity: 1, Price: 10.0},
+			},
+		}
+		invalidBodyBytes, _ := json.Marshal(invalidItemsReq)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(invalidBodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var responseBody map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&responseBody)
+		require.NoError(t, err)
+		assert.Equal(t, "fail", responseBody["status"])
+		assert.Contains(t, responseBody["data"], "Key: 'CreateOrderRequest.Items[0].ProductID' Error:Field validation for 'ProductID' failed on the 'uuid' tag")
+	})
+
+	t.Run("invalid item quantity", func(t *testing.T) {
+		invalidItemsReq := CreateOrderRequest{
+			Items: []ordermodule.OrderItem{
+				{ProductID: uuid.New().String(), Quantity: 0, Price: 10.0},
+			},
+		}
+		invalidBodyBytes, _ := json.Marshal(invalidItemsReq)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(invalidBodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var responseBody map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&responseBody)
+		require.NoError(t, err)
+		assert.Equal(t, "fail", responseBody["status"])
+		assert.Contains(t, responseBody["data"], "Key: 'CreateOrderRequest.Items[0].Quantity' Error:Field validation for 'Quantity' failed on the 'min' tag")
+	})
+
+	t.Run("invalid item price", func(t *testing.T) {
+		invalidItemsReq := CreateOrderRequest{
+			Items: []ordermodule.OrderItem{
+				{ProductID: uuid.New().String(), Quantity: 1, Price: -1.0},
+			},
+		}
+		invalidBodyBytes, _ := json.Marshal(invalidItemsReq)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create", bytes.NewReader(invalidBodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var responseBody map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&responseBody)
+		require.NoError(t, err)
+		assert.Equal(t, "fail", responseBody["status"])
+		assert.Contains(t, responseBody["data"], "Key: 'CreateOrderRequest.Items[0].Price' Error:Field validation for 'Price' failed on the 'min' tag")
 	})
 
 	t.Run("usecase returns error", func(t *testing.T) {
@@ -138,7 +206,7 @@ func TestOrderHandler_CreateOrder(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "insufficient stock", responseBody["message"])
+		assert.Equal(t, "insufficient stock", responseBody["data"])
 	})
 }
 
@@ -148,7 +216,7 @@ func TestOrderHandler_GetOrder(t *testing.T) {
 
 	mockOrderUseCase := ordermock.NewMockOrderUseCase(ctrl)
 	app := fiber.New()
-	handler := NewOrderHandler(mockOrderUseCase)
+	handler := NewOrderHandler(mockOrderUseCase, validator.New())
 	app.Get("/api/v1/orders/:id", handler.GetOrder)
 
 	orderID := uuid.New().String()
@@ -185,13 +253,13 @@ func TestOrderHandler_GetOrder(t *testing.T) {
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Order not found", responseBody["message"])
+		assert.Equal(t, "Order not found", responseBody["data"])
 	})
 }
 
@@ -201,7 +269,7 @@ func TestOrderHandler_GetUserOrders(t *testing.T) {
 
 	mockOrderUseCase := ordermock.NewMockOrderUseCase(ctrl)
 	app := fiber.New()
-	handler := NewOrderHandler(mockOrderUseCase)
+	handler := NewOrderHandler(mockOrderUseCase, validator.New())
 
 	userID := uuid.New().String()
 	expectedOrders := []*ordermodule.Order{
@@ -224,8 +292,9 @@ func TestOrderHandler_GetUserOrders(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.NotNil(t, responseBody["orders"])
-		assert.Len(t, responseBody["orders"].([]any), 2)
+		data := responseBody["data"].(map[string]any)
+		assert.NotNil(t, data["orders"])
+		assert.Len(t, data["orders"].([]any), 2)
 	})
 
 	t.Run("unauthenticated user", func(t *testing.T) {
@@ -237,13 +306,13 @@ func TestOrderHandler_GetUserOrders(t *testing.T) {
 
 		resp, err := unauthApp.Test(req)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "User not authenticated", responseBody["message"])
+		assert.Equal(t, "User not authenticated", responseBody["data"])
 	})
 
 	t.Run("usecase returns error", func(t *testing.T) {
@@ -269,7 +338,7 @@ func TestOrderHandler_GetAllOrders(t *testing.T) {
 
 	mockOrderUseCase := ordermock.NewMockOrderUseCase(ctrl)
 	app := fiber.New()
-	handler := NewOrderHandler(mockOrderUseCase)
+	handler := NewOrderHandler(mockOrderUseCase, validator.New())
 	app.Get("/api/v1/orders", handler.GetAllOrders)
 
 	expectedOrders := []*ordermodule.Order{
@@ -317,7 +386,7 @@ func TestOrderHandler_UpdateOrderStatus(t *testing.T) {
 
 	mockOrderUseCase := ordermock.NewMockOrderUseCase(ctrl)
 	app := fiber.New()
-	handler := NewOrderHandler(mockOrderUseCase)
+	handler := NewOrderHandler(mockOrderUseCase, validator.New())
 	app.Put("/api/v1/orders/:id/status", handler.UpdateOrderStatus)
 
 	orderID := uuid.New().String()
@@ -337,7 +406,8 @@ func TestOrderHandler_UpdateOrderStatus(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "Order status updated successfully", responseBody["message"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Order status updated successfully", data["message"])
 	})
 
 	t.Run("invalid request body", func(t *testing.T) {
@@ -352,7 +422,7 @@ func TestOrderHandler_UpdateOrderStatus(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Invalid request body", responseBody["message"])
+		assert.Equal(t, "Invalid request body", responseBody["data"])
 	})
 
 	t.Run("usecase returns error", func(t *testing.T) {
@@ -369,7 +439,6 @@ func TestOrderHandler_UpdateOrderStatus(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "invalid status", responseBody["message"])
+		assert.Equal(t, "invalid status", responseBody["data"])
 	})
 }

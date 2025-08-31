@@ -64,11 +64,13 @@ func NewInjector(db *sql.DB, cfg *config.Config) *do.RootScope {
 	// Provide handlers
 	do.Provide(injector, func(i do.Injector) (*userhandler.UserHandler, error) {
 		userUseCase := do.MustInvoke[usermodule.UserUseCase](i)
-		return userhandler.NewUserHandler(userUseCase), nil
+		validator := do.MustInvoke[*validator.Validate](i)
+		return userhandler.NewUserHandler(userUseCase, validator), nil
 	})
 	do.Provide(injector, func(i do.Injector) (*orderhandler.OrderHandler, error) {
 		orderUseCase := do.MustInvoke[ordermodule.OrderUseCase](i)
-		return orderhandler.NewOrderHandler(orderUseCase), nil
+		validator := do.MustInvoke[*validator.Validate](i)
+		return orderhandler.NewOrderHandler(orderUseCase, validator), nil
 	})
 	do.Provide(injector, func(i do.Injector) (*producthandler.ProductHandler, error) {
 		productUseCase := do.MustInvoke[productmodule.ProductUseCase](i)

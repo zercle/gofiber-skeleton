@@ -62,8 +62,10 @@ func TestProductHandler_CreateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		data := responseBody["data"].(map[string]any)["product"].(map[string]any)
-		assert.Equal(t, expectedProduct.Name, data["name"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Product created successfully", data["message"])
+		product := data["product"].(map[string]any)
+		assert.Equal(t, expectedProduct.Name, product["name"])
 	})
 
 	t.Run("invalid request body", func(t *testing.T) {
@@ -78,7 +80,7 @@ func TestProductHandler_CreateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Invalid request body", responseBody["data"].(map[string]any)["message"])
+		assert.Equal(t, "Invalid request body", responseBody["data"])
 	})
 
 	t.Run("validation errors", func(t *testing.T) {
@@ -98,8 +100,33 @@ func TestProductHandler_CreateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Contains(t, responseBody["data"].(map[string]any)["message"].(string), "required")
-		assert.Contains(t, responseBody["data"].(map[string]any)["message"].(string), "min")
+		assert.Contains(t, responseBody["data"], "Name: required")
+		assert.Contains(t, responseBody["data"], "Description: required")
+		assert.Contains(t, responseBody["data"], "Price: min")
+		assert.Contains(t, responseBody["data"], "Stock: required")
+	})
+
+	t.Run("invalid image URL", func(t *testing.T) {
+		invalidInput := CreateProductRequest{
+			Name:        "Valid Name",
+			Description: "Valid Description",
+			Price:       10.00,
+			Stock:       10,
+			ImageURL:    "invalid-url", // Invalid URL
+		}
+		body, _ := json.Marshal(invalidInput)
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/products", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var responseBody map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&responseBody)
+		require.NoError(t, err)
+		assert.Equal(t, "fail", responseBody["status"])
+		assert.Contains(t, responseBody["data"], "ImageURL: url")
 	})
 
 	t.Run("error from usecase", func(t *testing.T) {
@@ -155,8 +182,9 @@ func TestProductHandler_GetProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		data := responseBody["data"].(map[string]any)["product"].(map[string]any)
-		assert.Equal(t, expectedProduct.Name, data["name"])
+		data := responseBody["data"].(map[string]any)
+		product := data["product"].(map[string]any)
+		assert.Equal(t, expectedProduct.Name, product["name"])
 	})
 
 	t.Run("invalid product ID", func(t *testing.T) {
@@ -170,7 +198,7 @@ func TestProductHandler_GetProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Invalid product ID format", responseBody["data"].(map[string]any)["message"])
+		assert.Equal(t, "Invalid product ID format", responseBody["data"])
 	})
 
 	t.Run("product not found", func(t *testing.T) {
@@ -180,13 +208,13 @@ func TestProductHandler_GetProduct(t *testing.T) {
 
 		resp, err := app.Test(req)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Product not found", responseBody["message"])
+		assert.Equal(t, "Product not found", responseBody["data"])
 	})
 
 	t.Run("error from usecase", func(t *testing.T) {
@@ -233,9 +261,10 @@ func TestProductHandler_GetAllProducts(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		data := responseBody["data"].(map[string]any)["products"].([]any)
-		assert.Len(t, data, 2)
-		assert.Equal(t, expectedProducts[0].Name, data[0].(map[string]any)["name"])
+		data := responseBody["data"].(map[string]any)
+		products := data["products"].([]any)
+		assert.Len(t, products, 2)
+		assert.Equal(t, expectedProducts[0].Name, products[0].(map[string]any)["name"])
 	})
 
 	t.Run("error from usecase", func(t *testing.T) {
@@ -299,8 +328,10 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		data := responseBody["data"].(map[string]any)["product"].(map[string]any)
-		assert.Equal(t, expectedProduct.Name, data["name"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Product updated successfully", data["message"])
+		product := data["product"].(map[string]any)
+		assert.Equal(t, expectedProduct.Name, product["name"])
 	})
 
 	t.Run("invalid request body", func(t *testing.T) {
@@ -315,7 +346,7 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Invalid request body", responseBody["data"].(map[string]any)["message"])
+		assert.Equal(t, "Invalid request body", responseBody["data"])
 	})
 
 	t.Run("validation errors", func(t *testing.T) {
@@ -335,7 +366,9 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Contains(t, responseBody["data"].(map[string]any)["message"].(string), "min")
+		assert.Contains(t, responseBody["data"], "Price: min")
+		assert.Contains(t, responseBody["data"], "Stock: min")
+		assert.Contains(t, responseBody["data"], "ImageURL: url")
 	})
 
 	t.Run("product not found from usecase", func(t *testing.T) {
@@ -353,7 +386,7 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Product not found", responseBody["message"])
+		assert.Equal(t, "Product not found", responseBody["data"])
 	})
 
 	t.Run("error from usecase", func(t *testing.T) {
@@ -399,7 +432,8 @@ func TestProductHandler_DeleteProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "success", responseBody["status"])
-		assert.Equal(t, "Product deleted successfully", responseBody["data"].(map[string]any)["message"])
+		data := responseBody["data"].(map[string]any)
+		assert.Equal(t, "Product deleted successfully", data["message"])
 	})
 
 	t.Run("product not found from usecase", func(t *testing.T) {
@@ -415,7 +449,7 @@ func TestProductHandler_DeleteProduct(t *testing.T) {
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
 		assert.Equal(t, "fail", responseBody["status"])
-		assert.Equal(t, "Product not found", responseBody["message"])
+		assert.Equal(t, "Product not found", responseBody["data"])
 	})
 
 	t.Run("error from usecase", func(t *testing.T) {

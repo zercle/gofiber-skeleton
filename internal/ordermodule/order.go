@@ -35,9 +35,9 @@ type Order struct {
 type OrderItem struct {
 	ID        string  `json:"id"`
 	OrderID   string  `json:"order_id"`
-	ProductID string  `json:"product_id"`
-	Quantity  int     `json:"quantity"`
-	Price     float64 `json:"price"`
+	ProductID string  `json:"product_id" validate:"required,uuid"`
+	Quantity  int     `json:"quantity" validate:"required,min=1"`
+	Price     float64 `json:"price" validate:"required,min=0"`
 }
 
 // OrderRepository defines the interface for order data operations

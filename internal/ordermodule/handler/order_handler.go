@@ -3,29 +3,33 @@ package orderhandler
 import (
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skeleton/internal/ordermodule"
+	"github.com/zercle/gofiber-skeleton/pkg/jsend"
 )
 
 type OrderHandler struct {
 	orderUseCase ordermodule.OrderUseCase
+	validator    *validator.Validate
 }
 
 // NewOrderHandler creates a new order handler
-func NewOrderHandler(orderUseCase ordermodule.OrderUseCase) *OrderHandler {
+func NewOrderHandler(orderUseCase ordermodule.OrderUseCase, validator *validator.Validate) *OrderHandler {
 	return &OrderHandler{
 		orderUseCase: orderUseCase,
+		validator:    validator,
 	}
 }
 
 // CreateOrderRequest represents the request body for creating an order
 type CreateOrderRequest struct {
-	Items []ordermodule.OrderItem `json:"items"`
+	Items []ordermodule.OrderItem `json:"items" validate:"required,min=1,dive"`
 }
 
 // UpdateOrderStatusRequest represents the request body for updating order status
 type UpdateOrderStatusRequest struct {
-	Status string `json:"status"`
+	Status string `json:"status" validate:"required,oneof=pending confirmed shipped delivered cancelled"`
 }
 
 // CreateOrder handles order creation
@@ -36,67 +40,45 @@ func (h *OrderHandler) CreateOrder(c *fiber.Ctx) error {
 		// Fallback to header for integration tests if Locals is not set
 		userID = c.Get("user_id")
 		if userID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "User not authenticated",
-			})
+			return jsend.Fail(c, jsend.Empty, "User not authenticated")
 		}
 	}
 
 	var req CreateOrderRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Invalid request body",
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
-	// Validate items
-	if len(req.Items) == 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Order must contain at least one item",
-		})
+	if err := h.validator.Struct(&req); err != nil {
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	// Create order
 	order, err := h.orderUseCase.CreateOrder(userID, req.Items)
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": err.Error(),
-		})
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
+	return jsend.SuccessWithStatus(c, fiber.Map{
 		"message": "Order created successfully",
 		"order":   order,
-	})
+	}, http.StatusCreated)
 }
 
 // GetOrder handles getting a single order
 func (h *OrderHandler) GetOrder(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Order ID is required",
-		})
+		return jsend.Fail(c, jsend.Empty, "Order ID is required")
 	}
 
 	order, err := h.orderUseCase.GetOrder(id)
 	if err != nil {
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Order not found",
-		})
+		return jsend.Fail(c, jsend.Empty, "Order not found")
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"order": order,
-		},
+	return jsend.Success(c, fiber.Map{
+		"order": order,
 	})
 }
 
@@ -108,22 +90,16 @@ func (h *OrderHandler) GetUserOrders(c *fiber.Ctx) error {
 		// Fallback to header for integration tests if Locals is not set
 		userID = c.Get("user_id")
 		if userID == "" {
-			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
-				"status":  "fail",
-				"message": "User not authenticated",
-			})
+			return jsend.Fail(c, jsend.Empty, "User not authenticated")
 		}
 	}
 
 	orders, err := h.orderUseCase.GetUserOrders(userID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to fetch orders",
-		})
+		return jsend.Error(c, "Failed to fetch orders", 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
+	return jsend.Success(c, fiber.Map{
 		"orders": orders,
 	})
 }
@@ -132,17 +108,11 @@ func (h *OrderHandler) GetUserOrders(c *fiber.Ctx) error {
 func (h *OrderHandler) GetAllOrders(c *fiber.Ctx) error {
 	orders, err := h.orderUseCase.GetAllOrders()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to fetch orders",
-		})
+		return jsend.Error(c, "Failed to fetch orders", 0, http.StatusInternalServerError)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"orders": orders,
-		},
+	return jsend.Success(c, fiber.Map{
+		"orders": orders,
 	})
 }
 
@@ -150,30 +120,25 @@ func (h *OrderHandler) GetAllOrders(c *fiber.Ctx) error {
 func (h *OrderHandler) UpdateOrderStatus(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Order ID is required",
-		})
+		return jsend.Fail(c, jsend.Empty, "Order ID is required")
 	}
 
 	var req UpdateOrderStatusRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": "Invalid request body",
-		})
+		return jsend.Fail(c, jsend.Empty, "Invalid request body")
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	// Update order status
 	err := h.orderUseCase.UpdateOrderStatus(id, ordermodule.OrderStatus(req.Status))
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"status":  "fail",
-			"message": err.Error(),
-		})
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
+	return jsend.Success(c, fiber.Map{
 		"message": "Order status updated successfully",
 	})
 }

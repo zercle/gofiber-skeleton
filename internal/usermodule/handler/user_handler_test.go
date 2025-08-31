@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -34,7 +35,7 @@ func TestUserHandler_Register(t *testing.T) {
 
 	mockUserUseCase := usermock.NewMockUserUseCase(ctrl)
 	app := fiber.New()
-	handler := NewUserHandler(mockUserUseCase)
+	handler := NewUserHandler(mockUserUseCase, validator.New())
 	app.Post("/api/v1/register", handler.Register)
 
 	registerReq := RegisterRequest{
@@ -97,7 +98,7 @@ func TestUserHandler_Register(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "Username and password are required", responseBody["message"])
+		assert.Contains(t, responseBody["message"], "Error:Field validation for 'Password' failed on the 'required' tag")
 	})
 
 	t.Run("usecase returns error", func(t *testing.T) {
@@ -115,6 +116,23 @@ func TestUserHandler_Register(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "username already exists", responseBody["message"])
 	})
+
+	t.Run("password too short", func(t *testing.T) {
+		invalidReq := RegisterRequest{Username: "testuser", Password: "123"}
+		invalidBodyBytes, _ := json.Marshal(invalidReq)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/register", bytes.NewReader(invalidBodyBytes))
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var responseBody map[string]any
+		err = json.NewDecoder(resp.Body).Decode(&responseBody)
+		require.NoError(t, err)
+		assert.Contains(t, responseBody["message"], "Error:Field validation for 'Password' failed on the 'min' tag")
+	})
 }
 
 func TestUserHandler_Login(t *testing.T) {
@@ -123,7 +141,7 @@ func TestUserHandler_Login(t *testing.T) {
 
 	mockUserUseCase := usermock.NewMockUserUseCase(ctrl)
 	app := fiber.New()
-	handler := NewUserHandler(mockUserUseCase)
+	handler := NewUserHandler(mockUserUseCase, validator.New())
 	app.Post("/api/v1/login", handler.Login)
 
 	loginReq := LoginRequest{
@@ -189,8 +207,8 @@ func TestUserHandler_Login(t *testing.T) {
 		var responseBody map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&responseBody)
 		require.NoError(t, err)
-		assert.Equal(t, "error", responseBody["status"])
-		assert.Equal(t, "Username and password are required", responseBody["message"])
+		assert.Equal(t, "fail", responseBody["status"])
+		assert.Contains(t, responseBody["message"], "Error:Field validation for 'Password' failed on the 'required' tag")
 	})
 
 	t.Run("usecase returns error", func(t *testing.T) {

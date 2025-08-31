@@ -3,6 +3,7 @@ package userhandler
 import (
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skeleton/internal/usermodule"
 	"github.com/zercle/gofiber-skeleton/pkg/jsend"
@@ -10,26 +11,28 @@ import (
 
 type UserHandler struct {
 	userUseCase usermodule.UserUseCase
+	validator   *validator.Validate
 }
 
 // NewUserHandler creates a new user handler
-func NewUserHandler(userUseCase usermodule.UserUseCase) *UserHandler {
+func NewUserHandler(userUseCase usermodule.UserUseCase, validator *validator.Validate) *UserHandler {
 	return &UserHandler{
 		userUseCase: userUseCase,
+		validator:   validator,
 	}
 }
 
 // RegisterRequest represents the request body for user registration
 type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required,min=6"`
+	Role     string `json:"role"` // Role can be empty, not required
 }
 
 // LoginRequest represents the request body for user login
 type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 // Register handles user registration
@@ -39,9 +42,8 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
-	// Validate required fields
-	if req.Username == "" || req.Password == "" {
-		return jsend.Error(c, "Username and password are required", 0, http.StatusBadRequest)
+	if err := h.validator.Struct(&req); err != nil {
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	// Create user
@@ -66,11 +68,9 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		return jsend.Fail(c, jsend.Empty, "Invalid request body")
 	}
 
-	// Validate required fields
-	if req.Username == "" || req.Password == "" {
-		return jsend.Error(c, "Username and password are required", 0, http.StatusBadRequest)
-	}
-
+		if err := h.validator.Struct(&req); err != nil {
+			return jsend.Fail(c, jsend.Empty, err.Error())
+		}
 	// Login user
 	token, user, err := h.userUseCase.Login(req.Username, req.Password)
 	if err != nil {
@@ -112,10 +112,14 @@ func (h *UserHandler) UpdateRole(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		Role string `json:"role"`
+		Role string `json:"role" validate:"required,oneof=admin customer"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return jsend.Fail(c, jsend.Empty, "Invalid request body")
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return jsend.Fail(c, jsend.Empty, err.Error())
 	}
 
 	if err := h.userUseCase.UpdateRole(id, req.Role); err != nil {

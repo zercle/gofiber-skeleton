@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-playground/validator/v10"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -30,7 +31,7 @@ func setupOrderIntegrationTest(t *testing.T) (*fiber.App, sqlmock.Sqlmock, *sql.
 	orderRepo := orderrepository.NewOrderRepository(db)
 	productRepo := productrepository.NewProductRepository(db)
 	orderUseCase := orderusecase.NewOrderUseCase(orderRepo, productRepo)
-	orderHandler := orderhandler.NewOrderHandler(orderUseCase)
+	orderHandler := orderhandler.NewOrderHandler(orderUseCase, validator.New())
 
 	app := fiber.New()
 	// Public routes (no auth)
