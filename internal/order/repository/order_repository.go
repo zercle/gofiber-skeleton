@@ -59,13 +59,14 @@ func (r *orderRepository) CreateOrder(ctx context.Context, order domain.Order, o
 	}()
 
 	// Use r.q (the Queries struct) and pass tx as the DBTX argument
+	// Call CreateOrder with user ID, status, and total
 	createdOrder, err := r.q.CreateOrder(ctx, tx, sqlc.CreateOrderParams{
 		UserID: uuid.MustParse(order.UserID),
+		Status: order.Status,
 		Total:  fmt.Sprintf("%.2f", order.Total),
-		Status: string(order.Status),
 	})
 	if err != nil {
-		return domain.Order{}, fmt.Errorf("failed to create order: %w", err)
+		return domain.Order{}, fmt.Errorf("failed to create order: create order error")
 	}
 
 	// Create order items
@@ -81,7 +82,7 @@ func (r *orderRepository) CreateOrder(ctx context.Context, order domain.Order, o
 			Price:     fmt.Sprintf("%.2f", item.Price),
 		})
 		if err != nil {
-			return domain.Order{}, fmt.Errorf("failed to create order item: %w", err)
+			return domain.Order{}, fmt.Errorf("failed to create order item: create order item error")
 		}
 	}
 
@@ -168,7 +169,7 @@ func (r *orderRepository) UpdateOrder(ctx context.Context, order domain.Order) (
 func (r *orderRepository) UpdateOrderStatus(ctx context.Context, id uuid.UUID, status string) (domain.Order, error) {
 	updatedOrder, err := r.q.UpdateOrderStatus(ctx, r.rawDB, sqlc.UpdateOrderStatusParams{ // Pass r.rawDB as DBTX
 		ID:     id,
-		Status: status,
+		Status: domain.OrderStatus(status),
 	})
 	if err != nil {
 		return domain.Order{}, fmt.Errorf("failed to update order status: %w", err)

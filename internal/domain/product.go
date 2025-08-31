@@ -1,4 +1,4 @@
-//go:generate mockgen -source=product.go -destination=./mock/mock_product.go -package=mock
+//go:generate go run go.uber.org/mock/mockgen -source=product.go -destination=./mock/mock_product.go -package=mock
 package domain
 
 import (

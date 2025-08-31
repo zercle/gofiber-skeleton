@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/zercle/gofiber-skeleton/internal/domain"
 )
 
 const createOrder = `-- name: CreateOrder :one
@@ -18,9 +19,9 @@ RETURNING id, user_id, status, total, created_at, updated_at
 `
 
 type CreateOrderParams struct {
-	UserID uuid.UUID `json:"user_id"`
-	Status string    `json:"status"`
-	Total  string    `json:"total"`
+	UserID uuid.UUID           `json:"user_id"`
+	Status domain.OrderStatus  `json:"status"`
+	Total  string              `json:"total"`
 }
 
 func (q *Queries) CreateOrder(ctx context.Context, db DBTX, arg CreateOrderParams) (Order, error) {
@@ -164,8 +165,8 @@ RETURNING id, user_id, status, total, created_at, updated_at
 `
 
 type UpdateOrderStatusParams struct {
-	ID     uuid.UUID `json:"id"`
-	Status string    `json:"status"`
+	ID     uuid.UUID          `json:"id"`
+	Status domain.OrderStatus `json:"status"`
 }
 
 func (q *Queries) UpdateOrderStatus(ctx context.Context, db DBTX, arg UpdateOrderStatusParams) (Order, error) {

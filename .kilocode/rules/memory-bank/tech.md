@@ -58,7 +58,7 @@ docker compose up --build
 - Enable SQLC `emit_methods_with_db_argument: true` for repository-level transaction management.
 
 ## Testing
-- **Unit Tests**: Should be located in the same package as the code they are testing, using the `_test.go` suffix.
+- **Unit Tests**: Should be located in a separate package with postfix `_test` (e.g. tests for package orderusecase shall be implemented in the orderusecase_test package name), using the `_test.go` suffix.
 - **Integration Tests**: Should be located in a top-level `tests/` directory, mirroring the structure of the `internal/` directory. All database interactions in integration tests must use go-sqlmock; no real database connections.
 - **Mocks**: All database-related tests must use go-sqlmock for SQL interactions, and mocks for other external services. No tests should connect to a real database.
 - **Verify Works:** Linting and testing with `go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...` and fix any problems.

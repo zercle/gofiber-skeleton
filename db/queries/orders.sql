@@ -1,7 +1,7 @@
 -- name: CreateOrder :one
 INSERT INTO orders (user_id, status, total)
 VALUES ($1, $2, $3)
-RETURNING *;
+RETURNING id, user_id, status, total, created_at, updated_at
 
 -- name: GetOrderByID :one
 SELECT * FROM orders WHERE id = $1;
