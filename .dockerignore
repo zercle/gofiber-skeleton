@@ -1,0 +1,57 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+docs
+
+# Tests
+**/*_test.go
+tests
+coverage.out
+coverage.html
+
+# Build artifacts
+bin/
+tmp/
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (should be set via environment variables in containers)
+.env
+.env.local
+.env.*.local
+
+# Air for live reloading (not needed in container)
+.air.toml
+
+# Linting config (not needed at runtime)
+.golangci.yml
+
+# Docker files (not needed inside container)
+Dockerfile
+docker-compose.yml
+compose.yml
+
+# Memory bank (development only)
+.kilocode
+.claude
+
+# Node modules if any
+node_modules/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp

@@ -136,7 +136,7 @@ This is a step-by-step guide to extending the boilerplate with a new feature.
     -   Register the new router with the Fiber app.
 
 6.  **Write Tests**:
-    -   Generate mocks for your new interfaces: `go generate ./...`
+    -   Generate mocks with `uber-go/mock` for your new interfaces: `go generate ./...`
     -   Write unit tests for the handler, usecase, and repository, using mocks to isolate dependencies.
     -   Write integration tests in the `tests/integration` directory if needed.
     -   Most test should be done without real data access

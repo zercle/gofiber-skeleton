@@ -22,7 +22,7 @@
 -   **Docker & Docker Compose**: Used for containerizing the application and its dependencies, ensuring a consistent development environment.
 -   **Air**: A live-reloading tool for Go applications, used to speed up development.
 -   **golangci-lint**: A linter for Go code, used to enforce code quality and consistency.
--   **mockgen**: A tool for generating mock implementations of interfaces for testing. Most test should be done without real data access.
+-   **uber-go/mock**: A tool for generating mock implementations of interfaces for testing. Most test should be done without real data access.
 -   **Viper**: A configuration management library for handling configuration from files, environment variables, and `.env` files.
 -   **gofiber/swagger**: A library for automatically generating OpenAPI documentation from the code.
 
