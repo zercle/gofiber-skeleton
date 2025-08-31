@@ -13,7 +13,7 @@ The boilerplate follows a domain-driven Clean Architecture approach, which decou
 ### 2.1. Layered Architecture
 
 -   **Presentation/API Layer**: (`cmd/server`, `internal/<domain>/handler/router.go`) - Handles HTTP requests, routing, and dependency injection setup.
--   **Handler Layer**: (`internal/<domain>/handler`) - Validates request payloads, calls use cases, and formats HTTP responses.
+-   **Handler Layer**: (`internal/<domain>/handler`) - Validates (go-playground/validator) request payloads, calls use cases, and formats HTTP responses (omniti-labs/jsend).
 -   **Use Case/Service Layer**: (`internal/<domain>/usecase`) - Encapsulates all business rules and orchestrates repository calls.
 -   **Domain Layer**: (`internal/<domain>`) - Contains domain models and interfaces (contracts) for repositories and use cases.
 -   **Repository/Infrastructure Layer**: (`internal/<domain>/repository`, `internal/infrastructure/sqlc`) - Implements data persistence using SQLC-generated queries and manages database transactions.
@@ -139,6 +139,7 @@ This is a step-by-step guide to extending the boilerplate with a new feature.
     -   Generate mocks for your new interfaces: `go generate ./...`
     -   Write unit tests for the handler, usecase, and repository, using mocks to isolate dependencies.
     -   Write integration tests in the `tests/integration` directory if needed.
+    -   Most test should be done without real data access
 
 ## 6. Development Workflow & Commands
 
