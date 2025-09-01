@@ -12,6 +12,7 @@ package mock
 import (
 	reflect "reflect"
 
+	fiber "github.com/gofiber/fiber/v2"
 	user "github.com/zercle/gofiber-skeleton/internal/user"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -55,6 +56,21 @@ func (mr *MockUserRepositoryMockRecorder) CreateUser(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepository)(nil).CreateUser), arg0)
 }
 
+// GetUserByEmail mocks base method.
+func (m *MockUserRepository) GetUserByEmail(ctx *fiber.Ctx, email string) (user.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
+	ret0, _ := ret[0].(user.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockUserRepositoryMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepository)(nil).GetUserByEmail), ctx, email)
+}
+
 // MockUserUsecase is a mock of UserUsecase interface.
 type MockUserUsecase struct {
 	ctrl     *gomock.Controller
@@ -77,6 +93,21 @@ func NewMockUserUsecase(ctrl *gomock.Controller) *MockUserUsecase {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 	return m.recorder
+}
+
+// GetUserByEmail mocks base method.
+func (m *MockUserUsecase) GetUserByEmail(ctx *fiber.Ctx, email string) (user.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
+	ret0, _ := ret[0].(user.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByEmail indicates an expected call of GetUserByEmail.
+func (mr *MockUserUsecaseMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserUsecase)(nil).GetUserByEmail), ctx, email)
 }
 
 // Register mocks base method.

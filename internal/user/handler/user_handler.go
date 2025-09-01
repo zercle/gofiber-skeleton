@@ -66,3 +66,23 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		"user": createdUser,
 	}))
 }
+
+// GetAll handles fetching all users.
+func (h *UserHandler) GetAll(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).SendString("Not Implemented")
+}
+
+// GetByID handles fetching a user by ID.
+func (h *UserHandler) GetByID(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).SendString("Not Implemented")
+}
+
+// Update handles updating a user.
+func (h *UserHandler) Update(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).SendString("Not Implemented")
+}
+
+// Delete handles deleting a user.
+func (h *UserHandler) Delete(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusNotImplemented).SendString("Not Implemented")
+}

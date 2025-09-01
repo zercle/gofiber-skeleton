@@ -22,6 +22,7 @@ import (
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 	"github.com/zercle/gofiber-skeleton/internal/middleware"
 	"github.com/zercle/gofiber-skeleton/internal/user/handler"
+	authHandler "github.com/zercle/gofiber-skeleton/internal/auth/handler"
 )
 
 func main() {
@@ -36,6 +37,9 @@ func main() {
 	cfg := do.MustInvoke[*config.Config](diContainer)
 	db := do.MustInvoke[*database.Database](diContainer)
 	userHandler := do.MustInvoke[*handler.UserHandler](diContainer)
+
+	// Create JWT middleware
+	jwtMiddleware := middleware.NewJWTMiddleware(cfg)
 
 	app := fiber.New(fiber.Config{
 		JSONEncoder:  json.Marshal,
@@ -52,10 +56,10 @@ func main() {
 	// Swagger documentation
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	api := app.Group("/api")
-	v1 := api.Group("/v1")
-
-	handler.SetupUserRoutes(v1, userHandler)
+	userHandler.InitUserRoutes(app, jwtMiddleware)
+	// Init auth routes
+	authHandler := do.MustInvoke[*authHandler.AuthHandler](diContainer)
+	authHandler.InitAuthRoutes(app)
 
 	// Health check cache
 	type healthStatus struct {

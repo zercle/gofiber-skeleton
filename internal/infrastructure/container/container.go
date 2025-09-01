@@ -9,6 +9,10 @@ import (
 	"github.com/zercle/gofiber-skeleton/internal/user/handler"
 	"github.com/zercle/gofiber-skeleton/internal/user/repository"
 	"github.com/zercle/gofiber-skeleton/internal/user/usecase"
+	"github.com/go-playground/validator/v10"
+	"github.com/zercle/gofiber-skeleton/internal/auth"
+	authHandler "github.com/zercle/gofiber-skeleton/internal/auth/handler"
+	authUsecase "github.com/zercle/gofiber-skeleton/internal/auth/usecase"
 )
 
 // SetupContainer initializes and configures the dependency injection container.
@@ -48,6 +52,24 @@ func SetupContainer() (*do.RootScope, error) {
 	do.Provide(container, func(i do.Injector) (*handler.UserHandler, error) {
 		userUsecase := do.MustInvoke[user.UserUsecase](i)
 		return handler.NewUserHandler(userUsecase), nil
+	})
+
+	// Register Auth domain
+	do.Provide(container, func(i do.Injector) (auth.AuthUsecase, error) {
+		userUsecase := do.MustInvoke[user.UserUsecase](i)
+		cfg := do.MustInvoke[*config.Config](i)
+		return authUsecase.NewAuthUsecase(userUsecase, cfg), nil
+	})
+
+	do.Provide(container, func(i do.Injector) (*authHandler.AuthHandler, error) {
+		authUsecase := do.MustInvoke[auth.AuthUsecase](i)
+		validate := do.MustInvoke[*validator.Validate](i)
+		return authHandler.NewAuthHandler(authUsecase, validate), nil
+	})
+
+	// Register validator
+	do.Provide(container, func(i do.Injector) (*validator.Validate, error) {
+		return validator.New(), nil
 	})
 
 	return container, nil

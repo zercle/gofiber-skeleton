@@ -6,6 +6,7 @@ package user
 import (
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -27,6 +28,7 @@ type UserRepository interface {
 	// It returns the created user with its ID and timestamps, or an error
 	// if a user with the same email already exists.
 	CreateUser(user User) (User, error)
+	GetUserByEmail(ctx *fiber.Ctx, email string) (User, error)
 }
 
 // UserUsecase defines business logic operations for user management.
@@ -36,6 +38,7 @@ type UserUsecase interface {
 	// persists the new user via the UserRepository. It returns the newly
 	// created user or an error if validation fails or the user already exists.
 	Register(payload RegisterPayload) (User, error)
+	GetUserByEmail(ctx *fiber.Ctx, email string) (User, error)
 }
 
 // RegisterPayload contains the required data for user registration.

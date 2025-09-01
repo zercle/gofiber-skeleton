@@ -25,6 +25,7 @@
 -   **uber-go/mock**: A tool for generating mock implementations of interfaces for testing. Most test should be done without real data access.
 -   **Viper**: A configuration management library for handling configuration from files, environment variables, and `.env` files.
 -   **gofiber/swagger**: A library for automatically generating OpenAPI documentation from the code.
+-   **golang-jwt/jwt**: A library for generating and validating JSON Web Tokens (JWTs).
 
 ## 5. CI/CD & Testing
 

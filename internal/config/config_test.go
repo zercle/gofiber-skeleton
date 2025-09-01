@@ -26,7 +26,7 @@ func TestConfig_LoadDefaults(t *testing.T) {
 
 	// Test JWT defaults
 	assert.Equal(t, "your_jwt_secret_here_change_in_production", config.JWT.Secret)
-	assert.Equal(t, 24*time.Hour, config.JWT.ExpiresIn)
+	assert.Equal(t, time.Hour, config.JWT.ExpiresIn)
 }
 
 func TestConfig_EnvironmentOverride(t *testing.T) {

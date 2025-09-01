@@ -3,6 +3,7 @@ package usecase
 import (
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/zercle/gofiber-skeleton/internal/user"
 )
@@ -39,4 +40,8 @@ func (uc *userUsecase) Register(payload user.RegisterPayload) (user.User, error)
 	}
 
 	return createdUser, nil
+}
+
+func (uc *userUsecase) GetUserByEmail(ctx *fiber.Ctx, email string) (user.User, error) {
+	return uc.userRepo.GetUserByEmail(ctx, email)
 }

@@ -26,6 +26,7 @@ The boilerplate follows a domain-driven Clean Architecture approach, which decou
 -   **Repository-Managed Transactions**: Repositories are responsible for all database transactions, ensuring atomicity.
 -   **Viper for Configuration**: Manages configuration from `configs/<env>.yaml`, environment variables and `.env` files.
 -   **gofiber/swagger**: Automatically generates OpenAPI documentation.
+-   **JWT**: Use JWT for private endpoint authentication.
 
 ## 3. Getting Started: Project Initialization
 

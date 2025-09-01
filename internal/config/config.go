@@ -37,8 +37,8 @@ type DatabaseConfig struct {
 }
 
 type JWTConfig struct {
-	Secret    string        `mapstructure:"secret" validate:"required" default:"your_jwt_secret_here_change_in_production"`
-	ExpiresIn time.Duration `mapstructure:"expires_in" default:"24h"`
+	Secret    string        `mapstructure:"secret"`
+	ExpiresIn time.Duration `mapstructure:"expiration_in" default:"1h"`
 }
 
 func Load() *Config {

@@ -22,8 +22,20 @@ The architecture is divided into distinct layers, each with a specific responsib
 -   **Repository-Managed Transactions**: All database transactions are managed by the repository layer, ensuring that the business logic remains clean and focused on the business rules.
 -   **Viper for Configuration**: Viper is used for configuration management, allowing the application to be configured via files (`configs/<env>.yaml`), environment variables, and `.env` files.
 -   **gofiber/swagger for API Documentation**: `gofiber/swagger` is used to automatically generate OpenAPI documentation from the code, making it easy to keep the documentation up-to-date.
+-   **JWT**: Use JWT for private endpoint authentication. The implementation includes a dedicated `auth` domain for handling login requests and a middleware for protecting routes.
 
-## 4. Project Structure Overview
+## 4. Authentication Flow
+
+The authentication process is handled by a dedicated `auth` domain and a JWT middleware.
+
+1.  **Login Request**: The client sends a `POST` request to `/api/v1/auth/login` with user credentials (email and password).
+2.  **Authentication**: The `AuthUsecase` verifies the credentials against the user data in the database.
+3.  **Token Generation**: If the credentials are valid, a JWT is generated and signed with a secret key.
+4.  **Token Response**: The JWT is returned to the client.
+5.  **Authenticated Requests**: For subsequent requests to protected endpoints, the client must include the JWT in the `Authorization` header.
+6.  **Token Validation**: The JWT middleware intercepts the request, validates the token, and extracts the user's identity, making it available to the handler.
+
+## 5. Project Structure Overview
 
 ```
 .

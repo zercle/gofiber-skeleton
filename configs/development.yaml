@@ -11,8 +11,8 @@ database:
   ssl_mode: disable
 
 jwt:
-  secret: your_jwt_secret_here_change_in_production
-  expires_in: 24h
+  secret: "your-very-secret-key"
+  expiration_in: 1h
 
 log:
   level: info

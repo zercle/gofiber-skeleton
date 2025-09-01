@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/sqlc"
 	"github.com/zercle/gofiber-skeleton/internal/user"
 )
@@ -36,6 +37,15 @@ func (r *userRepository) CreateUser(u user.User) (user.User, error) {
 	}
 
 	return toDomainUser(createdUser), nil
+}
+
+func (r *userRepository) GetUserByEmail(ctx *fiber.Ctx, email string) (user.User, error) {
+	foundUser, err := r.queries.GetUserByEmail(ctx.Context(), email)
+	if err != nil {
+		return user.User{}, err
+	}
+
+	return toDomainUser(foundUser), nil
 }
 
 // toDomainUser maps a sqlc.User to a user.User domain model.
