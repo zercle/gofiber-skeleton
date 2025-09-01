@@ -1,19 +1,19 @@
 package response
 
 type JSendResponse struct {
-	Status string      `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
-	Message string     `json:"message,omitempty"`
+	Status  string `json:"status"`
+	Data    any    `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
-func Success(data interface{}) *JSendResponse {
+func Success(data any) *JSendResponse {
 	return &JSendResponse{
 		Status: "success",
 		Data:   data,
 	}
 }
 
-func Fail(data interface{}) *JSendResponse {
+func Fail(data any) *JSendResponse {
 	return &JSendResponse{
 		Status: "fail",
 		Data:   data,

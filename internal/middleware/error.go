@@ -18,26 +18,26 @@ func ErrorHandler() fiber.ErrorHandler {
 		log.Printf("Error: %v", err)
 
 		var resp *response.JSendResponse
-		
+
 		switch code {
 		case fiber.StatusBadRequest:
-			resp = response.Fail(map[string]interface{}{
+			resp = response.Fail(map[string]any{
 				"error": "Bad request",
 			})
 		case fiber.StatusUnauthorized:
-			resp = response.Fail(map[string]interface{}{
+			resp = response.Fail(map[string]any{
 				"error": "Unauthorized",
 			})
 		case fiber.StatusForbidden:
-			resp = response.Fail(map[string]interface{}{
+			resp = response.Fail(map[string]any{
 				"error": "Forbidden",
 			})
 		case fiber.StatusNotFound:
-			resp = response.Fail(map[string]interface{}{
+			resp = response.Fail(map[string]any{
 				"error": "Resource not found",
 			})
 		case fiber.StatusUnprocessableEntity:
-			resp = response.Fail(map[string]interface{}{
+			resp = response.Fail(map[string]any{
 				"error": "Validation failed",
 			})
 		default:

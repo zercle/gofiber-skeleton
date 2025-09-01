@@ -10,7 +10,7 @@ import (
 )
 
 var registerPayloadPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return new(user.RegisterPayload)
 	},
 }
@@ -48,7 +48,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	payload.Password = ""
 
 	if err := c.BodyParser(payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(response.Fail(map[string]interface{}{
+		return c.Status(fiber.StatusBadRequest).JSON(response.Fail(map[string]any{
 			"body_parser": "invalid request body: " + err.Error(),
 		}))
 	}
@@ -62,7 +62,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(response.Error(err.Error()))
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(response.Success(map[string]interface{}{
+	return c.Status(fiber.StatusCreated).JSON(response.Success(map[string]any{
 		"user": createdUser,
 	}))
 }

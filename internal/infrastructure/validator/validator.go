@@ -18,9 +18,9 @@ type ErrorResponse struct {
 
 var validate = validator.New()
 
-func ValidateStruct(data interface{}) []ErrorResponse {
+func ValidateStruct(data any) []ErrorResponse {
 	var errors []ErrorResponse
-	
+
 	err := validate.Struct(data)
 	if err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
@@ -37,7 +37,7 @@ func ValidateStruct(data interface{}) []ErrorResponse {
 
 func getErrorMessage(fe validator.FieldError) string {
 	field := strings.ToLower(fe.Field())
-	
+
 	switch fe.Tag() {
 	case "required":
 		return fmt.Sprintf("%s is required", field)
@@ -68,10 +68,10 @@ func HandleValidationErrors(c *fiber.Ctx, errors []ErrorResponse) error {
 		field := strings.ToLower(strings.Replace(err.FailedField, ".", "_", -1))
 		errorMap[field] = err.Message
 	}
-	
-	resp := response.Fail(map[string]interface{}{
+
+	resp := response.Fail(map[string]any{
 		"validation_errors": errorMap,
 	})
-	
+
 	return c.Status(fiber.StatusUnprocessableEntity).JSON(resp)
 }
