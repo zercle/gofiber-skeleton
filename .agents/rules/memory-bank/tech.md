@@ -26,6 +26,8 @@
 -   **Viper**: A configuration management library for handling configuration from files, environment variables, and `.env` files.
 -   **gofiber/swagger**: A library for automatically generating OpenAPI documentation from the code.
 -   **golang-jwt/jwt**: A library for generating and validating JSON Web Tokens (JWTs).
+-   **guregu/null**: To handle nullable value.
+-   **google/uuid**: UUIDv7 for database index friendly.
 
 ## 5. CI/CD & Testing
 

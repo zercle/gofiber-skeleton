@@ -23,6 +23,8 @@ The architecture is divided into distinct layers, each with a specific responsib
 -   **Viper for Configuration**: Viper is used for configuration management, allowing the application to be configured via files (`configs/<env>.yaml`), environment variables, and `.env` files.
 -   **gofiber/swagger for API Documentation**: `gofiber/swagger` is used to automatically generate OpenAPI documentation from the code, making it easy to keep the documentation up-to-date.
 -   **JWT**: Use JWT for private endpoint authentication. The implementation includes a dedicated `auth` domain for handling login requests and a middleware for protecting routes.
+-   **guregu/null**: To handle nullable value.
+-   **google/uuid**: UUIDv7 for database index friendly.
 
 ## 4. Authentication Flow
 
