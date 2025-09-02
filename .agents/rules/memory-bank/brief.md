@@ -36,7 +36,158 @@ Follow these steps to initialize a new project based on this template.
 
 ### 3.1. Prerequisites
 
+Ensure the following tools are installed:Developer: # Go Fiber Backend Boilerplate Template
+
+## Introduction
+
+This document provides a standardized guideline for initializing new backend projects using the Go Fiber Boilerplate. The boilerplate is based on **Go Fiber**, adhering to **Clean Architecture** and **SOLID principles**, and offers a scalable, maintainable starting point for backend system development.
+
+**Purpose:** Streamline project setup and enforce consistency across backend codebases through a pre-configured architecture and essential features.
+
+## Usage Checklist
+
+Begin with a concise checklist (3-7 bullets) before initializing a new project:
+- Review prerequisites and install required tools
+- Set up Go module and dependencies
+- Configure environment and database
+- Apply migrations and generate SQLC code
+- Review project structure and architecture layers
+- Extend with new domains or features as needed
+
+## Core Principles & Architecture
+
+The boilerplate uses a domain-driven Clean Architecture to decouple business logic from infrastructure concerns, enabling easier maintenance and expansion.
+
+### Layered Architecture
+
+- **Presentation/API Layer:** (`cmd/server`, `internal/<domain>/handler/router.go`) – Handles HTTP requests, routing, and dependency injection.
+- **Handler Layer:** (`internal/<domain>/handler`) – Validates requests (with `go-playground/validator`), invokes use cases, and formats HTTP responses (with `omniti-labs/jsend`).
+- **Use Case/Service Layer:** (`internal/<domain>/usecase`) – Contains business rules and orchestrates repository interactions.
+- **Domain Layer:** (`internal/<domain>`) – Defines domain models and repository/usecase interfaces.
+- **Repository/Infrastructure Layer:** (`internal/<domain>/repository`, `internal/infrastructure/sqlc`) – Manages persistence using SQLC-generated queries and transactional control.
+- **Shared Infrastructure:** (`internal/infrastructure`) – Includes shared resources such as DB connections, config management (Viper), and middleware.
+
+### Key Design Patterns & Decisions
+
+- **Dependency Injection:** Uses `samber/do` for managing dependencies, facilitating loose coupling.
+- **Type-Safe Queries with SQLC:** Generates Go code from SQL queries for type safety and protection against SQL injection.
+- **Transaction Management in Repositories:** All database transactions are handled within repositories for atomicity.
+- **Viper for Configuration:** Loads configuration from `configs/<env>.yaml`, environment variables, or `.env` files.
+- **OpenAPI Documentation:** Utilizes `gofiber/swagger` for automated API documentation.
+- **JWT Auth:** Implements JWT for private endpoint security.
+- **Null Handling:** Utilizes `guregu/null` for nullable values.
+- **Database-Friendly UUIDs:** Uses `google/uuid` (UUIDv7).
+
+## Getting Started: Project Initialization
+
+### Prerequisites
+
 Ensure the following tools are installed:
+- Go (>=1.25)
+- Docker & Docker Compose
+- `golang-migrate` CLI
+- `sqlc` CLI
+- `air` (for hot reload)
+- `golangci-lint` (linting)
+
+Install Go tools with:
+```bash
+go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+go install github.com/cosmtrek/air@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
+### Initial Setup
+
+1. **Struct Poject:**
+   - Create essential folders, files for Go project.
+2. **Configure Environment:**
+   - Copy `.env.example` to `.env` if exist.
+   - Update `.env` with project-specific configs (DB credentials, app settings, etc.).
+3. **Initialize Go Module:**
+   - Change the module path in `go.mod` to your new project's repo URL.
+   - Run `go mod tidy` to update dependencies.
+4. **Start the Database:**
+   - Spin up PostgreSQL: `docker compose up -d db`
+5. **Apply Database Migrations:**
+   - Run: `migrate -path db/migrations -database "$DATABASE_URL" up`
+     (Ensure `$DATABASE_URL` is configured in your environment).
+6. **Generate SQLC Code:**
+   - Run: `sqlc generate`
+7. **Run the Application:**
+   - For hot reloading: `air`
+   - For a build: `go build -o bin/server cmd/server/main.go && ./bin/server`
+
+After each key setup step (such as migrations or code generation), validate that the task was successful (e.g., no errors are reported, and expected files are created). Proceed to the next step only if validation is successful; self-correct if any issues arise.
+
+## Project Structure Overview
+
+.
+├── cmd/server/main.go      # App entry point, DI setup
+├── configs/                # (Legacy) Config files
+├── db/
+│   ├── migrations/         # DB migration files (*.sql)
+│   └── queries/            # SQLC SQL files
+├── docs/                   # OpenAPI docs
+├── internal/
+│   ├── infrastructure/     # Shared infra: DB, config, middleware
+│   └── <domain>module/     # Business domain module
+│       ├── <domain>.go     # Models, interfaces
+│       ├── handler/        # HTTP handlers, router
+│       ├── mock/           # Generated test mocks
+│       ├── repository/     # Persistence logic
+│       └── usecase/        # Business logic
+├── tests/                  # Integration tests
+├── .env.example            # Example env vars
+├── compose.yml             # Docker Compose
+├── Dockerfile              # Container build
+├── go.mod                  # Go module file
+├── Makefile                # Helper tasks
+└── sqlc.yaml               # SQLC config
+
+## Adding a New Domain
+
+To extend the boilerplate, follow these steps:
+
+1. **Define Database Schema:**
+   - Create a migration: `migrate create -ext sql -dir db/migrations -seq create_<entities>_table`
+   - Fill in the `.up.sql` (table definition) and `.down.sql` (DROP TABLE) files.
+   - Apply: `migrate -path db/migrations -database "$DATABASE_URL" up`
+2. **Write SQL Queries:**
+   - Add `db/queries/<domain>.sql` with CRUD & annotated queries for SQLC.
+3. **Generate SQLC Code:**
+   - Run: `sqlc generate` (creates `internal/infrastructure/sqlc/<domain>.sql.go`).
+4. **Create Domain Module:**
+   - Create: `internal/<domain>module`
+   - Implement:
+     - `<domain>.go`: Entity + repository/usecase interfaces
+     - `repository/<domain>_repository.go`: SQLC-backed repository impl
+     - `usecase/<domain>_usecase.go`: Usecase (business logic) impl
+     - `handler/<domain>_handler.go`: Fiber handler
+     - `handler/router.go`: Define and register routes
+5. **Register the Module:**
+   - Import and wire up in `cmd/server/main.go` (DI registration, router setup).
+6. **Write Tests:**
+   - Generate mocks: `go generate ./...`
+   - Unit test handler, usecase, and repository (prefer mocks, not real DB access).
+   - Add integration tests in `tests/integration` if needed.
+
+After each functional change, validate that new tests pass and code is integrated as expected. If any issues are detected, make minimal corrections and re-validate.
+
+## Development Workflow & Commands
+
+- **Run all checks (lint, test, generate):**
+  ```bash
+  go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...
+  ```
+- **Generate Mocks:** `go generate ./...`
+- **Run Tests:** `go test -v -race ./...`
+- **Run Linter:** `golangci-lint run --fix ./...`
+- **Build Docker Image:** `docker compose build`
+- **Access API Docs:** `http://localhost:<APP_PORT>/swagger`
+
+This template provides a robust foundation for scalable, maintainable backend services. Reference the existing modules for implementation examples.
 -   Go (>=1.25)
 -   Docker and Docker Compose
 -   `golang-migrate` CLI
