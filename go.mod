@@ -1,8 +1,6 @@
 module github.com/zercle/gofiber-skeleton
 
-go 1.23.0
-
-toolchain go1.24.6
+go 1.24.6
 
 require (
 	github.com/go-playground/validator/v10 v10.27.0

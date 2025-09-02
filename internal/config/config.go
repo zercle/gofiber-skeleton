@@ -37,7 +37,7 @@ type DatabaseConfig struct {
 }
 
 type JWTConfig struct {
-	Secret    string        `mapstructure:"secret"`
+	Secret    string        `mapstructure:"secret" default:"your_jwt_secret_here_change_in_production"`
 	ExpiresIn time.Duration `mapstructure:"expiration_in" default:"1h"`
 }
 
@@ -53,6 +53,9 @@ func Load() *Config {
 }
 
 func setupViper() {
+	// Set defaults first
+	setDefaults()
+
 	// Set default environment
 	env := getEnv("APP_ENV", "development")
 
@@ -77,9 +80,6 @@ func setupViper() {
 			log.Fatalf("Error reading config file: %v", err)
 		}
 	}
-
-	// Set defaults
-	setDefaults()
 }
 
 func setDefaults() {

@@ -10,11 +10,13 @@ import (
 
 func TestConfig_LoadDefaults(t *testing.T) {
 	viper.Reset()
+	// Set environment to a non-existent config to force using defaults
+	t.Setenv("APP_ENV", "nonexistent")
 	config := Load()
 
 	// Test App defaults
 	assert.Equal(t, uint16(8080), config.App.Port)
-	assert.Equal(t, "development", config.App.Env)
+	assert.Equal(t, "nonexistent", config.App.Env)
 
 	// Test Database defaults
 	assert.Equal(t, "localhost", config.Database.Host)
@@ -75,7 +77,7 @@ func TestConfig_ViperEnvironmentBinding(t *testing.T) {
 	// Test that all environment variables are properly bound through Viper
 	envVars := map[string]string{
 		"APP_PORT":       "9000",
-		"APP_ENV":        "testing",
+		"APP_ENV":        "nonexistent", // Use non-existent config to avoid file loading
 		"DB_HOST":        "testdb.example.com",
 		"DB_PORT":        "5433",
 		"DB_USER":        "testuser",
@@ -83,7 +85,7 @@ func TestConfig_ViperEnvironmentBinding(t *testing.T) {
 		"DB_NAME":        "testdb",
 		"DB_SSL_MODE":    "require",
 		"JWT_SECRET":     "test-secret",
-		"JWT_EXPIRES_IN": "48h",
+		"JWT_EXPIRATION_IN": "48h", // Fixed the env var name to match mapstructure tag
 	}
 
 	for key, value := range envVars {
@@ -94,7 +96,7 @@ func TestConfig_ViperEnvironmentBinding(t *testing.T) {
 
 	// Verify all environment variables are loaded correctly via Viper
 	assert.Equal(t, uint16(9000), config.App.Port)
-	assert.Equal(t, "testing", config.App.Env)
+	assert.Equal(t, "nonexistent", config.App.Env)
 	assert.Equal(t, "testdb.example.com", config.Database.Host)
 	assert.Equal(t, "5433", config.Database.Port)
 	assert.Equal(t, "testuser", config.Database.User)
