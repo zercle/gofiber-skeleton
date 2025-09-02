@@ -31,7 +31,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to setup DI container: %v", err)
 	}
-	defer diContainer.Shutdown()
+	defer func() {
+		if err := diContainer.Shutdown(); err != nil {
+			log.Printf("Failed to shutdown DI container: %v", err)
+		}
+	}()
 
 	// Get dependencies from container
 	cfg := do.MustInvoke[*config.Config](diContainer)

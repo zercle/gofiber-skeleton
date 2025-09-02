@@ -65,7 +65,7 @@ func getErrorMessage(fe validator.FieldError) string {
 func HandleValidationErrors(c *fiber.Ctx, errors []ErrorResponse) error {
 	errorMap := make(map[string]string)
 	for _, err := range errors {
-		field := strings.ToLower(strings.Replace(err.FailedField, ".", "_", -1))
+		field := strings.ToLower(strings.ReplaceAll(err.FailedField, ".", "_"))
 		errorMap[field] = err.Message
 	}
 

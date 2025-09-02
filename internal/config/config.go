@@ -168,7 +168,9 @@ func bindEnvVarsRecursively(v reflect.Value, prefix string) {
 
 		// Automatically bind environment variable
 		// Viper will look for environment variables that match the key with underscores
-		viper.BindEnv(key)
+		if err := viper.BindEnv(key); err != nil {
+			log.Printf("Failed to bind env var %s: %v", key, err)
+		}
 	}
 }
 
