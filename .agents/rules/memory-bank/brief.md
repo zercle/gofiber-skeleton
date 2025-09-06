@@ -1,310 +1,636 @@
-# Go Fiber Backend Boilerplate Template
+# Go Fiber Backend Mono-Repo Template
 
 ## 1. Introduction
 
-This document serves as a standardized template for initializing new projects using the Go Fiber Backend Boilerplate. The boilerplate is built on **Go Fiber**, following **Clean Architecture** and **SOLID principles** to provide a robust, scalable, and maintainable foundation for backend systems.
+This document provides a standardized template for initializing new backend mono-repo projects using **Go Fiber** framework. The boilerplate follows **Domain-Driven Clean Architecture** with each domain having its own complete Clean Architecture implementation within its domain package, promoting **SOLID principles** and domain isolation, mirroring the successful Hono.js mono-repo template architecture.
 
-**Purpose**: To streamline the setup process for new projects, ensuring consistency and saving development time by providing a pre-configured architecture with essential features.
+**Purpose:** Streamline mono-repo setup with domain-specific Clean Architecture using high-performance Go Fiber applications, ensuring scalability, maintainability, and clear domain boundaries.
+
+---
 
 ## 2. Core Principles & Architecture
 
-The boilerplate follows a domain-driven Clean Architecture approach, which decouples business logic from infrastructure concerns.
+The boilerplate adopts a **mono-repo with domain-specific Clean Architecture** approach where each domain is a complete, self-contained module with its own layered architecture, identical to the Hono.js mono-repo implementation.
 
-### 2.1. Layered Architecture
+### Mono-Repo Domain Architecture
 
--   **Presentation/API Layer**: (`cmd/server`, `internal/<domain>/handler/router.go`) - Handles HTTP requests, routing, and dependency injection setup.
--   **Handler Layer**: (`internal/<domain>/handler`) - Validates (go-playground/validator) request payloads, calls use cases, and formats HTTP responses (omniti-labs/jsend).
--   **Use Case/Service Layer**: (`internal/<domain>/usecase`) - Encapsulates all business rules and orchestrates repository calls.
--   **Domain Layer**: (`internal/<domain>`) - Contains domain models and interfaces (contracts) for repositories and use cases.
--   **Repository/Infrastructure Layer**: (`internal/<domain>/repository`, `internal/infrastructure/sqlc`) - Implements data persistence using SQLC-generated queries and manages database transactions.
--   **Shared Infrastructure**: (`internal/infrastructure`) - Contains shared components like database connections, configuration management (Viper), and middleware.
+Each domain package contains its complete Clean Architecture implementation:
 
-### 2.2. Key Design Patterns & Decisions
+- **Domain Package** (`internal/domains/{domain}/`): Complete domain module
+  - **Entities** (`entities/`): Core domain entities and value objects
+  - **Use Cases** (`usecases/`): Domain-specific business logic
+  - **Repositories** (`repositories/`): Domain data access interfaces and implementations  
+  - **Handlers** (`handlers/`): Domain HTTP handlers
+  - **Routes** (`routes/`): Domain-specific route definitions
+  - **Models** (`models/`): DTOs and request/response models
+  - **Tests** (`tests/`): Domain-specific tests
 
--   **Dependency Injection**: Uses `samber/do` to manage and inject dependencies, promoting loose coupling.
--   **SQLC for Type-Safe Queries**: Generates Go code from raw SQL queries, ensuring type safety and preventing SQL injection.
--   **Repository-Managed Transactions**: Repositories are responsible for all database transactions, ensuring atomicity.
--   **Viper for Configuration**: Manages configuration from `configs/<env>.yaml`, environment variables and `.env` files.
--   **gofiber/swagger**: Automatically generates OpenAPI documentation.
--   **JWT**: Use JWT for private endpoint authentication.
--   **guregu/null**: To handle nullable value.
--   **google/uuid**: UUIDv7 for database index friendly.
+### Shared Infrastructure
+
+- **Shared Infrastructure** (`internal/shared/`): Cross-domain shared components
+  - **Database** (`database/`): GORM client and connection management
+  - **Middleware** (`middleware/`): Authentication, validation, CORS
+  - **Config** (`config/`): Application configuration
+  - **Utils** (`utils/`): Shared utilities and helpers
+  - **Types** (`types/`): Shared Go types and interfaces
+
+### Key Tools & Libraries
+
+| Feature               | Tool / Library                    |
+| --------------------- | --------------------------------- |
+| HTTP Framework        | Go Fiber v2                       |
+| Dependency Injection  | fx (Uber's DI framework)          |
+| Database ORM          | GORM                              |
+| Configuration         | Viper                             |
+| Migrations            | [golang-migrate/migrate](https://github.com/golang-migrate/migrate)            |
+| SQL Code Generation   | [sqlc](https://sqlc.dev/)                   |
+| JSON Response Format  | [omniti-labs/jsend](https://github.com/omniti-labs/jsend)                 |
+| Mock Generation       | [go.uber.org/mock/mockgen](https://github.com/uber-go/mockgen)          |
+| SQL Mocking           | [github.com/DATA-DOG/go-sqlmock](https://github.com/DATA-DOG/go-sqlmock)    |
+| JWT Authentication    | golang-jwt                        |
+| UUID Generation       | **UUIDv7** (index-friendly)       |
+| Validation            | go-playground/validator           |
+| Testing               | Go testing + Testify             |
+| Hot Reload            | Air                              |
+| Linting & Formatting  | golangci-lint, gofmt             |
+| OpenAPI Documentation | swaggo/swag                     |
+
+---
 
 ## 3. Getting Started: Project Initialization
 
-Follow these steps to initialize a new project based on this template.
-
-### 3.1. Prerequisites
-
-Ensure the following tools are installed:Developer: # Go Fiber Backend Boilerplate Template
-
-## Introduction
-
-This document provides a standardized guideline for initializing new backend projects using the Go Fiber Boilerplate. The boilerplate is based on **Go Fiber**, adhering to **Clean Architecture** and **SOLID principles**, and offers a scalable, maintainable starting point for backend system development.
-
-**Purpose:** Streamline project setup and enforce consistency across backend codebases through a pre-configured architecture and essential features.
-
-## Usage Checklist
-
-Begin with a concise checklist (3-7 bullets) before initializing a new project:
-- Review prerequisites and install required tools
-- Set up Go module and dependencies
-- Configure environment and database
-- Apply migrations and generate SQLC code
-- Review project structure and architecture layers
-- Extend with new domains or features as needed
-
-## Core Principles & Architecture
-
-The boilerplate uses a domain-driven Clean Architecture to decouple business logic from infrastructure concerns, enabling easier maintenance and expansion.
-
-### Layered Architecture
-
-- **Presentation/API Layer:** (`cmd/server`, `internal/<domain>/handler/router.go`) – Handles HTTP requests, routing, and dependency injection.
-- **Handler Layer:** (`internal/<domain>/handler`) – Validates requests (with `go-playground/validator`), invokes use cases, and formats HTTP responses (with `omniti-labs/jsend`).
-- **Use Case/Service Layer:** (`internal/<domain>/usecase`) – Contains business rules and orchestrates repository interactions.
-- **Domain Layer:** (`internal/<domain>`) – Defines domain models and repository/usecase interfaces.
-- **Repository/Infrastructure Layer:** (`internal/<domain>/repository`, `internal/infrastructure/sqlc`) – Manages persistence using SQLC-generated queries and transactional control.
-- **Shared Infrastructure:** (`internal/infrastructure`) – Includes shared resources such as DB connections, config management (Viper), and middleware.
-
-### Key Design Patterns & Decisions
-
-- **Dependency Injection:** Uses `samber/do` for managing dependencies, facilitating loose coupling.
-- **Type-Safe Queries with SQLC:** Generates Go code from SQL queries for type safety and protection against SQL injection.
-- **Transaction Management in Repositories:** All database transactions are handled within repositories for atomicity.
-- **Viper for Configuration:** Loads configuration from `configs/<env>.yaml`, environment variables, or `.env` files.
-- **OpenAPI Documentation:** Utilizes `gofiber/swagger` for automated API documentation.
-- **JWT Auth:** Implements JWT for private endpoint security.
-- **Null Handling:** Utilizes `guregu/null` for nullable values.
-- **Database-Friendly UUIDs:** Uses `google/uuid` (UUIDv7).
-
-## Getting Started: Project Initialization
-
 ### Prerequisites
 
-Ensure the following tools are installed:
-- Go (>=1.25)
+- Go 1.21+ installed
 - Docker & Docker Compose
-- `golang-migrate` CLI
-- `sqlc` CLI
-- `air` (for hot reload)
-- `golangci-lint` (linting)
-
-Install Go tools with:
-```bash
-go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
-go install github.com/cosmtrek/air@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-```
+- Air for hot reload (optional)
 
 ### Initial Setup
 
-1. **Struct Poject:**
-   - Create essential folders, files for Go project.
-2. **Configure Environment:**
-   - Copy `.env.example` to `.env` if exist.
-   - Update `.env` with project-specific configs (DB credentials, app settings, etc.).
-3. **Initialize Go Module:**
-   - Change the module path in `go.mod` to your new project's repo URL.
-   - Run `go mod tidy` to update dependencies.
-4. **Start the Database:**
-   - Spin up PostgreSQL: `docker compose up -d db`
-5. **Apply Database Migrations:**
-   - Run: `migrate -path db/migrations -database "$DATABASE_URL" up`
-     (Ensure `$DATABASE_URL` is configured in your environment).
-6. **Generate SQLC Code:**
-   - Run: `sqlc generate`
-7. **Run the Application:**
-   - For hot reloading: `air`
-   - For a build: `go build -o bin/server cmd/server/main.go && ./bin/server`
+1. **Initialize Project**
 
-After each key setup step (such as migrations or code generation), validate that the task was successful (e.g., no errors are reported, and expected files are created). Proceed to the next step only if validation is successful; self-correct if any issues arise.
-
-## Project Structure Overview
-
-.
-├── cmd/server/main.go      # App entry point, DI setup
-├── configs/                # (Legacy) Config files
-├── db/
-│   ├── migrations/         # DB migration files (*.sql)
-│   └── queries/            # SQLC SQL files
-├── docs/                   # OpenAPI docs
-├── internal/
-│   ├── infrastructure/     # Shared infra: DB, config, middleware
-│   └── <domain>module/     # Business domain module
-│       ├── <domain>.go     # Models, interfaces
-│       ├── handler/        # HTTP handlers, router
-│       ├── mock/           # Generated test mocks
-│       ├── repository/     # Persistence logic
-│       └── usecase/        # Business logic
-├── tests/                  # Integration tests
-├── .env.example            # Example env vars
-├── compose.yml             # Docker Compose
-├── Dockerfile              # Container build
-├── go.mod                  # Go module file
-├── Makefile                # Helper tasks
-└── sqlc.yaml               # SQLC config
-
-## Adding a New Domain
-
-To extend the boilerplate, follow these steps:
-
-1. **Define Database Schema:**
-   - Create a migration: `migrate create -ext sql -dir db/migrations -seq create_<entities>_table`
-   - Fill in the `.up.sql` (table definition) and `.down.sql` (DROP TABLE) files.
-   - Apply: `migrate -path db/migrations -database "$DATABASE_URL" up`
-2. **Write SQL Queries:**
-   - Add `db/queries/<domain>.sql` with CRUD & annotated queries for SQLC.
-3. **Generate SQLC Code:**
-   - Run: `sqlc generate` (creates `internal/infrastructure/sqlc/<domain>.sql.go`).
-4. **Create Domain Module:**
-   - Create: `internal/<domain>module`
-   - Implement:
-     - `<domain>.go`: Entity + repository/usecase interfaces
-     - `repository/<domain>_repository.go`: SQLC-backed repository impl
-     - `usecase/<domain>_usecase.go`: Usecase (business logic) impl
-     - `handler/<domain>_handler.go`: Fiber handler
-     - `handler/router.go`: Define and register routes
-5. **Register the Module:**
-   - Import and wire up in `cmd/server/main.go` (DI registration, router setup).
-6. **Write Tests:**
-   - Generate mocks: `go generate ./...`
-   - Unit test handler, usecase, and repository (prefer mocks, not real DB access).
-   - Add integration tests in `tests/integration` if needed.
-
-After each functional change, validate that new tests pass and code is integrated as expected. If any issues are detected, make minimal corrections and re-validate.
-
-## Development Workflow & Commands
-
-- **Run all checks (lint, test, generate):**
-  ```bash
-  go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...
-  ```
-- **Generate Mocks:** `go generate ./...`
-- **Run Tests:** `go test -v -race ./...`
-- **Run Linter:** `golangci-lint run --fix ./...`
-- **Build Docker Image:** `docker compose build`
-- **Access API Docs:** `http://localhost:<APP_PORT>/swagger`
-
-This template provides a robust foundation for scalable, maintainable backend services. Reference the existing modules for implementation examples.
--   Go (>=1.25)
--   Docker and Docker Compose
--   `golang-migrate` CLI
--   `sqlc` CLI
--   `air` (for hot-reloading)
--   `golangci-lint` (for linting)
-
-You can install the Go tools using:
 ```bash
-go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
-go install github.com/cosmtrek/air@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go mod init hono-skeleton-go
 ```
 
-### 3.2. Initial Setup
+2. **Configure Environment**
 
-1.  **Clone the Boilerplate**:
-    ```bash
-    git clone <repository-url> <new-project-name>
-    cd <new-project-name>
-    ```
+Create `.env` and `.env.example` with database URL and other configs.
 
-2.  **Configure Environment**:
-    -   Copy the example environment file: `cp .env.example .env`
-    -   Update the `.env` file with your project-specific configurations (database credentials, app settings, etc.).
+3. **Setup Database**
 
-3.  **Initialize Go Module**:
-    -   Update the module path in `go.mod` to match your new project's repository URL.
-    -   Run `go mod tidy` to sync dependencies.
+- Define models in `domain/entities/`.
+- Run migrations:
 
-4.  **Run the Database**:
-    -   Start the PostgreSQL container: `docker compose up -d db`
+```bash
+go run cmd/migrate/main.go
+```
 
-5.  **Apply Database Migrations**:
-    -   Run the initial schema migrations: `migrate -path db/migrations -database "$DATABASE_URL" up`
-    (Ensure `$DATABASE_URL` is set in your environment or `.env` file).
+4. **Create Application Structure**
 
-6.  **Generate SQLC Code**:
-    -   Generate Go code from your SQL queries: `sqlc generate`
+Follow layered architecture folders under project root.
 
-7.  **Run the Application**:
-    -   For development with hot-reloading: `air`
-    -   To build and run the binary: `go build -o bin/server cmd/server/main.go && ./bin/server`
+5. **Run Application**
 
-## 4. Project Structure Overview
+```bash
+go run main.go
+# Or with hot reload
+air
+```
+
+---
+
+## 4. Mono-Repo Project Structure Overview
 
 ```
 .
-├── cmd/server/main.go      # Application entry point, DI setup
-├── configs/                # (Legacy) Configuration files
-├── db/
-│   ├── migrations/         # Database migration files (*.sql)
-│   └── queries/            # SQL files for SQLC code generation
-├── docs/                   # Swagger/OpenAPI documentation
+├── cmd/
+│   ├── server/
+│   │   └── main.go          # Application entry point
+│   └── migrate/
+│       └── main.go          # Database migration runner
 ├── internal/
-│   ├── infrastructure/     # Shared components (DB, config, middleware)
-│   ├── <domain>module/     # Each business domain is a module
-│   │   ├── <domain>.go     # Domain models and interfaces
-│   │   ├── handler/        # HTTP handlers and router
-│   │   ├── mock/           # Generated mocks for testing
-│   │   ├── repository/     # Data persistence logic
-│   │   └── usecase/        # Business logic
-├── tests/                  # Integration tests
-├── .env.example            # Example environment variables
-├── compose.yml             # Docker Compose configuration
-├── Dockerfile              # Docker build file
-├── go.mod                  # Go module definition
-├── Makefile                # Helper commands
-└── sqlc.yaml               # SQLC configuration
+│   ├── app/
+│   │   └── app.go           # Fiber app configuration
+│   ├── domains/             # Domain-specific modules
+│   │   ├── auth/            # Authentication domain
+│   │   │   ├── entities/
+│   │   │   │   └── user.go
+│   │   │   ├── usecases/
+│   │   │   │   ├── auth_usecase.go
+│   │   │   │   └── interfaces/
+│   │   │   ├── repositories/
+│   │   │   │   ├── user_repository.go
+│   │   │   │   └── interfaces/
+│   │   │   ├── handlers/
+│   │   │   │   └── auth_handler.go
+│   │   │   ├── routes/
+│   │   │   │   └── auth_routes.go
+│   │   │   ├── models/
+│   │   │   │   └── auth_models.go
+│   │   │   └── tests/
+│   │   │       ├── auth_usecase_test.go
+│   │   │       └── auth_handler_test.go
+│   │   ├── posts/           # Posts domain
+│   │   │   ├── entities/
+│   │   │   │   └── post.go
+│   │   │   ├── usecases/
+│   │   │   ├── repositories/
+│   │   │   ├── handlers/
+│   │   │   ├── routes/
+│   │   │   ├── models/
+│   │   │   └── tests/
+│   │   └── greeting/        # Greeting domain (example)
+│   │       ├── entities/
+│   │       ├── usecases/
+│   │       ├── repositories/
+│   │       ├── handlers/
+│   │       ├── routes/
+│   │       ├── models/
+│   │       └── tests/
+│   └── infrastructure/              # Shared infrastructure
+│       ├── database/
+│       │   ├── connection.go
+│       │   └── base_repository.go
+│       ├── middleware/
+│       │   ├── auth_middleware.go
+│       │   ├── cors_middleware.go
+│       │   └── validation_middleware.go
+│       ├── config/
+│       │   └── app_config.go
+│       ├── utils/
+│       │   ├── uuidv7.go    # UUIDv7 generator
+│       │   ├── response.go
+│       │   └── validation.go
+│       ├── types/
+│       │   └── common.go
+│       └── container/
+│           └── di_container.go
+├── pkg/
+│   └── utils/              # Public utilities
+├── migrations/             # Database migration files
+├── docs/                   # Swagger documentation
+├── .env.example
+├── go.mod
+├── go.sum
+├── Dockerfile
+├── docker-compose.yml
+├── .air.toml               # Air configuration for hot reload
+└── README.md
 ```
 
-## 5. How to Add a New Domain
+---
 
-This is a step-by-step guide to extending the boilerplate with a new feature.
+## 5. Adding a New Domain (Mono-Repo Approach)
 
-1.  **Define the Database Schema**:
-    -   Create a new migration file in `db/migrations/`:
-        `migrate create -ext sql -dir db/migrations -seq create_<entities>_table`
-    -   Define the `<entities>` table in the `.up.sql` file and the `DROP TABLE` command in the `.down.sql` file.
-    -   Apply the migration: `migrate -path db/migrations -database "$DATABASE_URL" up`
+1. **Create Domain Directory Structure**
 
-2.  **Write SQL Queries**:
-    -   Create `db/queries/<domain>.sql` and add your `CREATE`, `GET`, `UPDATE`, `DELETE` queries with SQLC annotations.
+```bash
+mkdir -p internal/domains/{domain-name}/{entities,usecases,repositories,handlers,routes,models,tests}
+mkdir -p internal/domains/{domain-name}/usecases/interfaces
+mkdir -p internal/domains/{domain-name}/repositories/interfaces
+```
 
-3.  **Generate SQLC Code**:
-    -   Run `sqlc generate`. This will create `internal/infrastructure/sqlc/<domain>.sql.go`.
+2. **Define Domain Entity with UUIDv7**
 
-4.  **Create the Domain Module**:
-    -   Create a new directory: `internal/<domain>module`
-    -   **`internal/<domain>module/<domain>.go`**: Define the `<Entity>` struct and the `<Domain>Repository` and `<Domain>Usecase` interfaces.
-    -   **`internal/<domain>module/repository/<domain>_repository.go`**: Implement the `<Domain>Repository` interface using the generated SQLC querier.
-    -   **`internal/<domain>module/usecase/<domain>_usecase.go`**: Implement the `<Domain>Usecase` interface, containing the business logic.
-    -   **`internal/<domain>module/handler/<domain>_handler.go`**: Create the Fiber handler functions.
-    -   **`internal/<domain>module/handler/router.go`**: Define the routes for the domain module and register the handler.
+Create entity in `internal/domains/{domain}/entities/` with UUIDv7 ID:
 
-5.  **Register the New Module**:
-    -   In `cmd/server/main.go`, import your new module.
-    -   In the `main` function, register the repository, usecase, and handler with the dependency injection container.
-    -   Register the new router with the Fiber app.
+```go
+package entities
 
-6.  **Write Tests**:
-    -   Generate mocks with `uber-go/mock` for your new interfaces: `go generate ./...`
-    -   Write unit tests for the handler, usecase, and repository, using mocks to isolate dependencies.
-    -   Write integration tests in the `tests/integration` directory if needed.
-    -   Most test should be done without real data access
+import (
+    "time"
+    "github.com/your-org/your-repo/internal/shared/utils"
+)
 
-## 6. Development Workflow & Commands
+type DomainEntity struct {
+    ID        string    `json:"id" gorm:"type:uuid;primaryKey" example:"01234567-89ab-cdef-0123-456789abcdef"`
+    CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
+    UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+}
 
--   **Run all checks (lint, test, generate)**:
-    ```bash
-    go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...
-    ```
--   **Generate Mocks**: `go generate ./...`
--   **Run Tests**: `go test -v -race ./...`
--   **Run Linter**: `golangci-lint run --fix ./...`
--   **Build Docker Image**: `docker compose build`
--   **Access API Docs**: `http://localhost:<APP_PORT>/swagger`
+func (e *DomainEntity) BeforeCreate(tx *gorm.DB) error {
+    if e.ID == "" {
+        e.ID = utils.GenerateUUIDv7()
+    }
+    return nil
+}
+```
 
-This template provides a solid foundation for building scalable and maintainable backend services. Refer to the existing modules for practical examples.
+3. **Create Domain Models**
+
+Define request/response DTOs in `internal/domains/{domain}/models/`.
+
+4. **Implement Repository Interface & Implementation**
+
+- Interface in `internal/domains/{domain}/repositories/interfaces/`
+- Implementation in `internal/domains/{domain}/repositories/`
+
+5. **Implement Use Case Interface & Implementation**
+
+- Interface in `internal/domains/{domain}/usecases/interfaces/`
+- Implementation in `internal/domains/{domain}/usecases/`
+
+6. **Implement Handlers**
+
+Create HTTP handlers in `internal/domains/{domain}/handlers/`.
+
+7. **Define Routes**
+
+Create routes in `internal/domains/{domain}/routes/` and register in app.
+
+8. **Add Database Model**
+
+Define GORM model with UUIDv7 default:
+
+```go
+type DomainModel struct {
+    ID        string    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+    // ... other fields
+    CreatedAt time.Time `gorm:"autoCreateTime"`
+    UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+```
+
+9. **Register Dependencies**
+
+Update `internal/shared/container/di_container.go` with new domain services using fx.
+
+10. **Write Domain Tests**
+
+Create comprehensive tests in `internal/domains/{domain}/tests/`.
+
+11. **Generate API Documentation**
+
+Add Swagger annotations and regenerate docs with swaggo.
+
+---
+
+## 6. Development Commands
+
+- **Run development server**
+
+```bash
+go run cmd/server/main.go
+# Or with hot reload
+air
+```
+
+- **Run database migrations**
+
+```bash
+go run cmd/migrate/main.go
+```
+
+- **Run tests**
+
+```bash
+go test ./...
+go test -v ./internal/tests/...
+```
+
+- **Lint and format**
+
+```bash
+golangci-lint run
+gofmt -s -w .
+```
+
+- **Generate API documentation**
+
+```bash
+swag init -g cmd/server/main.go -o docs
+```
+
+- **Build for production**
+
+```bash
+go build -o bin/server cmd/server/main.go
+```
+
+## 7. Example Domain Implementation
+
+### User Domain (Authentication)
+
+**Entity (`internal/domain/entities/user.go`):**
+```go
+type User struct {
+    ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;"`
+    Email     string    `json:"email" gorm:"unique;not null"`
+    Password  string    `json:"-" gorm:"not null"`
+    Name      string    `json:"name"`
+    CreatedAt time.Time `json:"created_at"`
+    UpdatedAt time.Time `json:"updated_at"`
+}
+```
+
+**Repository Interface (`internal/domain/interfaces/user_repository.go`):**
+```go
+type UserRepository interface {
+    Create(ctx context.Context, user *entities.User) error
+    GetByID(ctx context.Context, id uuid.UUID) (*entities.User, error)
+    GetByEmail(ctx context.Context, email string) (*entities.User, error)
+    Update(ctx context.Context, user *entities.User) error
+    Delete(ctx context.Context, id uuid.UUID) error
+}
+```
+
+**Use Case (`internal/usecases/auth_usecase.go`):**
+```go
+type AuthUseCase struct {
+    userRepo interfaces.UserRepository
+    jwtService *JWTService
+}
+
+func (uc *AuthUseCase) Register(ctx context.Context, req *models.RegisterRequest) (*models.AuthResponse, error) {
+    // Implementation
+}
+
+func (uc *AuthUseCase) Login(ctx context.Context, req *models.LoginRequest) (*models.AuthResponse, error) {
+    // Implementation
+}
+```
+
+**Handler (`internal/handlers/auth_handler.go`):**
+```go
+type AuthHandler struct {
+    authUC usecases.AuthUseCase
+}
+
+func (h *AuthHandler) Register(c *fiber.Ctx) error {
+    // Implementation
+}
+
+func (h *AuthHandler) Login(c *fiber.Ctx) error {
+    // Implementation
+}
+```
+
+### Post Domain (Example CRUD)
+
+**Entity (`internal/domain/entities/post.go`):**
+```go
+type Post struct {
+    ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;"`
+    Title     string    `json:"title" gorm:"not null"`
+    Content   string    `json:"content"`
+    AuthorID  uuid.UUID `json:"author_id" gorm:"not null"`
+    Author    User      `json:"author" gorm:"foreignKey:AuthorID"`
+    CreatedAt time.Time `json:"created_at"`
+    UpdatedAt time.Time `json:"updated_at"`
+}
+```
+
+---
+
+## 8. Key Features Implementation
+
+### JWT Authentication Middleware
+```go
+func JWTMiddleware(secret string) fiber.Handler {
+    return jwtware.New(jwtware.Config{
+        SigningKey: []byte(secret),
+        ErrorHandler: func(c *fiber.Ctx, err error) error {
+            return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+                "error": "Invalid or expired token",
+            })
+        },
+    })
+}
+```
+
+### Database Configuration with GORM
+```go
+func NewDatabase(config *Config) (*gorm.DB, error) {
+    db, err := gorm.Open(postgres.Open(config.DatabaseURL), &gorm.Config{})
+    if err != nil {
+        return nil, err
+    }
+    
+    // Auto-migrate models
+    err = db.AutoMigrate(
+        &entities.User{},
+        &entities.Post{},
+    )
+    
+    return db, err
+}
+```
+
+### Dependency Injection with fx
+```go
+var Module = fx.Options(
+    fx.Provide(
+        config.NewConfig,
+        database.NewDatabase,
+        repositories.NewUserRepository,
+        repositories.NewPostRepository,
+        usecases.NewAuthUseCase,
+        usecases.NewPostUseCase,
+        handlers.NewAuthHandler,
+        handlers.NewPostHandler,
+        app.NewApp,
+    ),
+)
+```
+
+### Validation with go-playground/validator
+```go
+type RegisterRequest struct {
+    Email    string `json:"email" validate:"required,email"`
+    Password string `json:"password" validate:"required,min=6"`
+    Name     string `json:"name" validate:"required"`
+}
+```
+
+---
+
+## 9. Testing Strategy
+
+### Repository Tests
+```go
+func TestUserRepository_Create(t *testing.T) {
+    db := setupTestDB(t)
+    repo := repositories.NewUserRepository(db)
+    
+    user := &entities.User{
+        Email: "test@example.com",
+        Name: "Test User",
+    }
+    
+    err := repo.Create(context.Background(), user)
+    assert.NoError(t, err)
+    assert.NotEqual(t, uuid.Nil, user.ID)
+}
+```
+
+### Handler Tests
+```go
+func TestAuthHandler_Register(t *testing.T) {
+    app := setupTestApp(t)
+    
+    req := httptest.NewRequest("POST", "/auth/register", strings.NewReader(`{
+        "email": "test@example.com",
+        "password": "password123",
+        "name": "Test User"
+    }`))
+    req.Header.Set("Content-Type", "application/json")
+    
+    resp, err := app.Test(req)
+    assert.NoError(t, err)
+    assert.Equal(t, 201, resp.StatusCode)
+}
+```
+
+---
+
+## 10. Docker Configuration
+
+### Dockerfile
+```dockerfile
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -o bin/server cmd/server/main.go
+
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+
+COPY --from=builder /app/bin/server .
+COPY --from=builder /app/.env.example .env
+
+CMD ["./server"]
+```
+
+### Docker Compose
+```yaml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://user:pass@postgres:5432/dbname?sslmode=disable
+      - JWT_SECRET=your-secret-key
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hono_skeleton_go
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+---
+
+## 11. Performance Optimizations
+
+### Database Connection Pooling
+```go
+func NewDatabase(config *Config) (*gorm.DB, error) {
+    db, err := gorm.Open(postgres.Open(config.DatabaseURL), &gorm.Config{})
+    if err != nil {
+        return nil, err
+    }
+    
+    sqlDB, err := db.DB()
+    if err != nil {
+        return nil, err
+    }
+    
+    sqlDB.SetMaxIdleConns(10)
+    sqlDB.SetMaxOpenConns(100)
+    sqlDB.SetConnMaxLifetime(time.Hour)
+    
+    return db, nil
+}
+```
+
+### Response Caching Middleware
+```go
+func CacheMiddleware(duration time.Duration) fiber.Handler {
+    return cache.New(cache.Config{
+        Expiration: duration,
+        KeyGenerator: func(c *fiber.Ctx) string {
+            return c.OriginalURL()
+        },
+    })
+}
+```
+
+---
+
+## 12. API Documentation with Swagger
+
+### Swagger Annotations Example
+```go
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.RegisterRequest true "Registration data"
+// @Success 201 {object} models.AuthResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Router /auth/register [post]
+func (h *AuthHandler) Register(c *fiber.Ctx) error {
+    // Implementation
+}
+```
+
+---
+
+## 13. Environment Configuration
+
+### .env.example
+```env
+# Application
+PORT=3000
+ENV=development
+
+# Database
+DATABASE_URL=postgres://user:pass@localhost:5432/hono_skeleton_go?sslmode=disable
+
+# JWT
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=24h
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# CORS
+CORS_ORIGINS=*
+```
+
+---
+
+## 14. Documentation References
+
+- **Go**: https://golang.org/doc/
+- **Fiber**: https://gofiber.io/
+- **GORM**: https://gorm.io/docs/
+- **fx**: https://uber-go.github.io/fx/
+- **Viper**: https://github.com/spf13/viper
+
+---
