@@ -16,7 +16,7 @@ The boilerplate adopts a **mono-repo with domain-specific Clean Architecture** a
 
 Each domain package contains its complete Clean Architecture implementation:
 
-- **Domain Package** (`internal/domains/{domain}/`): Complete domain module
+- **Domain Package** (`internal/{domain}/`): Complete domain module
   - **Entities** (`entities/`): Core domain entities and value objects
   - **Use Cases** (`usecases/`): Domain-specific business logic
   - **Repositories** (`repositories/`): Domain data access interfaces and implementations  
@@ -25,12 +25,13 @@ Each domain package contains its complete Clean Architecture implementation:
   - **Models** (`models/`): DTOs and request/response models
   - **Tests** (`tests/`): Domain-specific tests
 
-### Shared Infrastructure
+### Shared
 
-- **Shared Infrastructure** (`internal/shared/`): Cross-domain shared components
+- **Shared Infrastructure** (`internal/infastructure/`): Cross-domain shared infastructures
   - **Database** (`database/`): GORM client and connection management
   - **Middleware** (`middleware/`): Authentication, validation, CORS
   - **Config** (`config/`): Application configuration
+- **Shared Components** (`internal/shared/`): Cross-domain shared components
   - **Utils** (`utils/`): Shared utilities and helpers
   - **Types** (`types/`): Shared Go types and interfaces
 
@@ -61,7 +62,7 @@ Each domain package contains its complete Clean Architecture implementation:
 
 ### Prerequisites
 
-- Go 1.21+ installed
+- Go 1.24+ installed
 - Docker & Docker Compose
 - Air for hot reload (optional)
 
@@ -148,26 +149,26 @@ air
 │   │       ├── routes/
 │   │       ├── models/
 │   │       └── tests/
-│   └── infrastructure/              # Shared infrastructure
-│       ├── database/
-│       │   ├── connection.go
-│       │   └── base_repository.go
-│       ├── middleware/
-│       │   ├── auth_middleware.go
-│       │   ├── cors_middleware.go
-│       │   └── validation_middleware.go
-│       ├── config/
-│       │   └── app_config.go
-│       ├── utils/
-│       │   ├── uuidv7.go    # UUIDv7 generator
-│       │   ├── response.go
-│       │   └── validation.go
+│   ├── infrastructure/              # Shared infrastructure
+│   │   ├── database/
+│   │   │   ├── connection.go
+│   │   │   └── base_repository.go
+│   │   ├── middleware/
+│   │   │   ├── auth_middleware.go
+│   │   │   ├── cors_middleware.go
+│   │   │   └── validation_middleware.go
+│   │   └── config/
+│   │       └── app_config.go
+│   └── shared/              # Shared components
 │       ├── types/
 │       │   └── common.go
 │       └── container/
 │           └── di_container.go
 ├── pkg/
 │   └── utils/              # Public utilities
+│       ├── uuidv7.go       # UUIDv7 generator
+│       ├── response.go
+│       └── validation.go
 ├── migrations/             # Database migration files
 ├── docs/                   # Swagger documentation
 ├── .env.example
@@ -186,14 +187,14 @@ air
 1. **Create Domain Directory Structure**
 
 ```bash
-mkdir -p internal/domains/{domain-name}/{entities,usecases,repositories,handlers,routes,models,tests}
-mkdir -p internal/domains/{domain-name}/usecases/interfaces
-mkdir -p internal/domains/{domain-name}/repositories/interfaces
+mkdir -p internal/{domain-name}/{entities,usecases,repositories,handlers,routes,models,tests}
+mkdir -p internal/{domain-name}/usecases/interfaces
+mkdir -p internal/{domain-name}/repositories/interfaces
 ```
 
 2. **Define Domain Entity with UUIDv7**
 
-Create entity in `internal/domains/{domain}/entities/` with UUIDv7 ID:
+Create entity in `internal/{domain}/entities/` with UUIDv7 ID:
 
 ```go
 package entities
@@ -219,25 +220,25 @@ func (e *DomainEntity) BeforeCreate(tx *gorm.DB) error {
 
 3. **Create Domain Models**
 
-Define request/response DTOs in `internal/domains/{domain}/models/`.
+Define request/response DTOs in `internal/{domain}/models/`.
 
 4. **Implement Repository Interface & Implementation**
 
-- Interface in `internal/domains/{domain}/repositories/interfaces/`
-- Implementation in `internal/domains/{domain}/repositories/`
+- Interface in `internal/{domain}/repositories/interfaces/`
+- Implementation in `internal/{domain}/repositories/`
 
 5. **Implement Use Case Interface & Implementation**
 
-- Interface in `internal/domains/{domain}/usecases/interfaces/`
-- Implementation in `internal/domains/{domain}/usecases/`
+- Interface in `internal/{domain}/usecases/interfaces/`
+- Implementation in `internal/{domain}/usecases/`
 
 6. **Implement Handlers**
 
-Create HTTP handlers in `internal/domains/{domain}/handlers/`.
+Create HTTP handlers in `internal/{domain}/handlers/`.
 
 7. **Define Routes**
 
-Create routes in `internal/domains/{domain}/routes/` and register in app.
+Create routes in `internal/{domain}/routes/` and register in app.
 
 8. **Add Database Model**
 
@@ -258,7 +259,7 @@ Update `internal/shared/container/di_container.go` with new domain services usin
 
 10. **Write Domain Tests**
 
-Create comprehensive tests in `internal/domains/{domain}/tests/`.
+Create comprehensive tests in `internal/{domain}/tests/`.
 
 11. **Generate API Documentation**
 
