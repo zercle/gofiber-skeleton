@@ -45,7 +45,7 @@
 ├── pkg/utils/                  # Public utilities
 ├── migrations/
 ├── docs/
-└── docker-compose.yml
+└── compose.yml
 ```
 
 ## Quick Start

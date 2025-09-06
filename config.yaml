@@ -1,0 +1,30 @@
+app:
+  name: "gofiber-skeleton"
+  version: "1.0.0"
+  port: "3000"
+  environment: "development"
+
+database:
+  url: "postgres://gofiber:password@localhost:5432/gofiber_skeleton?sslmode=disable"
+  max_open_conns: 25
+  max_idle_conns: 25
+  conn_max_lifetime: "1h"
+  conn_max_idle_time: "30m"
+
+jwt:
+  secret: "your-super-secret-jwt-key-change-this-in-production"
+  expires_in: "24h"
+  issuer: "gofiber-skeleton"
+
+redis:
+  url: "redis://localhost:6379"
+  password: ""
+  db: 0
+
+cors:
+  allow_origins: ["*"]
+  allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  allow_headers: ["Origin", "Content-Type", "Accept", "Authorization"]
+  expose_headers: []
+  allow_credentials: true
+  max_age: 3600
