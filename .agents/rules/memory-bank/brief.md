@@ -43,9 +43,11 @@
 │       ├── types/
 │       └── container/
 ├── pkg/utils/                  # Public utilities
-├── migrations/
+├── db/
+│   ├── queries/
+│   └── migrations/
 ├── docs/
-└── docker-compose.yml
+└── compose.yml
 ```
 
 ## Quick Start
@@ -107,14 +109,42 @@ go build -o bin/server cmd/server/main.go
 ```env
 PORT=3000
 ENV=development
-DATABASE_URL=postgres://user:pass@localhost:5432/db?sslmode=disable
+
+# Database (canonical)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=gofiber_skeleton
+DB_SCHEMA=public
+DB_SSLMODE=disable
+# Optional fallback if DB_* is not provided by the environment
+DB_URL=postgres://postgres:postgres@localhost:5432/gofiber_skeleton?sslmode=disable
+
+# Auth
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=24h
-REDIS_URL=redis://localhost:6379
+
+# Cache (canonical)
+VALKEY_HOST=localhost
+VALKEY_PORT=6379
+VALKEY_PASSWORD=
+VALKEY_DB=0
+# Optional fallback if VALKEY_* is not provided by the environment
+VALKEY_URL=redis://localhost:6379
+
+# CORS
 CORS_ORIGINS=*
+# Notes:
+# - DATABASE_URL is deprecated in favor of DB_* or DB_URL fallback
+# - REDIS_URL is deprecated in favor of VALKEY_* or VALKEY_URL fallback
 ```
+
+Precedence and fallback rules:
+- Database: Prefer DB_* vars. If DB_* are not set, accept DB_URL. If both are present, DB_* take precedence. DATABASE_URL remains deprecated.
+- Valkey: Prefer VALKEY_* vars. If VALKEY_* are not set, accept VALKEY_URL. If both are present, VALKEY_* take precedence. REDIS_URL remains deprecated.
 
 ## Docker Setup
 - Multi-stage Dockerfile for production builds
-- Docker Compose with PostgreSQL and Redis
+- Docker Compose with PostgreSQL and Valkey
 - Volume persistence for data

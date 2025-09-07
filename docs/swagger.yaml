@@ -1,0 +1,735 @@
+basePath: /api/v1
+definitions:
+  jsend.JSendResponse:
+    properties:
+      code:
+        description: Optional error code
+        type: integer
+      data:
+        description: Data for success/fail
+      message:
+        description: Error message for error
+        type: string
+      status:
+        description: '"success", "fail", or "error"'
+        type: string
+    type: object
+  models.ChangePasswordRequest:
+    properties:
+      confirm_password:
+        type: string
+      current_password:
+        type: string
+      new_password:
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - current_password
+    - new_password
+    type: object
+  models.CreatePostRequest:
+    properties:
+      content:
+        minLength: 10
+        type: string
+      is_published:
+        type: boolean
+      title:
+        maxLength: 200
+        minLength: 1
+        type: string
+    required:
+    - content
+    - title
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.LoginResponse:
+    properties:
+      expires_at:
+        type: string
+      refresh_token:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserData'
+    type: object
+  models.PostListResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      posts:
+        items:
+          $ref: '#/definitions/models.PostWithAuthorResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+  models.PostResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_published:
+        type: boolean
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.PostWithAuthorResponse:
+    properties:
+      author_email:
+        type: string
+      author_first_name:
+        type: string
+      author_full_name:
+        type: string
+      author_last_name:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_published:
+        type: boolean
+      published_at:
+        type: string
+      slug:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  models.RefreshTokenResponse:
+    properties:
+      expires_at:
+        type: string
+      token:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - confirm_password
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  models.RegisterResponse:
+    properties:
+      expires_at:
+        type: string
+      refresh_token:
+        type: string
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserData'
+    type: object
+  models.UpdatePostRequest:
+    properties:
+      content:
+        minLength: 10
+        type: string
+      is_published:
+        type: boolean
+      title:
+        maxLength: 200
+        minLength: 1
+        type: string
+    type: object
+  models.UserData:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_email_verified:
+        type: boolean
+      last_login_at:
+        type: string
+      last_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: A production-ready Go Fiber backend template with clean architecture
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: GoFiber Skeleton API
+  version: "1.0"
+paths:
+  /auth/change-password:
+    put:
+      consumes:
+      - application/json
+      description: Change the authenticated user's password
+      parameters:
+      - description: Password change data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with email and password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: User login
+      tags:
+      - auth
+  /auth/profile:
+    get:
+      description: Get authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.UserData'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generate new access token using refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RefreshTokenResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: Registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.RegisterResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: User registration
+      tags:
+      - auth
+  /posts:
+    get:
+      description: Retrieve a paginated list of posts
+      parameters:
+      - default: 20
+        description: Number of posts to return
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of posts to skip
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by published status
+        in: query
+        name: published
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: List posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new blog post
+      parameters:
+      - description: Post data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new post
+      tags:
+      - posts
+  /posts/{id}:
+    delete:
+      description: Delete an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a post
+      tags:
+      - posts
+    get:
+      description: Retrieve a specific post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostWithAuthorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: Get a post by ID
+      tags:
+      - posts
+    put:
+      consumes:
+      - application/json
+      description: Update an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update post data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a post
+      tags:
+      - posts
+  /posts/{id}/publish:
+    patch:
+      description: Publish an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Publish a post
+      tags:
+      - posts
+  /posts/{id}/unpublish:
+    patch:
+      description: Unpublish an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: Unpublish a post
+      tags:
+      - posts
+  /posts/my-posts:
+    get:
+      description: Retrieve a paginated list of the authenticated user's posts
+      parameters:
+      - default: 20
+        description: Number of posts to return
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Number of posts to skip
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostListResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      security:
+      - BearerAuth: []
+      summary: List user's posts
+      tags:
+      - posts
+  /posts/slug/{slug}:
+    get:
+      description: Retrieve a specific post by its slug
+      parameters:
+      - description: Post Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/jsend.JSendResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.PostWithAuthorResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/jsend.JSendResponse'
+      summary: Get a post by slug
+      tags:
+      - posts
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

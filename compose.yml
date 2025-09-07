@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: gofiber_postgres
+    environment:
+      POSTGRES_DB: gofiber_skeleton
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - gofiber_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: gofiber_valkey
+    ports:
+      - "6379:6379"
+    command: valkey-server --appendonly yes
+    volumes:
+      - valkey_data:/data
+    networks:
+      - gofiber_network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dbgate:
+    image: dbgate/dbgate
+    container_name: gofiber_dbgate
+    ports:
+      - "8080:3000"
+    environment:
+      CONNECTIONS: pg_conn
+
+      LABEL_pg_conn: Postgres
+      SERVER_pg_conn: postgres
+      USER_pg_conn: postgres
+      PASSWORD_pg_conn: postgres
+      PORT_pg_conn: 5432
+      ENGINE_pg_conn: postgres@dbgate-plugin-postgres
+
+    depends_on:
+      - postgres
+    networks:
+      - gofiber_network
+
+  gofiber-skeleton:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gofiber_app
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    environment:
+      # Application config
+      PORT: ${PORT:-3000}
+      ENV: ${ENV:-development}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # Database config (canonical DB_* take precedence over DB_URL)
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-gofiber_skeleton}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      DB_URL: ${DB_URL} # fallback
+      # Valkey config (canonical VALKEY_* take precedence over VALKEY_URL)
+      VALKEY_HOST: valkey
+      VALKEY_PORT: ${VALKEY_PORT:-6379}
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD}
+      VALKEY_DB: ${VALKEY_DB:-0}
+      VALKEY_URL: ${VALKEY_URL} # fallback
+    depends_on:
+      - postgres
+      - valkey
+    networks:
+      - gofiber_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - .:/app # Mount current directory to /app inside container for hot reload (dev only)
+      - gofiber_app_data:/data # Volume for persistent application data (if any)
+
+volumes:
+  postgres_data:
+  valkey_data:
+  gofiber_app_data: # New volume for the GoFiber app
+
+networks:
+  gofiber_network:
+    driver: bridge
