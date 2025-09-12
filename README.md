@@ -49,3 +49,19 @@ See [`.agents/rules/memory-bank/brief.md`](.agents/rules/memory-bank/brief.md) f
 - [Product Overview](.agents/rules/memory-bank/product.md)
 - [Architecture](.agents/rules/memory-bank/architecture.md)
 - [Tech Stack](.agents/rules/memory-bank/tech.md)
+
+## Planned Simplified Layout
+
+This project is undergoing a refactor to a more simplified and SOLID-friendly package layout. New directories have been introduced to reflect this structure:
+
+- `internal/platform`: For framework/adapter specific bootstrap logic (e.g., Fiber server).
+- `internal/domains/<domain>/api`: HTTP adapters for domain-specific endpoints.
+- `internal/domains/<domain>/biz`: Use cases and business logic for specific domains.
+- `internal/domains/<domain>/store`: Repository implementations for specific domains.
+- `internal/infrastructure/logging`: Logging adapter.
+- `internal/infrastructure/trace`: Tracing adapter.
+- `internal/shared/di`: Dependency Injection helpers and Fx module stubs.
+- `internal/shared/pkg`: Common small utilities.
+- `pkg`: Public utilities for cross-repository reuse.
+
+For a detailed explanation of the new architecture, refer to the [Memory Bank: Architecture](.agents/rules/memory-bank/architecture.md) document.

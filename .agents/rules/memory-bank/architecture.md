@@ -18,6 +18,10 @@ Related docs:
 - Configuration is centralized using Viper with support for config files, environment variables, and sensible defaults.
 - Responses follow jsend formatting for consistency across success, fail, and error outcomes.
 
+## Design Principles
+- Simplicity: favor straightforward Go idioms and minimal abstractions over unnecessary complexity.
+- SOLID: enforce single responsibility, open–closed, Liskov substitution, interface segregation, and dependency inversion principles in package and module design.
+
 ## Codebase Structure (target)
 
 ```
@@ -46,6 +50,30 @@ Related docs:
 │       └── container/
 ├── db/
 │   ├── migrations/             # All SQL migrations (only here)
+### Proposed Simplified Directory Layout
+
+```mermaid
+flowchart TD
+  root[.]
+  root --> cmd
+  cmd --> server[server main.go]
+  cmd --> migrate[migrate main.go]
+  root --> internal
+  internal --> domains
+  domains --> auth
+  domains --> posts
+  internal --> infrastructure
+  infrastructure --> config
+  infrastructure --> database
+  internal --> shared
+  shared --> types
+  shared --> container
+  root --> db
+  db --> migrations
+  db --> queries
+  root --> docs
+  root --> composeyml[compose.yml]
+```
 │   └── queries/                # All SQL query files for sqlc (centralized)
 ├── docs/
 └── compose.yml

@@ -3,7 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/zercle/gofiber-skeleton/internal/domains/posts/handlers"
+	"github.com/zercle/gofiber-skeleton/internal/domains/posts/api"
 	"github.com/zercle/gofiber-skeleton/internal/domains/posts/repositories"
 	"github.com/zercle/gofiber-skeleton/internal/domains/posts/usecases"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
@@ -14,7 +14,7 @@ func RegisterRoutes(router fiber.Router, db *database.Database, authMiddleware f
 	// Initialize repository, usecase, and handler
 	postRepo := repositories.NewPostRepository(db)
 	postUseCase := usecases.NewPostUseCase(postRepo)
-	postHandler := handlers.NewPostHandler(postUseCase)
+	postHandler := api.NewPostHandler(postUseCase)
 
 	posts := router.Group("/posts")
 

@@ -20,6 +20,9 @@ Related docs:
     - Cache: Prefer VALKEY_*; if not set, accept VALKEY_URL; if both present, VALKEY_* take precedence; REDIS_URL is deprecated.
   - Each domain provides its own mocks under [`internal/domains/<domain>/mocks`](internal/domains/) generated via go.uber.org/mock/mockgen; DB-layer tests use DATA-DOG/go-sqlmock.
 
+## Current Focus
+- Revise code structure for simplicity and SOLID-driven clean architecture to improve maintainability and extensibility.
+
 ## Repository Snapshot
 
 - Module: see [`go.mod`](go.mod)
@@ -92,6 +95,7 @@ Notes:
 All previous next steps have been addressed, including:
 
 1. ✅ Update domain tests to rely on mocks and `go-sqlmock` (Completed)
+2. ⬜ Revise code structure for simplicity and SOLID-driven clean architecture (Pending)
 
 The project now has comprehensive test coverage with proper isolation.
 

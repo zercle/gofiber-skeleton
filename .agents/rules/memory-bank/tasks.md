@@ -252,3 +252,20 @@ Gotchas:
 Notes:
 - Client compatibility: Valkey maintains Redis protocol compatibility; common Redis clients (including go-redis) work without code changes
 - Version alignment: Adopt Valkey v8 for local and CI parity
+
+## Refactor Code Structure for Simplicity and SOLID
+
+Files to modify:
+- .agents/rules/memory-bank/architecture.md
+- .agents/rules/memory-bank/context.md
+- .agents/rules/memory-bank/tasks.md
+- .agents/rules/memory-bank/tech.md
+
+Steps:
+1) Define desired simplified layout and principles in memory bank.
+2) Update code organization (packages, folder structure) per layout.
+3) Adjust DI container registrations to reflect new module boundaries.
+4) Update import paths and go.mod requires as needed.
+5) Run build, tests, and validate behavior.
+6) Update architecture diagram in memory bank.
+7) Commit and push changes.
