@@ -16,7 +16,7 @@ import (
 )
 
 type userRepository struct {
-	q *sqldb.Queries
+	q sqldb.Querier
 }
 
 // NewUserRepository creates a new UserRepository.
