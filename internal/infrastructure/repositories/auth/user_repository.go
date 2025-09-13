@@ -1,4 +1,4 @@
-package repositories
+package auth_repositories
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/zercle/gofiber-skeleton/internal/domains/auth/entities"
+	auth_repositories "github.com/zercle/gofiber-skeleton/internal/domains/auth/repositories"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 	sqldb "github.com/zercle/gofiber-skeleton/internal/infrastructure/database/queries"
 )
@@ -19,7 +20,7 @@ type userRepository struct {
 }
 
 // NewUserRepository creates a new UserRepository.
-func NewUserRepository(db *database.Database) UserRepository {
+func NewUserRepository(db *database.Database) auth_repositories.UserRepository {
 	return &userRepository{q: sqldb.New(db.Pool)}
 }
 

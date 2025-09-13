@@ -92,12 +92,11 @@ Notes:
 
 ## Next Steps (Prioritized)
 
-All previous next steps have been addressed, including:
-
-1. ✅ Update domain tests to rely on mocks and `go-sqlmock` (Completed)
-2. ⬜ Revise code structure for simplicity and SOLID-driven clean architecture (Pending)
-
-The project now has comprehensive test coverage with proper isolation.
+1. ⬜ Refactor codebase to adopt layered clean architecture separation of concerns.
+2. ⬜ Update DI container registrations to reflect new module boundaries.
+3. ⬜ Update import paths and Go module references according to the new folder structure.
+4. ⬜ Run build and test suite to validate architecture refactor.
+5. ⬜ Commit and push Memory Bank and code changes.
 
 ## Follow-up Implementation Plan
 

@@ -4,18 +4,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/zercle/gofiber-skeleton/internal/domains/posts/api"
-	"github.com/zercle/gofiber-skeleton/internal/domains/posts/repositories"
 	"github.com/zercle/gofiber-skeleton/internal/domains/posts/usecases"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 )
 
 // RegisterRoutes registers all posts module routes.
-func RegisterRoutes(router fiber.Router, db *database.Database, authMiddleware fiber.Handler) {
-	// Initialize repository, usecase, and handler
-	postRepo := repositories.NewPostRepository(db)
-	postUseCase := usecases.NewPostUseCase(postRepo)
-	postHandler := api.NewPostHandler(postUseCase)
-
+func RegisterRoutes(router fiber.Router, postUseCase usecases.PostUseCase, postHandler api.PostHandler, authMiddleware fiber.Handler) {
 	posts := router.Group("/posts")
 
 	// Public routes

@@ -10,6 +10,9 @@ import (
 	authUseCase "github.com/zercle/gofiber-skeleton/internal/domains/auth/usecases"
 	postRepo "github.com/zercle/gofiber-skeleton/internal/domains/posts/repositories"
 	postUseCase "github.com/zercle/gofiber-skeleton/internal/domains/posts/usecases"
+
+	infraAuthRepo "github.com/zercle/gofiber-skeleton/internal/infrastructure/repositories/auth"
+	infraPostRepo "github.com/zercle/gofiber-skeleton/internal/infrastructure/repositories/posts"
 )
 
 // InfrastructureModule provides common infrastructure components.
@@ -24,14 +27,14 @@ var InfrastructureModule = fx.Options(
 
 // AuthModule provides all components for the Auth domain.
 var AuthModule = fx.Options(
-	fx.Provide(authRepo.NewUserRepository),
+	fx.Provide(fx.Annotate(infraAuthRepo.NewUserRepository, fx.As(new(authRepo.UserRepository)))),
 	fx.Provide(authUseCase.NewAuthUseCase),
 	// fx.Provide(authHandler.NewAuthHandler), // Handlers will be added later
 )
 
 // PostModule provides all components for the Post domain.
 var PostModule = fx.Options(
-	fx.Provide(postRepo.NewPostRepository),
+	fx.Provide(fx.Annotate(infraPostRepo.NewPostRepository, fx.As(new(postRepo.PostRepository)))),
 	fx.Provide(postUseCase.NewPostUseCase),
 	// fx.Provide(postHandler.NewPostHandler), // Handlers will be added later
 )

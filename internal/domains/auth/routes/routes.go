@@ -4,19 +4,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/zercle/gofiber-skeleton/internal/domains/auth/handlers"
-	"github.com/zercle/gofiber-skeleton/internal/domains/auth/repositories"
 	"github.com/zercle/gofiber-skeleton/internal/domains/auth/usecases"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 )
 
 // RegisterRoutes registers all auth module routes.
-func RegisterRoutes(router fiber.Router, db *database.Database, cfg *config.Config, authMiddleware fiber.Handler) {
-	// Initialize repository, usecase, and handler
-	userRepo := repositories.NewUserRepository(db)
-	authUseCase := usecases.NewAuthUseCase(userRepo, cfg)
-	authHandler := handlers.NewAuthHandler(authUseCase)
-
+func RegisterRoutes(router fiber.Router, authUseCase usecases.AuthUseCase, authHandler handlers.AuthHandler, authMiddleware fiber.Handler) {
 	auth := router.Group("/auth")
 
 	// Public routes

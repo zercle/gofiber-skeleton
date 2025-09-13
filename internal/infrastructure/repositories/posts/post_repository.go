@@ -1,4 +1,4 @@
-package repositories
+package post_repositories
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/zercle/gofiber-skeleton/internal/domains/posts/entities"
+	post_repositories "github.com/zercle/gofiber-skeleton/internal/domains/posts/repositories"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 	sqldb "github.com/zercle/gofiber-skeleton/internal/infrastructure/database/queries"
 )
@@ -18,7 +19,7 @@ type postRepository struct {
 	q *sqldb.Queries
 }
 
-func NewPostRepository(db *database.Database) PostRepository {
+func NewPostRepository(db *database.Database) post_repositories.PostRepository {
 	return &postRepository{q: sqldb.New(db.Pool)}
 }
 

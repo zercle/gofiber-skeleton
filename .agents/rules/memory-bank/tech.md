@@ -7,6 +7,9 @@ Related docs:
 - Product: [.agents/rules/memory-bank/product.md](.agents/rules/memory-bank/product.md)
 - Architecture: [.agents/rules/memory-bank/architecture.md](.agents/rules/memory-bank/architecture.md)
 - Tasks: [.agents/rules/memory-bank/tasks.md](.agents/rules/memory-bank/tasks.md)
+## Simplified Layered Architecture
+
+Refer to the Clean Architecture diagram in [architecture.md](.agents/rules/memory-bank/architecture.md:82) for the presentation, application, domain, infrastructure, and shared layer boundaries.
 
 ## Languages and Runtime
 

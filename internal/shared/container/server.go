@@ -12,9 +12,13 @@ import (
 	authRoutes "github.com/zercle/gofiber-skeleton/internal/domains/auth/routes"
 	postsRoutes "github.com/zercle/gofiber-skeleton/internal/domains/posts/routes"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/config"
-	"github.com/zercle/gofiber-skeleton/internal/infrastructure/database"
 	"github.com/zercle/gofiber-skeleton/internal/infrastructure/middleware"
 	"github.com/zercle/gofiber-skeleton/internal/shared/jsend"
+
+authHandler "github.com/zercle/gofiber-skeleton/internal/domains/auth/handlers"
+authUseCase "github.com/zercle/gofiber-skeleton/internal/domains/auth/usecases"
+postApi "github.com/zercle/gofiber-skeleton/internal/domains/posts/api"
+postUseCase "github.com/zercle/gofiber-skeleton/internal/domains/posts/usecases"
 )
 
 // NewFiberApp creates a new Fiber application with global middlewares.
@@ -42,8 +46,11 @@ func NewFiberApp(
 func RegisterRoutes(
 	app *fiber.App,
 	cfg *config.Config,
-	db *database.Database,
 	auth middleware.AuthMiddleware,
+	authHandler authHandler.AuthHandler,
+	authUseCase authUseCase.AuthUseCase,
+	postHandler postApi.PostHandler,
+	postUseCase postUseCase.PostUseCase,
 ) {
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -69,9 +76,8 @@ func RegisterRoutes(
 	}
 
 	// Register domain routes
-	// TODO: Replace direct database and config passing with fx-injected dependencies
-	authRoutes.RegisterRoutes(v1, db, cfg, fiber.Handler(auth))
-	postsRoutes.RegisterRoutes(v1, db, fiber.Handler(auth))
+	authRoutes.RegisterRoutes(v1, authUseCase, authHandler, fiber.Handler(auth))
+	postsRoutes.RegisterRoutes(v1, postUseCase, postHandler, fiber.Handler(auth))
 
 	// Protected routes (example)
 	protected := v1.Group("/protected")

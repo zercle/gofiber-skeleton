@@ -79,6 +79,42 @@ flowchart TD
 └── compose.yml
 ```
 
+## Layered Clean Architecture Overview
+
+```mermaid
+flowchart LR
+    subgraph Presentation
+        CMD[cmd/server\ncmd/migrate]
+        HANDLERS[internal/domains/*/handlers\ninternal/domains/*/routes]
+    end
+    subgraph Application
+        USECASES[internal/domains/*/usecases]
+    end
+    subgraph Domain
+        ENTITIES[internal/domains/*/entities]
+        MODELS[internal/domains/*/models]
+    end
+    subgraph Infrastructure
+        DB_ADAPTER[internal/infrastructure/database]
+        CFG[internal/infrastructure/config]
+        MID[internal/infrastructure/middleware]
+    end
+    subgraph Shared
+        SHARED[internal/shared]
+    end
+    CMD --> HANDLERS
+    HANDLERS --> USECASES
+    USECASES --> ENTITIES & MODELS
+    USECASES --> DB_ADAPTER
+    USECASES -.-> CFG
+    HANDLERS -.-> CFG
+    SHARED --> CMD
+    SHARED --> HANDLERS
+    SHARED --> USECASES
+    SHARED --> ENTITIES
+    SHARED --> MODELS
+    SHARED --> DB_ADAPTER
+```
 Notes:
 - All migrations and SQL query files are consolidated under [db](db).
 - No queries or migrations should live under internal/* or top-level migrations/; the legacy [migrations](migrations) path is deprecated.

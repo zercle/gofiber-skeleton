@@ -253,7 +253,7 @@ Notes:
 - Client compatibility: Valkey maintains Redis protocol compatibility; common Redis clients (including go-redis) work without code changes
 - Version alignment: Adopt Valkey v8 for local and CI parity
 
-## Refactor Code Structure for Simplicity and SOLID
+## Refactor Code Structure for Layered Clean Architecture and SOLID
 
 Files to modify:
 - .agents/rules/memory-bank/architecture.md
@@ -262,10 +262,9 @@ Files to modify:
 - .agents/rules/memory-bank/tech.md
 
 Steps:
-1) Define desired simplified layout and principles in memory bank.
-2) Update code organization (packages, folder structure) per layout.
+1) Define layered clean architecture layout and principles in memory bank (see architecture.md).
+2) Update code organization (packages, folder structure) to match Presentation, Application, Domain, Infrastructure, and Shared layers.
 3) Adjust DI container registrations to reflect new module boundaries.
-4) Update import paths and go.mod requires as needed.
-5) Run build, tests, and validate behavior.
-6) Update architecture diagram in memory bank.
-7) Commit and push changes.
+4) Update import paths and go.mod module references as needed.
+5) Run build and test suite to validate refactor.
+6) Commit and push Memory Bank and code changes.
