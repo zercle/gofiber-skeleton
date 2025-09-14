@@ -20,35 +20,39 @@ The architecture is organized around individual features, each encapsulated with
 ```text
 project/
 ├── cmd/
-│   └── app/
+│   └── server/
 │       └── main.go      # Main application logic
 ├── internal/
-│   ├── user/            # Feature: User
-│   │   ├── handler/      # User-specific HTTP Handlers
-│   │   ├── usecase/      # User-specific Business Logic
-│   │   ├── repository/   # User-specific Data Access
-│   │   └── user.go       # User models & interfaces
-│   ├── product/         # Feature: Product
-│   │   ├── handler/      # Product-specific HTTP Handlers
-│   │   ├── usecase/      # Product-specific Business Logic
-│   │   ├── repository/   # Product-specific Data Access
-│   │   └── product.go    # Product models & interfaces
-│   └── order/           # Feature: Order
-│       ├── handler/      # Order-specific HTTP Handlers
-│       ├── usecase/      # Order-specific Business Logic
-│       ├── repository/   # Order-specific Data Access
-│       └── order.go      # Order models & interfaces
+│   ├── config/          # Configuration loading
+│   ├── db/              # Database connections and models
+│   ├── user/            # Feature: User (entity, model, repository, usecase, handler, middleware, tests)
+│   │   ├── entity/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── usecase/
+│   │   ├── handler/
+│   │   ├── middleware/
+│   │   └── tests/
+│   ├── post/            # Feature: Post (entity, model, repository, usecase, handler, middleware, tests)
+│   │   ├── entity/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   ├── usecase/
+│   │   ├── handler/
+│   │   ├── middleware/
+│   │   └── tests/
+│   └── server/          # Fiber router setup
 ├── db/                  # SQL files
 │   ├── migrations/      # Database migration scripts
 │   └── queries/         # sqlc query definitions
-├── pkg/                 # Shared utilities or helpers
-│   └── logger.go        # Logging utilities
-├── configs/             # Configuration files
+├── migrations/          # SQL schema migrations
 ├── go.mod               # Go module definition
 └── go.sum               # Go module checksum file
 ```
 
 This feature-based structure enhances modularity by keeping feature logic self-contained, reducing dependencies across unrelated features, and improving maintainability as the application grows.
+
+Implemented user authentication and post CRUD features under `internal/user` and `internal/post`. User authentication uses `golang.org/x/crypto/bcrypt` for password hashing and `github.com/golang-jwt/jwt/v4` for JWT-based sessions.
 
 ## Dependency Flow
 
@@ -63,6 +67,7 @@ Dependencies generally flow inwards:
 -   **sqlc for Type-Safe SQL:** Eliminates manual SQL query writing and reduces runtime errors by generating Go code from SQL.
 -   **golang-migrate/migrate:** Ensures controlled and versioned database schema evolution.
 -   **JWT for Authentication:** Stateless, scalable authentication mechanism.
+-   **User Auth Dependencies:** Password hashing with `golang.org/x/crypto/bcrypt` and JWT sessions via `github.com/golang-jwt/jwt/v4`.
 -   **Mono-repo with Domain Separation:** Allows for shared tooling and simplified dependency management while maintaining strong domain boundaries.
 -   **JSend Compliant Responses:** Standardized API response format for consistency and clarity.
 

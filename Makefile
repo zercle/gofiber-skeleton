@@ -18,3 +18,17 @@ migrate:
 
 test:
 	go test ./...
+
+generate-docs:
+	swag init -g cmd/server/main.go --output ./docs
+
+sqlc:
+	sqlc generate
+
+lint:
+	golangci-lint run
+
+test-race:
+	go test ./... -race
+
+ci: fmt sqlc lint test-race build generate-docs

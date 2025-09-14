@@ -21,14 +21,13 @@ This document captures the context for reinitializing the Go Fiber backend templ
 - Database: PostgreSQL (supported by `golang-migrate/migrate` and `sqlc`).
 - Testing strategy: Interface mocks for repositories, unit tests for usecases and handlers, integration tests for database.
 
-## 4. Next Steps
+## 4. Current Development Focus & Next Actionable Steps
 
-- Scaffold new feature folders: `internal/user` and `internal/post` with subdirectories for handler, usecase, repository, entity, model, and tests.
-- Add migration scripts for `users` and `posts` tables under `db/migrations`.
-- Generate SQL query definitions under `db/queries` and run `sqlc` to produce type-safe code.
-- Implement user registration and login handlers with password hashing and JWT issuance.
-- Implement post handlers for CRUD operations, secured behind authentication middleware.
-- Update routing in `cmd/app/main.go` to wire feature routes.
-- Verify work quality with:
-  ```bash
-  go generate ./... && golangci-lint run --fix ./... && go clean -testcache && go test -v -race ./...
+- User authentication and post CRUD features have been fully implemented and tested.
+- Dependencies updated in `go.mod` and `go.sum`.
+- Code quality checks (linting, vetting, testing) have passed successfully.
+
+## 5. Next Actionable Steps
+
+- Configure CI/CD pipeline for automated builds, testing, and linting.
+- Generate API documentation (Swagger/OpenAPI) for User and Post endpoints.

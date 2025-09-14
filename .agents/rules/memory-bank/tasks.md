@@ -1,5 +1,7 @@
 # Common Task Workflows: Go Fiber Forum Backend
 
+**Last performed:** 2025-09-14
+
 This document outlines the workflow for reinitializing the Go Fiber backend template to a feature-based structure and implementing a simple blog post feature with authentication.
 
 ## 0. Reinitialize Project Structure
@@ -12,8 +14,12 @@ This document outlines the workflow for reinitializing the Go Fiber backend temp
 - `architecture.md`
 - `context.md`
 - `tasks.md`
-- `features.md`
-- Project directories: `cmd/app/main.go`, `internal/user/`, `internal/post/`, `db/migrations/`, `db/queries/`
+- `go.mod`
+- `go.sum`
+- `internal/user/`
+- `internal/post/`
+- `db/migrations/`
+- `db/queries/`
 
 **Step-by-step Process:**
 
