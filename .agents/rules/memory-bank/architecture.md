@@ -11,49 +11,44 @@ This project is built upon a **Domain-Driven Clean Architecture** within a **mon
 5.  **Abstraction-Driven Development:** Public components interact with abstractions (interfaces) rather than concrete implementations, promoting flexibility and testability.
 6.  **Composition over Inheritance:** Favoring smaller, purpose-specific abstractions.
 
-## Layered Architecture Overview
+## Feature-Based Architecture Overview
 
-The architecture generally follows a layered approach, though the mono-repo structure allows for domain-specific layering.
+The architecture is organized around individual features, each encapsulated within its own directory structure. This design prioritizes feature cohesion and simplifies navigation by grouping all code related to a specific feature (handlers, usecases, repositories, tests, configs) together.
 
-### 1. Entrypoints/Applications (`cmd/`)
--   Contains the main application entry points (e.g., `cmd/server/main.go`, `cmd/migrate/main.go`).
--   Responsible for bootstrapping the application, setting up dependency injection, and starting the server or executing commands.
+### Directory Layout
 
-### 2. API/Transport Layer (`internal/app/http/`, `internal/shared/server/`)
--   Defines API routes, request/response models, and marshaling/unmarshaling.
--   Includes middleware for common concerns like authentication, logging, and error recovery.
--   Interacts with the `handlers` Layer.
--   Handles external communication, primarily HTTP requests using the Fiber v2 framework.
--   Defines API routes, request/response models, and marshaling/unmarshaling.
--   Includes middleware for common concerns like authentication, logging, and error recovery.
--   Interacts with the Application/Service Layer.
+```text
+project/
+├── cmd/
+│   └── app/
+│       └── main.go      # Main application logic
+├── internal/
+│   ├── user/            # Feature: User
+│   │   ├── handler/      # User-specific HTTP Handlers
+│   │   ├── usecase/      # User-specific Business Logic
+│   │   ├── repository/   # User-specific Data Access
+│   │   └── user.go       # User models & interfaces
+│   ├── product/         # Feature: Product
+│   │   ├── handler/      # Product-specific HTTP Handlers
+│   │   ├── usecase/      # Product-specific Business Logic
+│   │   ├── repository/   # Product-specific Data Access
+│   │   └── product.go    # Product models & interfaces
+│   └── order/           # Feature: Order
+│       ├── handler/      # Order-specific HTTP Handlers
+│       ├── usecase/      # Order-specific Business Logic
+│       ├── repository/   # Order-specific Data Access
+│       └── order.go      # Order models & interfaces
+├── db/                  # SQL files
+│   ├── migrations/      # Database migration scripts
+│   └── queries/         # sqlc query definitions
+├── pkg/                 # Shared utilities or helpers
+│   └── logger.go        # Logging utilities
+├── configs/             # Configuration files
+├── go.mod               # Go module definition
+└── go.sum               # Go module checksum file
+```
 
-### 3. Application/Service Layer (`internal/domains/<domain>/usecases/`)
--   Orchestrates business logic and use cases for specific domains.
--   Contains domain-specific services that coordinate operations across multiple domain entities and interact with repositories.
--   Does not contain framework-specific code.
--   Defines interfaces for external dependencies (e.g., repositories, external services).
-
-### 4. Domain Models (`internal/domains/<domain>/entities/`, `internal/domains/<domain>/models/`)
--   Represents the core business concepts and rules.
--   `entities/`: Contains the rich domain objects and their behaviors.
--   `models/`: Contains data transfer objects (DTOs) for input/output, often used in the API layer.
-
-### 5. Data Access Layer (`internal/domains/<domain>/repository/`, `internal/infrastructure/database/`)
--   Provides an abstraction over data persistence mechanisms.
--   `repository/`: Contains repository implementations for specific domains, adhering to interfaces defined in the Application/Service Layer.
--   `internal/infrastructure/database/`: Handles generic database connection management, SQL query generation (via sqlc), and migration logic.
-
-### 6. Shared Libraries/Utilities (`internal/shared/`, `internal/infrastructure/`)
--   Contains reusable components and utilities that are not specific to any single domain.
--   Examples:
-    -   `internal/shared/di/`: Dependency Injection helpers (Uber fx).
-    -   `internal/shared/jsend/`: JSend-compliant API response formatting.
-    -   `internal/infrastructure/config/`: Configuration loading (Viper).
-    -   `internal/infrastructure/logging/`: Centralized logging.
-    -   `internal/infrastructure/trace/`: Distributed tracing.
-    -   `internal/infrastructure/validation/`: Input validation.
-    -   `internal/infrastructure/middleware/`: Common Fiber middleware.
+This feature-based structure enhances modularity by keeping feature logic self-contained, reducing dependencies across unrelated features, and improving maintainability as the application grows.
 
 ## Dependency Flow
 
