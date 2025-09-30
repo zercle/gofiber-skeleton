@@ -2,8 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/db"
@@ -28,20 +26,19 @@ func NewPostgresPostRepository(queries *db.Queries) PostRepository {
 }
 
 func (r *postgresPostRepository) Create(ctx context.Context, p *entity.Post) error {
-	var err error
-	now := time.Now()
-	if p.ID, err = uuid.NewV7(); err != nil {
+	result, err := r.queries.CreatePost(ctx, db.CreatePostParams{
+		UserID:   p.UserID,
+		ThreadID: p.ThreadID,
+		Content:  p.Content,
+	})
+	if err != nil {
 		return err
 	}
-	p.CreatedAt = now
-	p.UpdatedAt = now
-	return r.queries.CreatePost(ctx, db.CreatePostParams{
-		UserID:    p.UserID,
-		ThreadID:  p.ThreadID,
-		Content:   p.Content,
-		CreatedAt: sql.NullTime{Time: p.CreatedAt, Valid: true},
-		UpdatedAt: sql.NullTime{Time: p.UpdatedAt, Valid: true},
-	})
+	// Update the entity with generated values
+	p.ID = result.ID
+	p.CreatedAt = result.CreatedAt.Time
+	p.UpdatedAt = result.UpdatedAt.Time
+	return nil
 }
 
 func (r *postgresPostRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error) {
@@ -79,12 +76,16 @@ func (r *postgresPostRepository) ListByUser(ctx context.Context, userID uuid.UUI
 }
 
 func (r *postgresPostRepository) Update(ctx context.Context, p *entity.Post) error {
-	p.UpdatedAt = time.Now()
-	return r.queries.UpdatePost(ctx, db.UpdatePostParams{
-		ID:        p.ID,
-		Content:   p.Content,
-		UpdatedAt: sql.NullTime{Time: p.UpdatedAt, Valid: true},
+	result, err := r.queries.UpdatePost(ctx, db.UpdatePostParams{
+		ID:      p.ID,
+		Content: p.Content,
 	})
+	if err != nil {
+		return err
+	}
+	// Update the entity with new values
+	p.UpdatedAt = result.UpdatedAt.Time
+	return nil
 }
 
 func (r *postgresPostRepository) Delete(ctx context.Context, id uuid.UUID) error {

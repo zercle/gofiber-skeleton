@@ -12,19 +12,25 @@ import (
 	"github.com/google/uuid"
 )
 
-const createPost = `-- name: CreatePost :exec
+const createPost = `-- name: CreatePost :one
 INSERT INTO posts (
     user_id,
     thread_id,
-    content,
-    created_at,
-    updated_at
+    content
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3
 )
+RETURNING id, user_id, thread_id, content, created_at, updated_at
 `
 
 type CreatePostParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	ThreadID uuid.UUID `json:"thread_id"`
+	Content  string    `json:"content"`
+}
+
+type CreatePostRow struct {
+	ID        uuid.UUID    `json:"id"`
 	UserID    uuid.UUID    `json:"user_id"`
 	ThreadID  uuid.UUID    `json:"thread_id"`
 	Content   string       `json:"content"`
@@ -32,15 +38,18 @@ type CreatePostParams struct {
 	UpdatedAt sql.NullTime `json:"updated_at"`
 }
 
-func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) error {
-	_, err := q.db.ExecContext(ctx, createPost,
-		arg.UserID,
-		arg.ThreadID,
-		arg.Content,
-		arg.CreatedAt,
-		arg.UpdatedAt,
+func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreatePostRow, error) {
+	row := q.db.QueryRowContext(ctx, createPost, arg.UserID, arg.ThreadID, arg.Content)
+	var i CreatePostRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ThreadID,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
-	return err
+	return i, err
 }
 
 const deletePost = `-- name: DeletePost :exec
@@ -53,16 +62,28 @@ func (q *Queries) DeletePost(ctx context.Context, id uuid.UUID) error {
 }
 
 const getPostByID = `-- name: GetPostByID :one
-SELECT id, thread_id, user_id, content, created_at, updated_at FROM posts WHERE id = $1 LIMIT 1
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE id = $1
+LIMIT 1
 `
 
-func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (Post, error) {
+type GetPostByIDRow struct {
+	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	ThreadID  uuid.UUID    `json:"thread_id"`
+	Content   string       `json:"content"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (GetPostByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getPostByID, id)
-	var i Post
+	var i GetPostByIDRow
 	err := row.Scan(
 		&i.ID,
-		&i.ThreadID,
 		&i.UserID,
+		&i.ThreadID,
 		&i.Content,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -70,23 +91,35 @@ func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (Post, error) {
 	return i, err
 }
 
-const listPostsByUser = `-- name: ListPostsByUser :many
-SELECT id, thread_id, user_id, content, created_at, updated_at FROM posts WHERE user_id = $1 ORDER BY created_at DESC
+const listPostsByThread = `-- name: ListPostsByThread :many
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE thread_id = $1
+ORDER BY created_at ASC
 `
 
-func (q *Queries) ListPostsByUser(ctx context.Context, userID uuid.UUID) ([]Post, error) {
-	rows, err := q.db.QueryContext(ctx, listPostsByUser, userID)
+type ListPostsByThreadRow struct {
+	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	ThreadID  uuid.UUID    `json:"thread_id"`
+	Content   string       `json:"content"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+func (q *Queries) ListPostsByThread(ctx context.Context, threadID uuid.UUID) ([]ListPostsByThreadRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPostsByThread, threadID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Post{}
+	items := []ListPostsByThreadRow{}
 	for rows.Next() {
-		var i Post
+		var i ListPostsByThreadRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.ThreadID,
 			&i.UserID,
+			&i.ThreadID,
 			&i.Content,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -104,17 +137,83 @@ func (q *Queries) ListPostsByUser(ctx context.Context, userID uuid.UUID) ([]Post
 	return items, nil
 }
 
-const updatePost = `-- name: UpdatePost :exec
-UPDATE posts SET content = $2, updated_at = $3 WHERE id = $1
+const listPostsByUser = `-- name: ListPostsByUser :many
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE user_id = $1
+ORDER BY created_at DESC
 `
 
-type UpdatePostParams struct {
+type ListPostsByUserRow struct {
 	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	ThreadID  uuid.UUID    `json:"thread_id"`
 	Content   string       `json:"content"`
+	CreatedAt sql.NullTime `json:"created_at"`
 	UpdatedAt sql.NullTime `json:"updated_at"`
 }
 
-func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) error {
-	_, err := q.db.ExecContext(ctx, updatePost, arg.ID, arg.Content, arg.UpdatedAt)
-	return err
+func (q *Queries) ListPostsByUser(ctx context.Context, userID uuid.UUID) ([]ListPostsByUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPostsByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPostsByUserRow{}
+	for rows.Next() {
+		var i ListPostsByUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ThreadID,
+			&i.Content,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updatePost = `-- name: UpdatePost :one
+UPDATE posts
+SET content = $2, updated_at = NOW()
+WHERE id = $1
+RETURNING id, user_id, thread_id, content, created_at, updated_at
+`
+
+type UpdatePostParams struct {
+	ID      uuid.UUID `json:"id"`
+	Content string    `json:"content"`
+}
+
+type UpdatePostRow struct {
+	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	ThreadID  uuid.UUID    `json:"thread_id"`
+	Content   string       `json:"content"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (UpdatePostRow, error) {
+	row := q.db.QueryRowContext(ctx, updatePost, arg.ID, arg.Content)
+	var i UpdatePostRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.ThreadID,
+		&i.Content,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

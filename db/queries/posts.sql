@@ -1,22 +1,36 @@
--- name: CreatePost :exec
+-- name: CreatePost :one
 INSERT INTO posts (
     user_id,
     thread_id,
-    content,
-    created_at,
-    updated_at
+    content
 ) VALUES (
-    $1, $2, $3, $4, $5
-);
+    $1, $2, $3
+)
+RETURNING id, user_id, thread_id, content, created_at, updated_at;
 
 -- name: GetPostByID :one
-SELECT * FROM posts WHERE id = $1 LIMIT 1;
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE id = $1
+LIMIT 1;
 
 -- name: ListPostsByUser :many
-SELECT * FROM posts WHERE user_id = $1 ORDER BY created_at DESC;
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE user_id = $1
+ORDER BY created_at DESC;
 
--- name: UpdatePost :exec
-UPDATE posts SET content = $2, updated_at = $3 WHERE id = $1;
+-- name: ListPostsByThread :many
+SELECT id, user_id, thread_id, content, created_at, updated_at
+FROM posts
+WHERE thread_id = $1
+ORDER BY created_at ASC;
+
+-- name: UpdatePost :one
+UPDATE posts
+SET content = $2, updated_at = NOW()
+WHERE id = $1
+RETURNING id, user_id, thread_id, content, created_at, updated_at;
 
 -- name: DeletePost :exec
 DELETE FROM posts WHERE id = $1;

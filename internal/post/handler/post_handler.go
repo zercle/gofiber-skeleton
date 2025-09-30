@@ -8,7 +8,9 @@ import (
 	"github.com/zercle/gofiber-skeleton/internal/logger"
 	"github.com/zercle/gofiber-skeleton/internal/post/entity"
 	"github.com/zercle/gofiber-skeleton/internal/post/usecase"
+	"github.com/zercle/gofiber-skeleton/internal/response"
 	"github.com/zercle/gofiber-skeleton/internal/user/middleware"
+	"github.com/zercle/gofiber-skeleton/pkg/validator"
 )
 
 type PostHandler struct {
@@ -19,35 +21,50 @@ func NewPostHandler(postUsecase usecase.PostUsecase) *PostHandler {
 	return &PostHandler{postUsecase: postUsecase}
 }
 
+// CreatePost godoc
+// @Summary Create a new post
+// @Description Create a new post in a thread (requires authentication)
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body createPostRequest true "Post details"
+// @Success 201 {object} response.JSendResponse "Post created successfully"
+// @Failure 400 {object} response.JSendResponse "Invalid request"
+// @Failure 401 {object} response.JSendResponse "Unauthorized"
+// @Failure 500 {object} response.JSendResponse "Internal server error"
+// @Router /posts [post]
 func (h *PostHandler) CreatePost(c *fiber.Ctx) error {
 	req := new(createPostRequest)
 	if err := c.BodyParser(req); err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse create post request")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request body"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid request body"})
 	}
 
-	// TODO: Add validation using a library like go-playground/validator
+	if err := validator.ValidateRequest(c, req); err != nil {
+		return err
+	}
 
 	userID := c.Locals("user_id").(string)
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
 	}
-	
+
 	threadID, err := uuid.Parse(req.ThreadID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse thread ID from request")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid thread ID"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid thread ID"})
 	}
 
 	post, err := h.postUsecase.Create(c.Context(), userUUID, threadID, req.Content)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to create post")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to create post"})
+		return response.Error(c, http.StatusInternalServerError, "Failed to create post", 2002)
 	}
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{
+	return response.Success(c, http.StatusCreated, fiber.Map{
 		"id":         post.ID,
 		"thread_id":  post.ThreadID,
 		"user_id":    post.UserID,
@@ -57,21 +74,31 @@ func (h *PostHandler) CreatePost(c *fiber.Ctx) error {
 	})
 }
 
+// GetPost godoc
+// @Summary Get a post by ID
+// @Description Retrieve a single post by its ID
+// @Tags posts
+// @Produce json
+// @Param id path string true "Post ID (UUID)"
+// @Success 200 {object} response.JSendResponse "Post retrieved successfully"
+// @Failure 400 {object} response.JSendResponse "Invalid post ID"
+// @Failure 404 {object} response.JSendResponse "Post not found"
+// @Router /posts/{id} [get]
 func (h *PostHandler) GetPost(c *fiber.Ctx) error {
 	id := c.Params("id")
 	postID, err := uuid.Parse(id)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse post ID from params")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid post ID"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid post ID"})
 	}
 
 	post, err := h.postUsecase.Get(c.Context(), postID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to get post")
-		return c.Status(http.StatusNotFound).JSON(fiber.Map{"message": "Post not found"})
+		return response.Fail(c, http.StatusNotFound, fiber.Map{"error": "Post not found"})
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
+	return response.Success(c, http.StatusOK, fiber.Map{
 		"id":         post.ID,
 		"thread_id":  post.ThreadID,
 		"user_id":    post.UserID,
@@ -81,44 +108,70 @@ func (h *PostHandler) GetPost(c *fiber.Ctx) error {
 	})
 }
 
+// ListPostsByUser godoc
+// @Summary List posts by user
+// @Description Retrieve all posts created by a specific user
+// @Tags posts
+// @Produce json
+// @Param user_id path string true "User ID (UUID)"
+// @Success 200 {object} response.JSendResponse "Posts retrieved successfully"
+// @Failure 400 {object} response.JSendResponse "Invalid user ID"
+// @Failure 500 {object} response.JSendResponse "Internal server error"
+// @Router /users/{user_id}/posts [get]
 func (h *PostHandler) ListPostsByUser(c *fiber.Ctx) error {
 	userIDParam := c.Params("user_id")
 	userID, err := uuid.Parse(userIDParam)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from params")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid user ID"})
 	}
 
 	posts, err := h.postUsecase.ListByUser(c.Context(), userID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to list posts by user")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to retrieve posts"})
+		return response.Error(c, http.StatusInternalServerError, "Failed to retrieve posts", 2003)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{"posts": posts})
+	return response.Success(c, http.StatusOK, fiber.Map{"posts": posts})
 }
 
+// UpdatePost godoc
+// @Summary Update a post
+// @Description Update an existing post (requires authentication and ownership)
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Post ID (UUID)"
+// @Param request body updatePostRequest true "Updated post content"
+// @Success 200 {object} response.JSendResponse "Post updated successfully"
+// @Failure 400 {object} response.JSendResponse "Invalid request"
+// @Failure 401 {object} response.JSendResponse "Unauthorized"
+// @Failure 500 {object} response.JSendResponse "Internal server error"
+// @Router /posts/{id} [put]
 func (h *PostHandler) UpdatePost(c *fiber.Ctx) error {
 	id := c.Params("id")
 	postID, err := uuid.Parse(id)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse post ID from params")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid post ID"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid post ID"})
 	}
 
 	req := new(updatePostRequest)
 	if err := c.BodyParser(req); err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse update post request")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request body"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid request body"})
 	}
 
-	// TODO: Add validation using a library like go-playground/validator
+	if err := validator.ValidateRequest(c, req); err != nil {
+		return err
+	}
 
 	userID := c.Locals("user_id").(string)
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
 	}
 
 	post := &entity.Post{
@@ -129,10 +182,10 @@ func (h *PostHandler) UpdatePost(c *fiber.Ctx) error {
 	updatedPost, err := h.postUsecase.Update(c.Context(), userUUID, post)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to update post")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+		return response.Error(c, http.StatusInternalServerError, err.Error(), 2004)
 	}
 
-	return c.Status(http.StatusOK).JSON(fiber.Map{
+	return response.Success(c, http.StatusOK, fiber.Map{
 		"id":         updatedPost.ID,
 		"thread_id":  updatedPost.ThreadID,
 		"user_id":    updatedPost.UserID,
@@ -142,24 +195,35 @@ func (h *PostHandler) UpdatePost(c *fiber.Ctx) error {
 	})
 }
 
+// DeletePost godoc
+// @Summary Delete a post
+// @Description Delete an existing post (requires authentication and ownership)
+// @Tags posts
+// @Security BearerAuth
+// @Param id path string true "Post ID (UUID)"
+// @Success 204 "Post deleted successfully"
+// @Failure 400 {object} response.JSendResponse "Invalid post ID"
+// @Failure 401 {object} response.JSendResponse "Unauthorized"
+// @Failure 500 {object} response.JSendResponse "Internal server error"
+// @Router /posts/{id} [delete]
 func (h *PostHandler) DeletePost(c *fiber.Ctx) error {
 	id := c.Params("id")
 	postID, err := uuid.Parse(id)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse post ID from params")
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"message": "Invalid post ID"})
+		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid post ID"})
 	}
 
 	userID := c.Locals("user_id").(string)
 	userUUID, err := uuid.Parse(userID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Internal server error"})
+		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
 	}
 
 	if err := h.postUsecase.Delete(c.Context(), userUUID, postID); err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to delete post")
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+		return response.Error(c, http.StatusInternalServerError, err.Error(), 2005)
 	}
 
 	return c.Status(http.StatusNoContent).SendString("")

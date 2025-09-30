@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/zercle/gofiber-skeleton/internal/db"
@@ -28,10 +27,16 @@ func (r *postgresUserRepository) Create(ctx context.Context, user *entity.User, 
 		Username:     user.Username,
 		Email:        user.Email,
 		PasswordHash: passwordHash,
-		CreatedAt:    sql.NullTime{Time: user.CreatedAt, Valid: true},
-		UpdatedAt:    sql.NullTime{Time: user.UpdatedAt, Valid: true},
 	}
-	return r.queries.CreateUser(ctx, params)
+	dbUser, err := r.queries.CreateUser(ctx, params)
+	if err != nil {
+		return err
+	}
+	// Update the user entity with generated values
+	user.ID = dbUser.ID
+	user.CreatedAt = dbUser.CreatedAt.Time
+	user.UpdatedAt = dbUser.UpdatedAt.Time
+	return nil
 }
 
 func (r *postgresUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {

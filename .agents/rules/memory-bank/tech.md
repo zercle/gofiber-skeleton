@@ -17,11 +17,11 @@ This document outlines the core technologies and tools utilized in the Go Fiber 
 -   **Viper:** A complete Go configuration solution that supports various formats (JSON, TOML, YAML, HCL, INI, envfile) and environment variables, with clear precedence rules.
 -   **`dotenv`:** For loading environment variables from `.env` files during local development.
 
-## 4. Database & ORM/Query Builders
+## 4. Database & Query Builders
 
--   **PostgreSQL:** The relational database of choice for its robustness, features, and widespread adoption.
+-   **PostgreSQL 18:** The relational database for production data storage with full ACID compliance.
 -   **`golang-migrate/migrate`:** A database migration tool for Go, enabling version-controlled schema evolution.
--   **`sqlc`:** Generates fully type-safe, idiomatic Go code from raw SQL queries, catching errors at compile-time and simplifying data access.
+-   **`sqlc`:** ✅ **ACTIVE** - Generates fully type-safe, idiomatic Go code from raw SQL queries, catching errors at compile-time and simplifying data access. Replaces ORM for better performance and type safety.
 
 ## 5. Authentication & Authorization
 
@@ -30,11 +30,11 @@ This document outlines the core technologies and tools utilized in the Go Fiber 
 
 ## 6. Caching
 
--   **Valkey (or Redis):** An in-memory data structure store, used for caching and potentially other data-intensive operations. Integrated via `compose.yml`.
+-   **Valkey 8:** ✅ **CONFIGURED** - Redis-compatible in-memory data structure store for caching, rate limiting storage, and session management. Integrated via `docker-compose.yml` with persistent data volume.
 
 ## 7. API Documentation
 
--   **`swaggo/swag`:** Automatically generates Swagger/OpenAPI 2.0 documentation from Go source code comments, providing an interactive API explorer.
+-   **`swaggo/swag`:** ✅ **ACTIVE** - Automatically generates Swagger/OpenAPI 2.0 documentation from Go source code comments. All endpoints documented with request/response schemas. Access at `/swagger/*`.
 
 ## 8. Development & Tooling
 
@@ -46,21 +46,36 @@ This document outlines the core technologies and tools utilized in the Go Fiber 
 ## 9. Testing & Mocking
 
 -   **`go test`:** Go's built-in testing framework.
--   **`go.uber.org/mock/mockgen`:** A tool for generating mock implementations of Go interfaces, crucial for unit testing usecases logic in isolation. Used with `//go:generate` directives.
--   **`DATA-DOG/go-sqlmock`:** A library for mocking the SQL database driver, allowing for robust testing of data access logic without requiring a real database connection.
+-   **`go.uber.org/mock/mockgen`:** ✅ **CONFIGURED** - Generates mock implementations of Go interfaces via `//go:generate` directives for isolated unit testing.
+-   **`DATA-DOG/go-sqlmock`:** Library for mocking SQL database driver for repository testing without real database.
+-
+## 10. Request Validation
 
-## 10. Observability
+-   **`go-playground/validator/v10`:** ✅ **ACTIVE** - Comprehensive struct and field validation with tags (required, email, min, max, etc.). Integrated in all handlers with JSend error responses.
 
--   **Structured Logging:** Integration with a logging library (e.g., `zap` or `logrus`) for structured, context-rich logging.
--   **Distributed Tracing:** Planned integration with OpenTelemetry or similar for end-to-end request tracing.
+## 11. Observability & Monitoring
+
+-   **`rs/zerolog`:** ✅ **ACTIVE** - High-performance structured logging with request context (request_id, method, path, status, duration, IP, user_agent).
+-   **Request ID Middleware:** ✅ **ACTIVE** - UUID-based request tracing across distributed systems via X-Request-ID header.
+-   **Distributed Tracing:** Planned integration with OpenTelemetry for end-to-end request tracing.
 -   **Metrics:** Planned integration with Prometheus/Grafana for application performance monitoring.
 
-## 11. Code Quality & Linting
+## 12. Code Quality & Linting
 
 -   **`go fmt`:** Go's official code formatter.
--   **`golangci-lint`:** A fast Go linters aggregator, used to enforce code style and identify potential issues.
+-   **`golangci-lint`:** ✅ **ACTIVE** - Fast Go linters aggregator enforcing code style. Integrated in CI/CD pipeline.
 
-## 12. Project Structure
+## 13. Production Middleware
 
--   **Mono-repo:** A single repository containing multiple Go modules/services.
--   **Clean Architecture / Domain-Driven Design:** Logical separation of concerns into layers and domains (e.g., `cmd/`, `internal/app/`, `internal/domains/`, `internal/infrastructure/`, `internal/shared/`).
+-   **Recovery Middleware:** ✅ **ACTIVE** - Gracefully handles panics and prevents server crashes.
+-   **Rate Limiting:** ✅ **ACTIVE** - 100 req/min for API endpoints, 5 req/min for auth (brute force protection).
+-   **Graceful Shutdown:** ✅ **ACTIVE** - SIGTERM/SIGINT handling with 30s timeout for zero-downtime deployments.
+
+## 14. Project Structure
+
+-   **Mono-repo:** Single repository with modular feature-based architecture.
+-   **Clean Architecture / Domain-Driven Design:** ✅ **IMPLEMENTED** - Strict separation into `cmd/`, `internal/`, `pkg/`, and `db/` with feature-based organization (`internal/user/`, `internal/post/`).
+
+## 15. API Response Standards
+
+-   **JSend Specification:** ✅ **ACTIVE** - All API responses follow JSend format with `status`, `data`, `message`, and `code` fields for consistency and client-side error handling.

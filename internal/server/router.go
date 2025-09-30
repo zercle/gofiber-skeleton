@@ -1,16 +1,18 @@
 package server
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"gorm.io/gorm"
 
 	"github.com/zercle/gofiber-skeleton/internal/config"
 	"github.com/zercle/gofiber-skeleton/internal/db"
 	"github.com/zercle/gofiber-skeleton/internal/logger"
+	"github.com/zercle/gofiber-skeleton/internal/middleware"
+	"github.com/zercle/gofiber-skeleton/internal/response"
 	userHandler "github.com/zercle/gofiber-skeleton/internal/user/handler"
 	userRepository "github.com/zercle/gofiber-skeleton/internal/user/repository"
 	userUsecase "github.com/zercle/gofiber-skeleton/internal/user/usecase"
@@ -25,7 +27,7 @@ import (
 )
 
 // SetupRouter initializes the Fiber app and registers routes
-func SetupRouter(gormDB *gorm.DB, cfg *config.Config) *fiber.App {
+func SetupRouter(sqlDB *sql.DB, cfg *config.Config) *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			// This is a minimal error handler. You might want to expand this.
@@ -38,12 +40,14 @@ func SetupRouter(gormDB *gorm.DB, cfg *config.Config) *fiber.App {
 		},
 	})
 
+	// Global middleware
 	app.Use(recover.New())
+	app.Use(middleware.RequestID())
+	app.Use(middleware.StructuredLogger())
 
-	// Health check route
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
-	})
+	// Health check routes
+	app.Get("/health", healthHandler)
+	app.Get("/ready", readinessHandler(sqlDB))
 
 	app.Get("/swagger/*", fiberswagger.HandlerDefault) // default
 	app.Get("/swagger/*", fiberswagger.New(fiberswagger.Config{ // custom
@@ -52,15 +56,13 @@ func SetupRouter(gormDB *gorm.DB, cfg *config.Config) *fiber.App {
 		DocExpansion: "none",
 	}))
 
-	// Placeholder route groups
-	api := app.Group("/api")
+	// API route group with rate limiting
+	api := app.Group("/api", middleware.APIRateLimit())
+
+	// Initialize database queries
+	queries := db.New(sqlDB)
 
 	// Initialize user-related components
-	sqlDB, err := gormDB.DB()
-	if err != nil {
-		logger.GetLogger().Fatal().Err(err).Msg("Failed to get sql.DB from gorm.DB")
-	}
-	queries := db.New(sqlDB)
 	userRepo := userRepository.NewPostgresUserRepository(queries)
 	authUsecase := userUsecase.NewAuthUsecase(userRepo, cfg.JWTSecret)
 
@@ -70,8 +72,8 @@ func SetupRouter(gormDB *gorm.DB, cfg *config.Config) *fiber.App {
 
 	v1 := api.Group("/v1")
 
-	// Auth routes
-	authRoutes := v1.Group("/auth")
+	// Auth routes with stricter rate limiting
+	authRoutes := v1.Group("/auth", middleware.AuthRateLimit())
 	userHandler.RegisterAuthRoutes(authRoutes, authUsecase)
 
 	// Post routes
@@ -92,4 +94,27 @@ func SetupRouter(gormDB *gorm.DB, cfg *config.Config) *fiber.App {
 func stubHandler(c *fiber.Ctx) error {
 	logger.GetLogger().Warn().Msgf("Route %s not implemented", c.OriginalURL())
 	return c.Status(fiber.StatusNotImplemented).SendString(fmt.Sprintf("Route %s Not Implemented", c.OriginalURL()))
+}
+
+// healthHandler checks if the service is alive
+func healthHandler(c *fiber.Ctx) error {
+	return response.Success(c, http.StatusOK, fiber.Map{
+		"status": "healthy",
+	})
+}
+
+// readinessHandler checks if the service is ready to accept requests
+func readinessHandler(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Check database connection
+		if err := db.Ping(); err != nil {
+			logger.GetLogger().Error().Err(err).Msg("Database health check failed")
+			return response.Error(c, http.StatusServiceUnavailable, "Service not ready", 5000)
+		}
+
+		return response.Success(c, http.StatusOK, fiber.Map{
+			"status":   "ready",
+			"database": "connected",
+		})
+	}
 }
