@@ -5,7 +5,6 @@ go 1.24.6
 toolchain go1.25.0
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/arsmn/fiber-swagger/v2 v2.31.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/fiber/v2 v2.52.9
@@ -20,6 +19,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/fx v1.24.0
+	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.42.0
 )
 

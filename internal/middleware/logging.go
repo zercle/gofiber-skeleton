@@ -20,7 +20,10 @@ func StructuredLogger() fiber.Handler {
 		duration := time.Since(start)
 
 		// Get request ID from context
-		requestID, _ := c.Locals("request_id").(string)
+		requestID, ok := c.Locals("request_id").(string)
+		if !ok {
+			requestID = ""
+		}
 
 		// Log structured request
 		log := logger.GetLogger().Info().

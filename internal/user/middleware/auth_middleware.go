@@ -47,7 +47,13 @@ func AuthRequired(jwtSecret string) fiber.Handler {
 				return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"message": "JWT token expiration claim missing"})
 			}
 
-			userID, err := uuid.Parse(claims["user_id"].(string))
+			userIDStr, ok := claims["user_id"].(string)
+			if !ok {
+				logger.GetLogger().Error().Msg("user_id claim is not a string")
+				return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid user ID in token"})
+			}
+
+			userID, err := uuid.Parse(userIDStr)
 			if err != nil {
 				logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from JWT claims")
 				return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid user ID in token"})

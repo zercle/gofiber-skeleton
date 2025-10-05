@@ -8,6 +8,8 @@ import (
 	"github.com/zercle/gofiber-skeleton/internal/user/entity"
 )
 
+//go:generate mockgen -source=postgres.go -destination=mocks/repository.go -package=mocks
+
 type UserRepository interface {
 	Create(ctx context.Context, user *entity.User, passwordHash string) error
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)

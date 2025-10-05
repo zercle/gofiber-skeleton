@@ -29,7 +29,7 @@ func NewPostUsecase(postRepo repository.PostRepository) PostUsecase {
 
 func (uc *postUsecase) Create(ctx context.Context, userID uuid.UUID, threadID uuid.UUID, content string) (*entity.Post, error) {
 	var err error
-	
+
 	post := &entity.Post{
 		UserID:    userID,
 		ThreadID:  threadID,

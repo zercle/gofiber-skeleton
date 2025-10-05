@@ -24,8 +24,8 @@ import (
 	postRepository "github.com/zercle/gofiber-skeleton/internal/post/repository"
 	postUsecase "github.com/zercle/gofiber-skeleton/internal/post/usecase"
 
-	_ "github.com/zercle/gofiber-skeleton/docs"
 	fiberswagger "github.com/arsmn/fiber-swagger/v2"
+	_ "github.com/zercle/gofiber-skeleton/docs" // Required for swagger documentation generation
 )
 
 // FiberApp wraps the Fiber application
@@ -153,11 +153,13 @@ func readinessHandler(sqlDB *sql.DB) fiber.Handler {
 
 		// Check Redis if available
 		redisStatus := "not configured"
-		if redis, ok := c.Locals("redis").(*cache.RedisClient); ok && redis != nil {
-			if err := redis.GetClient().Ping(c.Context()).Err(); err != nil {
-				redisStatus = "disconnected"
-			} else {
-				redisStatus = "connected"
+		if redisValue := c.Locals("redis"); redisValue != nil {
+			if redis, ok := redisValue.(*cache.RedisClient); ok && redis != nil {
+				if err := redis.GetClient().Ping(c.Context()).Err(); err != nil {
+					redisStatus = "disconnected"
+				} else {
+					redisStatus = "connected"
+				}
 			}
 		}
 

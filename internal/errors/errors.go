@@ -26,15 +26,15 @@ func (e *AppError) Unwrap() error {
 
 // Common error codes
 const (
-	CodeNotFound          = "NOT_FOUND"
-	CodeUnauthorized      = "UNAUTHORIZED"
-	CodeForbidden         = "FORBIDDEN"
-	CodeBadRequest        = "BAD_REQUEST"
-	CodeInternalError     = "INTERNAL_ERROR"
-	CodeValidationError   = "VALIDATION_ERROR"
-	CodeDuplicateError    = "DUPLICATE_ERROR"
-	CodeDatabaseError     = "DATABASE_ERROR"
-	CodeConfigError       = "CONFIG_ERROR"
+	CodeNotFound        = "NOT_FOUND"
+	CodeUnauthorized    = "UNAUTHORIZED"
+	CodeForbidden       = "FORBIDDEN"
+	CodeBadRequest      = "BAD_REQUEST"
+	CodeInternalError   = "INTERNAL_ERROR"
+	CodeValidationError = "VALIDATION_ERROR"
+	CodeDuplicateError  = "DUPLICATE_ERROR"
+	CodeDatabaseError   = "DATABASE_ERROR"
+	CodeConfigError     = "CONFIG_ERROR"
 )
 
 // NewAppError creates a new AppError

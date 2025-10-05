@@ -6,15 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/zercle/gofiber-skeleton/internal/post/entity"
 	mockRepo "github.com/zercle/gofiber-skeleton/internal/post/repository/mocks"
 	"github.com/zercle/gofiber-skeleton/internal/post/usecase"
 )
 
-func TestPostUsecase_CreatePost(t *testing.T) {
+func TestPostUsecase_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -26,30 +27,28 @@ func TestPostUsecase_CreatePost(t *testing.T) {
 	userID := uuid.New()
 	content := "Test post content"
 
-	expectedPost := &entity.Post{
-		ID:        uuid.New(),
-		ThreadID:  threadID,
-		UserID:    userID,
-		Content:   content,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
 	mockPostRepo.EXPECT().
-		Create(ctx, threadID, userID, content).
-		Return(expectedPost, nil).
+		Create(ctx, gomock.Any()).
+		DoAndReturn(func(ctx context.Context, p *entity.Post) error {
+			// Simulate database setting the ID
+			p.ID = uuid.New()
+			p.CreatedAt = time.Now()
+			p.UpdatedAt = time.Now()
+			return nil
+		}).
 		Times(1)
 
-	result, err := postUsecase.CreatePost(ctx, threadID, userID, content)
+	result, err := postUsecase.Create(ctx, userID, threadID, content)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, threadID, result.ThreadID)
 	assert.Equal(t, userID, result.UserID)
 	assert.Equal(t, content, result.Content)
+	assert.NotEqual(t, uuid.Nil, result.ID)
 }
 
-func TestPostUsecase_CreatePost_Error(t *testing.T) {
+func TestPostUsecase_Create_Error(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -64,18 +63,18 @@ func TestPostUsecase_CreatePost_Error(t *testing.T) {
 	expectedError := errors.New("database error")
 
 	mockPostRepo.EXPECT().
-		Create(ctx, threadID, userID, content).
-		Return(nil, expectedError).
+		Create(ctx, gomock.Any()).
+		Return(expectedError).
 		Times(1)
 
-	result, err := postUsecase.CreatePost(ctx, threadID, userID, content)
+	result, err := postUsecase.Create(ctx, userID, threadID, content)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Equal(t, expectedError, err)
+	assert.Contains(t, err.Error(), "failed to create post")
 }
 
-func TestPostUsecase_GetPostByID(t *testing.T) {
+func TestPostUsecase_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -99,14 +98,14 @@ func TestPostUsecase_GetPostByID(t *testing.T) {
 		Return(expectedPost, nil).
 		Times(1)
 
-	result, err := postUsecase.GetPostByID(ctx, postID)
+	result, err := postUsecase.Get(ctx, postID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, postID, result.ID)
 }
 
-func TestPostUsecase_UpdatePost(t *testing.T) {
+func TestPostUsecase_Update(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -127,13 +126,9 @@ func TestPostUsecase_UpdatePost(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	updatedPost := &entity.Post{
-		ID:        postID,
-		ThreadID:  existingPost.ThreadID,
-		UserID:    userID,
-		Content:   newContent,
-		CreatedAt: existingPost.CreatedAt,
-		UpdatedAt: time.Now(),
+	updatePost := &entity.Post{
+		ID:      postID,
+		Content: newContent,
 	}
 
 	mockPostRepo.EXPECT().
@@ -142,18 +137,22 @@ func TestPostUsecase_UpdatePost(t *testing.T) {
 		Times(1)
 
 	mockPostRepo.EXPECT().
-		Update(ctx, postID, newContent).
-		Return(updatedPost, nil).
+		Update(ctx, gomock.Any()).
+		DoAndReturn(func(ctx context.Context, p *entity.Post) error {
+			assert.Equal(t, newContent, p.Content)
+			assert.Equal(t, userID, p.UserID)
+			return nil
+		}).
 		Times(1)
 
-	result, err := postUsecase.UpdatePost(ctx, postID, userID, newContent)
+	result, err := postUsecase.Update(ctx, userID, updatePost)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
 	assert.Equal(t, newContent, result.Content)
 }
 
-func TestPostUsecase_UpdatePost_Unauthorized(t *testing.T) {
+func TestPostUsecase_Update_Unauthorized(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -175,19 +174,24 @@ func TestPostUsecase_UpdatePost_Unauthorized(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
+	updatePost := &entity.Post{
+		ID:      postID,
+		Content: newContent,
+	}
+
 	mockPostRepo.EXPECT().
 		GetByID(ctx, postID).
 		Return(existingPost, nil).
 		Times(1)
 
-	result, err := postUsecase.UpdatePost(ctx, postID, differentUserID, newContent)
+	result, err := postUsecase.Update(ctx, differentUserID, updatePost)
 
 	assert.Error(t, err)
 	assert.Nil(t, result)
-	assert.Contains(t, err.Error(), "unauthorized")
+	assert.Contains(t, err.Error(), "not the owner")
 }
 
-func TestPostUsecase_DeletePost(t *testing.T) {
+func TestPostUsecase_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -217,12 +221,44 @@ func TestPostUsecase_DeletePost(t *testing.T) {
 		Return(nil).
 		Times(1)
 
-	err := postUsecase.DeletePost(ctx, postID, userID)
+	err := postUsecase.Delete(ctx, userID, postID)
 
 	assert.NoError(t, err)
 }
 
-func TestPostUsecase_ListPostsByUser(t *testing.T) {
+func TestPostUsecase_Delete_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockPostRepo := mockRepo.NewMockPostRepository(ctrl)
+	postUsecase := usecase.NewPostUsecase(mockPostRepo)
+
+	ctx := context.Background()
+	postID := uuid.New()
+	actualUserID := uuid.New()
+	differentUserID := uuid.New()
+
+	existingPost := &entity.Post{
+		ID:        postID,
+		ThreadID:  uuid.New(),
+		UserID:    actualUserID,
+		Content:   "Test content",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	mockPostRepo.EXPECT().
+		GetByID(ctx, postID).
+		Return(existingPost, nil).
+		Times(1)
+
+	err := postUsecase.Delete(ctx, differentUserID, postID)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not the owner")
+}
+
+func TestPostUsecase_ListByUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -256,7 +292,7 @@ func TestPostUsecase_ListPostsByUser(t *testing.T) {
 		Return(expectedPosts, nil).
 		Times(1)
 
-	result, err := postUsecase.ListPostsByUser(ctx, userID)
+	result, err := postUsecase.ListByUser(ctx, userID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)

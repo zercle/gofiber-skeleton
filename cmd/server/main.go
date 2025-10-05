@@ -101,7 +101,7 @@ func provideDatabase(lc fx.Lifecycle, cfg *config.Config) (*sql.DB, error) {
 
 	// Add lifecycle hooks
 	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			log.Info().Msg("Closing database connection...")
 			return db.Close()
 		},
@@ -115,7 +115,7 @@ func runServer(lc fx.Lifecycle, app *server.FiberApp, cfg *config.Config) {
 	log := logger.GetLogger()
 
 	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
+		OnStart: func(_ context.Context) error {
 			// Start server in a goroutine
 			go func() {
 				addr := fmt.Sprintf(":%s", cfg.Server.Port)
@@ -128,7 +128,7 @@ func runServer(lc fx.Lifecycle, app *server.FiberApp, cfg *config.Config) {
 
 			return nil
 		},
-		OnStop: func(ctx context.Context) error {
+		OnStop: func(_ context.Context) error {
 			log.Info().Msg("Shutting down server...")
 
 			// Create a deadline for shutdown

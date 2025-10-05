@@ -45,11 +45,10 @@ func (h *PostHandler) CreatePost(c *fiber.Ctx) error {
 		return err
 	}
 
-	userID := c.Locals("user_id").(string)
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
+	userUUID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		logger.GetLogger().Error().Msg("user_id not found or invalid in context")
+		return response.Error(c, http.StatusUnauthorized, "Unauthorized", 2001)
 	}
 
 	threadID, err := uuid.Parse(req.ThreadID)
@@ -120,13 +119,13 @@ func (h *PostHandler) GetPost(c *fiber.Ctx) error {
 // @Router /users/{user_id}/posts [get]
 func (h *PostHandler) ListPostsByUser(c *fiber.Ctx) error {
 	userIDParam := c.Params("user_id")
-	userID, err := uuid.Parse(userIDParam)
+	userUUID, err := uuid.Parse(userIDParam)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from params")
 		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid user ID"})
 	}
 
-	posts, err := h.postUsecase.ListByUser(c.Context(), userID)
+	posts, err := h.postUsecase.ListByUser(c.Context(), userUUID)
 	if err != nil {
 		logger.GetLogger().Error().Err(err).Msg("Failed to list posts by user")
 		return response.Error(c, http.StatusInternalServerError, "Failed to retrieve posts", 2003)
@@ -158,20 +157,19 @@ func (h *PostHandler) UpdatePost(c *fiber.Ctx) error {
 	}
 
 	req := new(updatePostRequest)
-	if err := c.BodyParser(req); err != nil {
-		logger.GetLogger().Error().Err(err).Msg("Failed to parse update post request")
+	if parseErr := c.BodyParser(req); parseErr != nil {
+		logger.GetLogger().Error().Err(parseErr).Msg("Failed to parse update post request")
 		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid request body"})
 	}
 
-	if err := validator.ValidateRequest(c, req); err != nil {
-		return err
+	if validateErr := validator.ValidateRequest(c, req); validateErr != nil {
+		return validateErr
 	}
 
-	userID := c.Locals("user_id").(string)
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
+	userUUID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		logger.GetLogger().Error().Msg("user_id not found or invalid in context")
+		return response.Error(c, http.StatusUnauthorized, "Unauthorized", 2001)
 	}
 
 	post := &entity.Post{
@@ -214,11 +212,10 @@ func (h *PostHandler) DeletePost(c *fiber.Ctx) error {
 		return response.Fail(c, http.StatusBadRequest, fiber.Map{"error": "Invalid post ID"})
 	}
 
-	userID := c.Locals("user_id").(string)
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		logger.GetLogger().Error().Err(err).Msg("Failed to parse user ID from context")
-		return response.Error(c, http.StatusInternalServerError, "Internal server error", 2001)
+	userUUID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		logger.GetLogger().Error().Msg("user_id not found or invalid in context")
+		return response.Error(c, http.StatusUnauthorized, "Unauthorized", 2001)
 	}
 
 	if err := h.postUsecase.Delete(c.Context(), userUUID, postID); err != nil {
