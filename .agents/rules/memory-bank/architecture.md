@@ -1,84 +1,213 @@
 # Architecture Overview
 
-This document defines the target architecture for the modern Go Fiber backend template, establishing module boundaries, runtime topology, and integration patterns.
+## Design Pattern
+**Domain-Driven Clean Architecture** within a **mono-repo structure**
 
-## System Topology
+### Core Principles
+- **Domain Isolation**: Each business domain (user, post, thread) is self-contained with zero cross-domain dependencies
+- **Dependency Inversion**: Inner layers (entities, usecases) never depend on outer layers (handlers, repositories)
+- **Interface Segregation**: Repository and usecase interfaces enable mockgen-based testing
+- **SOLID Compliance**: Clear separation of concerns across entity, repository, usecase, and handler layers
 
-```mermaid
-flowchart LR
-Client[API Consumers] --> API[HTTP Gateway]
-API --> Usecases[Application Services]
-Usecases --> Persistence[PostgreSQL Adapter]
-Usecases --> Cache[Redis Cache Adapter]
-Usecases --> Messaging[NATS JetStream Adapter]
-Usecases --> Search[Meilisearch Adapter]
-Usecases --> Observability[OTel Collector]
-Persistence --> PostgreSQL[PostgreSQL Cluster]
-Cache --> Redis[Redis Cluster]
-Messaging --> EventBus[NATS JetStream]
-Search --> SearchCluster[Meilisearch]
-Observability --> OTLP[OTel Pipeline]
+## Directory Structure
+
+```
+gofiber-skeleton/
+├── cmd/
+│   └── server/
+│       └── main.go              # Application entry point, DB initialization, graceful shutdown
+├── internal/
+│   ├── config/
+│   │   └── config.go            # Viper-based config (env vars > .env file)
+│   ├── db/                      # sqlc-generated code
+│   │   ├── db.go                # DBTX interface, Queries struct
+│   │   ├── models.go            # Generated DB models
+│   │   ├── users.sql.go         # Generated user queries
+│   │   └── posts.sql.go         # Generated post queries
+│   ├── logger/
+│   │   └── logger.go            # Zerolog structured logger
+│   ├── middleware/
+│   │   ├── logging.go           # Request logging with duration/status
+│   │   ├── rate_limit.go        # API and auth rate limiting
+│   │   └── request_id.go        # Request ID generation
+│   ├── response/
+│   │   └── jsend.go             # JSend response format (success/fail/error)
+│   ├── server/
+│   │   └── router.go            # Fiber app setup, route registration, health checks
+│   ├── shared/
+│   │   └── types/               # Shared types (currently empty)
+│   ├── user/                    # USER DOMAIN
+│   │   ├── entity/
+│   │   │   └── user.go          # User business entity
+│   │   ├── repository/
+│   │   │   └── postgres.go      # UserRepository interface + Postgres implementation
+│   │   ├── usecase/
+│   │   │   └── auth.go          # AuthUsecase interface + implementation (Register, Login)
+│   │   ├── handler/
+│   │   │   └── auth_handler.go  # HTTP handlers + route registration
+│   │   └── middleware/
+│   │       └── auth_middleware.go # JWT authentication middleware
+│   └── post/                    # POST DOMAIN
+│       ├── entity/
+│       │   └── post.go          # Post business entity
+│       ├── repository/
+│       │   ├── postgres.go      # PostRepository interface + implementation
+│       │   └── mocks/
+│       │       └── repository.go # mockgen-generated mocks
+│       ├── usecase/
+│       │   ├── post.go          # PostUsecase interface + implementation
+│       │   └── mocks/
+│       │       └── usecase.go   # mockgen-generated mocks
+│       ├── handler/
+│       │   └── post_handler.go  # HTTP handlers + route registration
+│       └── tests/
+│           └── post_test.go     # Placeholder tests
+├── db/
+│   ├── migrations/              # SQL migration files
+│   │   ├── 001_create_users.up.sql
+│   │   ├── 002_create_roles.up.sql
+│   │   ├── 003_create_threads_posts_comments.up.sql
+│   │   └── 004_create_sessions.up.sql
+│   └── queries/                 # sqlc query definitions
+│       ├── users.sql            # User CRUD queries
+│       └── posts.sql            # Post CRUD queries
+├── docs/                        # Swagger-generated API docs
+├── .env.example                 # Environment variable template
+├── compose.yml                  # PostgreSQL + Valkey/Redis services
+├── Dockerfile                   # Multi-stage build (alpine-based)
+├── Makefile                     # Development commands (build, test, migrate, sqlc, etc.)
+├── sqlc.yaml                    # sqlc configuration
+└── go.mod                       # Go module definition
 ```
 
-## Layered Architecture
+## Layer Responsibilities
 
-- **cmd/**: thin entrypoints for REST (Fiber) and gRPC gateways, wiring DI containers and lifecycle hooks.
-- **internal/core/**: domain aggregates, value objects, domain services, and business rules with zero infrastructure knowledge.
-- **internal/app/**: application service layer orchestrating use cases, transaction boundaries, and saga coordination.
-- **internal/ports/**: inbound adapters exposing HTTP handlers, gRPC services, scheduled jobs, and message consumers.
-- **internal/adapters/**: outbound integrations for persistence, cache, messaging, search, payments, email, and observability sinks.
-- **pkg/shared/**: reusable utilities (validation, error codecs, telemetry helpers) designed for import stability.
-- **configs/**: environment-specific configuration bundles and schema definitions consumed by Viper and env vars.
+### 1. Entity Layer (`entity/`)
+- **Role**: Business domain objects
+- **Dependencies**: None (pure Go structs)
+- **Example**: `user.go` defines User struct with ID, Username, Email, timestamps
 
-## Domain Modules
+### 2. Repository Layer (`repository/`)
+- **Role**: Data access abstraction
+- **Dependencies**: Entity layer, sqlc-generated code
+- **Pattern**: Interface + Postgres implementation
+- **Key Feature**: `//go:generate mockgen` annotation for test mocks
+- **Example**: `UserRepository` interface with `Create()`, `GetByID()`, `GetByEmail()`
 
-| Module | Responsibility | Key Entities |
-| --- | --- | --- |
-| auth | Identity lifecycle, credential storage, session tokens, MFA enrollment | User, Credential, Session, AuditTrail |
-| forum | Threads, posts, comments, reactions, moderation workflows | Thread, Post, Comment, Reaction, ModerationQueue |
-| notifications | Template-driven email, push, and websocket fan-out | NotificationTemplate, DeliveryAttempt |
-| admin | RBAC policy management, tenant provisioning, feature flags | Role, Permission, TenantProfile |
-| analytics | Event capture, aggregation, and trend queries over OLAP store | EventRecord, MetricSlice |
+### 3. Usecase Layer (`usecase/`)
+- **Role**: Business logic orchestration
+- **Dependencies**: Entity, Repository interfaces
+- **Pattern**: Interface + concrete implementation
+- **Key Feature**: `//go:generate mockgen` annotation for test mocks
+- **Example**: `AuthUsecase` handles registration (password hashing via bcrypt) and login (JWT generation)
 
-## Data Persistence and Messaging
+### 4. Handler Layer (`handler/`)
+- **Role**: HTTP request/response handling
+- **Dependencies**: Usecase interfaces, response package
+- **Responsibilities**: Request parsing, validation, usecase invocation, JSend response formatting
+- **Example**: `RegisterAuthRoutes()` registers POST /auth/register and /auth/login
 
-- **Primary store**: PostgreSQL 16 with sqlc-generated repositories, leveraging UUID v7 keys and temporal tables for auditing.
-- **Caching**: Redis Cluster (Valkey compatible) used for session tokens, rate limiting buckets, and projection caches.
-- **Messaging**: NATS JetStream provides event streaming, command bus patterns, and at-least-once delivery semantics.
-- **Search index**: Meilisearch for low-latency thread and post discovery with incremental sync workers.
-- **Long-term analytics**: Optional ClickHouse pipeline fed via change data capture for dashboards.
+## Data Flow
 
-## API Surface
+**Request Flow** (HTTP Request → Response):
+```
+HTTP Request
+  ↓
+Handler (parse request, validate)
+  ↓
+Usecase (business logic)
+  ↓
+Repository (database operations via sqlc)
+  ↓
+PostgreSQL Database
+  ↓
+Repository (map DB models to entities)
+  ↓
+Usecase (process, enrich data)
+  ↓
+Handler (format JSend response)
+  ↓
+HTTP Response
+```
 
-- RESTful HTTP API served via Fiber 3 with JSend + problem+json codecs.
-- gRPC gateway exposing high-throughput endpoints for internal services and SDK generation.
-- Async APIs exposed through WebSocket channels and server-sent events for live thread updates.
-- OpenAPI and Buf schema registries versioned per release channel.
+## Key Technology Integration
 
-## Observability and Reliability
+### Database: sqlc + PostgreSQL
+- **sqlc.yaml**: Schema from `db/migrations/`, queries from `db/queries/`, output to `internal/db/`
+- **Workflow**: Write SQL → Run `make sqlc` → Type-safe Go code generated
+- **Benefits**: Compile-time SQL validation, zero ORM overhead
 
-- Distributed tracing via OpenTelemetry SDK exporting to collector, with Grafana Tempo as backend.
-- Metrics emitted in Prometheus format, scraped by Prometheus Operator, visualized in Grafana dashboards.
-- Structured logging through Zerolog enriched with request IDs, trace IDs, and user claims.
-- Circuit breakers and bulkheads implemented with resilience middleware around outbound adapters.
-- Chaos testing hooks integrated into staging via Litmus to validate failure scenarios.
+### Authentication: JWT + bcrypt
+- **Registration**: bcrypt hashes password (cost=10), stores in users table
+- **Login**: Verifies hash, generates JWT with 72-hour expiry, returns token
+- **Middleware**: `auth_middleware.go` validates Bearer token, extracts user_id to context
 
-## Security and Compliance
+### Configuration: godotenv + os.LookupEnv
+- **Priority**: Runtime env vars > .env file > hardcoded defaults
+- **Structure**: `Config` struct with Port, DatabaseDSN, JWTSecret
 
-- JWT access tokens signed with PASETO-compatible keys, refresh tokens stored in Redis with rotation policies.
-- Attribute-based access control (ABAC) layered over RBAC for fine-grained permissions.
-- Audit logging persisted to immutable append-only tables with retention policies.
-- Secrets management delegated to HashiCorp Vault with dynamic database credentials.
-- Compliance hooks for GDPR erasure requests and data residency enforced through policy engine.
+### Logging: zerolog
+- **Features**: Structured JSON logging, request ID tracking, duration metrics
+- **Integration**: Middleware logs all HTTP requests with method, path, status, duration
 
-## Deployment Topologies
+### API Documentation: swaggo/swag
+- **Workflow**: Annotate handlers with `// @Summary`, `// @Router` → Run `make generate-docs` → Swagger UI at `/swagger`
+- **Location**: `cmd/server/main.go` has global API metadata
 
-- **Local**: Tilt orchestrates Docker Compose services (API, PostgreSQL, Redis, NATS, Meilisearch, OTel collector) with hot reload via Air.
-- **Staging**: Kubernetes cluster managed by Helmfile, leveraging KEDA for event-driven scaling and Argo Rollouts for canary deployments.
-- **Production**: Multi-region GKE/AKS deployment with Cloud SQL or Aurora Postgres, Redis Enterprise, and managed NATS, fronted by API Gateway + Cloud Armor.
+### Testing: mockgen + go-sqlmock
+- **Unit Testing**: Interfaces annotated with `//go:generate mockgen` for mocking
+- **Repository Testing**: Use `go-sqlmock` to simulate database responses
+- **Current State**: Mock infrastructure present, full test suite pending implementation
 
-## Extension Points
+## Domain Pattern (Using Post as Example)
 
-- Code generation pipelines for mocks (`mockery`), protobuf (`buf`), and GraphQL (optional) triggered via `task generate`.
-- Plugin system for domain modules by registering port interfaces within the DI container.
-- Feature flag hooks via LaunchDarkly or open-source alternatives exposed through adapter layer.
+```
+internal/post/
+├── entity/post.go              # Post{ID, ThreadID, UserID, Content, CreatedAt, UpdatedAt}
+├── repository/
+│   ├── postgres.go             # PostRepository interface: Create, GetByID, ListByUser, Update, Delete
+│   └── mocks/repository.go     # Auto-generated mock
+├── usecase/
+│   ├── post.go                 # PostUsecase interface: CRUD + ownership validation
+│   └── mocks/usecase.go        # Auto-generated mock
+├── handler/
+│   └── post_handler.go         # HTTP handlers, route registration
+└── tests/
+    └── post_test.go            # Placeholder test
+```
+
+## Deployment Architecture
+
+**Development**: Docker Compose
+- **Services**: app (Go Fiber), db (PostgreSQL 18), redis (Valkey 8)
+- **Networking**: Internal Docker network, exposed ports 8080 (app), 6379 (redis)
+- **Health Checks**: All services have health checks with retry logic
+
+**Production** (Containerized):
+- **Build**: Multi-stage Dockerfile (builder: golang:alpine → runtime: alpine)
+- **Security**: Non-root user (appuser), static binary compilation
+- **Configuration**: Environment variables injected at runtime
+
+## Critical Paths
+
+### Source Files (Most Frequently Modified)
+- `cmd/server/main.go`: Application bootstrap
+- `internal/server/router.go`: Route definitions, middleware registration
+- `internal/config/config.go`: Configuration struct
+- `db/migrations/*.sql`: Database schema
+- `db/queries/*.sql`: SQL query definitions
+- `internal/{domain}/`: Domain-specific implementations
+
+### Generated Files (Never Edit Manually)
+- `internal/db/*.go`: sqlc-generated code
+- `docs/*`: Swagger-generated documentation
+- `internal/*/mocks/*.go`: mockgen-generated test mocks
+
+## Design Decisions
+
+1. **No ORM**: Prefer raw SQL via sqlc for performance and explicitness
+2. **No Uber fx (yet)**: Current implementation uses manual dependency injection in `router.go` (brief mentions fx but not implemented)
+3. **JSend Response Format**: Standardized API responses (status: success/fail/error)
+4. **UUID v7**: Time-sortable UUIDs for better database performance
+5. **Graceful Shutdown**: 30-second timeout for in-flight requests
+6. **Middleware Order**: Recover → RequestID → Logging → RateLimit

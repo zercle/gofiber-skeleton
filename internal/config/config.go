@@ -1,34 +1,103 @@
 package config
 
 import (
-	"log"
-	"os"
+	"fmt"
+	"strings"
 
-	"github.com/joho/godotenv"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port        string
-	DatabaseDSN string
-	JWTSecret   string
+	Server   ServerConfig
+	Database DatabaseConfig
+	Redis    RedisConfig
+	JWT      JWTConfig
 }
 
-func LoadConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Printf("No .env file found, using environment variables: %v", err)
-	}
-
-	return &Config{
-		Port:        getEnv("PORT", "8080"),
-		DatabaseDSN: getEnv("DATABASE_DSN", "host=localhost user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai"),
-		JWTSecret:   getEnv("JWT_SECRET", "supersecretjwtkey"),
-	}
+type ServerConfig struct {
+	Port string
+	Env  string
 }
 
-func getEnv(key string, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
+type DatabaseConfig struct {
+	DSN             string
+	MaxOpenConns    int
+	MaxIdleConns    int
+	ConnMaxLifetime int
+}
+
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
+}
+
+type JWTConfig struct {
+	Secret         string
+	ExpirationHours int
+}
+
+func LoadConfig() (*Config, error) {
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./")
+
+	// Enable automatic environment variable reading
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Read .env file if it exists
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return nil, fmt.Errorf("failed to read config file: %w", err)
+		}
+		// Config file not found, will use environment variables
 	}
-	return defaultValue
+
+	// Set defaults
+	setDefaults()
+
+	config := &Config{}
+	if err := viper.Unmarshal(config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	return config, nil
+}
+
+func setDefaults() {
+	// Server defaults
+	viper.SetDefault("SERVER.PORT", "8080")
+	viper.SetDefault("SERVER.ENV", "development")
+
+	// Database defaults
+	viper.SetDefault("DATABASE.DSN", "host=db user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai")
+	viper.SetDefault("DATABASE.MAXOPENCONNS", 25)
+	viper.SetDefault("DATABASE.MAXIDLECONNS", 5)
+	viper.SetDefault("DATABASE.CONNMAXLIFETIME", 300)
+
+	// Redis defaults
+	viper.SetDefault("REDIS.ADDR", "redis:6379")
+	viper.SetDefault("REDIS.PASSWORD", "")
+	viper.SetDefault("REDIS.DB", 0)
+
+	// JWT defaults
+	viper.SetDefault("JWT.SECRET", "supersecretjwtkey")
+	viper.SetDefault("JWT.EXPIRATIONHOURS", 72)
+}
+
+// GetString gets a string config value
+func GetString(key string) string {
+	return viper.GetString(key)
+}
+
+// GetInt gets an integer config value
+func GetInt(key string) int {
+	return viper.GetInt(key)
+}
+
+// GetBool gets a boolean config value
+func GetBool(key string) bool {
+	return viper.GetBool(key)
 }
