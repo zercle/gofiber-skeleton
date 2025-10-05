@@ -11,8 +11,14 @@ func RequestID() fiber.Handler {
 		// Check if request ID already exists in header
 		requestID := c.Get("X-Request-ID")
 		if requestID == "" {
-			// Generate new UUID if not present
-			requestID = uuid.New().String()
+			// Generate new UUIDv7 if not present
+			id, err := uuid.NewV7()
+			if err != nil {
+				// Fallback to empty string if UUID generation fails (extremely rare)
+				requestID = ""
+			} else {
+				requestID = id.String()
+			}
 		}
 
 		// Set request ID in context for use in handlers

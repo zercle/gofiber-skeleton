@@ -8,12 +8,21 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/post/entity"
 	mockRepo "github.com/zercle/gofiber-skeleton/internal/post/repository/mocks"
 	"github.com/zercle/gofiber-skeleton/internal/post/usecase"
 )
+
+// mustNewUUID is a test helper that generates a UUIDv7 or fails the test
+func mustNewUUID(t *testing.T) uuid.UUID {
+	t.Helper()
+	id, err := uuid.NewV7()
+	require.NoError(t, err)
+	return id
+}
 
 func TestPostUsecase_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -23,15 +32,15 @@ func TestPostUsecase_Create(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	threadID := uuid.New()
-	userID := uuid.New()
+	threadID := mustNewUUID(t)
+	userID := mustNewUUID(t)
 	content := "Test post content"
 
 	mockPostRepo.EXPECT().
 		Create(ctx, gomock.Any()).
 		DoAndReturn(func(ctx context.Context, p *entity.Post) error {
 			// Simulate database setting the ID
-			p.ID = uuid.New()
+			p.ID = mustNewUUID(t)
 			p.CreatedAt = time.Now()
 			p.UpdatedAt = time.Now()
 			return nil
@@ -56,8 +65,8 @@ func TestPostUsecase_Create_Error(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	threadID := uuid.New()
-	userID := uuid.New()
+	threadID := mustNewUUID(t)
+	userID := mustNewUUID(t)
 	content := "Test post content"
 
 	expectedError := errors.New("database error")
@@ -82,12 +91,12 @@ func TestPostUsecase_Get(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	postID := uuid.New()
+	postID := mustNewUUID(t)
 
 	expectedPost := &entity.Post{
 		ID:        postID,
-		ThreadID:  uuid.New(),
-		UserID:    uuid.New(),
+		ThreadID:  mustNewUUID(t),
+		UserID:    mustNewUUID(t),
 		Content:   "Test post content",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -113,13 +122,13 @@ func TestPostUsecase_Update(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	postID := uuid.New()
-	userID := uuid.New()
+	postID := mustNewUUID(t)
+	userID := mustNewUUID(t)
 	newContent := "Updated content"
 
 	existingPost := &entity.Post{
 		ID:        postID,
-		ThreadID:  uuid.New(),
+		ThreadID:  mustNewUUID(t),
 		UserID:    userID,
 		Content:   "Old content",
 		CreatedAt: time.Now(),
@@ -160,14 +169,14 @@ func TestPostUsecase_Update_Unauthorized(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	postID := uuid.New()
-	actualUserID := uuid.New()
-	differentUserID := uuid.New()
+	postID := mustNewUUID(t)
+	actualUserID := mustNewUUID(t)
+	differentUserID := mustNewUUID(t)
 	newContent := "Updated content"
 
 	existingPost := &entity.Post{
 		ID:        postID,
-		ThreadID:  uuid.New(),
+		ThreadID:  mustNewUUID(t),
 		UserID:    actualUserID,
 		Content:   "Old content",
 		CreatedAt: time.Now(),
@@ -199,12 +208,12 @@ func TestPostUsecase_Delete(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	postID := uuid.New()
-	userID := uuid.New()
+	postID := mustNewUUID(t)
+	userID := mustNewUUID(t)
 
 	existingPost := &entity.Post{
 		ID:        postID,
-		ThreadID:  uuid.New(),
+		ThreadID:  mustNewUUID(t),
 		UserID:    userID,
 		Content:   "Test content",
 		CreatedAt: time.Now(),
@@ -234,13 +243,13 @@ func TestPostUsecase_Delete_Unauthorized(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	postID := uuid.New()
-	actualUserID := uuid.New()
-	differentUserID := uuid.New()
+	postID := mustNewUUID(t)
+	actualUserID := mustNewUUID(t)
+	differentUserID := mustNewUUID(t)
 
 	existingPost := &entity.Post{
 		ID:        postID,
-		ThreadID:  uuid.New(),
+		ThreadID:  mustNewUUID(t),
 		UserID:    actualUserID,
 		Content:   "Test content",
 		CreatedAt: time.Now(),
@@ -266,20 +275,20 @@ func TestPostUsecase_ListByUser(t *testing.T) {
 	postUsecase := usecase.NewPostUsecase(mockPostRepo)
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := mustNewUUID(t)
 
 	expectedPosts := []*entity.Post{
 		{
-			ID:        uuid.New(),
-			ThreadID:  uuid.New(),
+			ID:        mustNewUUID(t),
+			ThreadID:  mustNewUUID(t),
 			UserID:    userID,
 			Content:   "Post 1",
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
 		{
-			ID:        uuid.New(),
-			ThreadID:  uuid.New(),
+			ID:        mustNewUUID(t),
+			ThreadID:  mustNewUUID(t),
 			UserID:    userID,
 			Content:   "Post 2",
 			CreatedAt: time.Now(),

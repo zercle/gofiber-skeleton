@@ -347,10 +347,10 @@ func TestProductUsecase_CreateProduct(t *testing.T) {
 	name := "Test Product"
 	description := "Test Description"
 	price := 99.99
-	userID := uuid.New()
+	userID := uuid.NewV7()
 
 	expectedProduct := &entity.Product{
-		ID:          uuid.New(),
+		ID:          uuid.NewV7(),
 		Name:        name,
 		Description: description,
 		Price:       price,
