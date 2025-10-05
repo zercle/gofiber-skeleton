@@ -25,8 +25,20 @@ jobs:
       with:
         go-version: 'stable'
 
-    - name: Go Mod Download
-      run: go mod download
+    - name: Install Dependencies
+      run: |
+        go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+        go install github.com/swaggo/swag/cmd/swag@latest
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    - name: Go Mod Tidy
+      run: go mod tidy
+
+    - name: sqlc generate
+      run: sqlc generate
+
+    - name: Swag Init
+      run: swag init -g cmd/server/main.go --output ./docs
 
     - name: Install mockgen
       run: go install go.uber.org/mock/mockgen@latest
@@ -68,9 +80,7 @@ jobs:
         go run cmd/migrate/main.go up
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v8
-      with:
-        version: latest
+      run: golangci-lint run --verbose
 
     - name: Run Tests
       env:
@@ -90,3 +100,6 @@ jobs:
         JWT_SECRET: test-secret
         JWT_EXPIRES_IN: 1h
       run: go test -v -race ./...
+
+    - name: Build
+      run: go build -o bin/server cmd/server/main.go

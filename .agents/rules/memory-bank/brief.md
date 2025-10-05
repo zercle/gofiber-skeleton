@@ -1,150 +1,38 @@
-# Go Fiber Backend Mono-Repo Template
+# **Project Brief: Go Fiber Template Repository**
 
-## Architecture
-**Domain-Driven Clean Architecture** with mono-repo structure. Each domain contains complete Clean Architecture implementation with SOLID principles and domain isolation.
+## **1. The Foundation: Core Architecture**
 
-## Key Tools & Libraries
-- **HTTP Framework:** Go Fiber v2
-- **DI:** fx (Uber's framework)
-- **Config:** Viper (yaml, .env, runtime env vars)
-- **Migrations:** golang-migrate/migrate
-- **SQL Generation:** sqlc
-- **JSON Format:** omniti-labs/jsend
-- **Mocking:** uber-go/mock, go-sqlmock
-- **Auth:** golang-jwt
-- **UUID:** UUIDv7 (index-friendly)
-- **Validation:** go-playground/validator
-- **Testing:** Go testing + Testify
-- **Hot Reload:** Air
-- **Docs:** swaggo/swag
+We are building a backend template using **Go** and the **Fiber v2** framework. The foundational architecture will be a **Domain-Driven Clean Architecture** implemented within a **mono-repo structure**. This strategic choice emphasizes strict domain isolation and adherence to SOLID principles. The primary benefit is creating a highly maintainable and scalable codebase where each business domain (e.g., auth, posts) is a self-contained, independently testable module with zero dependencies on other domains. This separation of concerns is crucial for long-term project health and team collaboration.
 
-## Project Structure
-```
-.
-├── cmd/
-│   ├── server/main.go          # Entry point
-│   └── migrate/main.go         # Migration runner
-├── internal/
-│   ├── domains/                # Domain modules
-│   │   ├── auth/               # Complete domain
-│   │   │   ├── entities/
-│   │   │   ├── usecases/
-│   │   │   ├── repositories/
-│   │   │   ├── handlers/
-│   │   │   ├── routes/
-│   │   │   ├── models/
-│   │   │   └── tests/
-│   │   └── posts/              # Another domain
-│   ├── infrastructure/         # Shared infra
-│   │   ├── database/
-│   │   ├── middleware/
-│   │   └── config/
-│   └── shared/                 # Shared components
-│       ├── types/
-│       └── container/
-├── pkg/utils/                  # Public utilities
-├── db/
-│   ├── queries/
-│   └── migrations/
-├── docs/
-└── compose.yml
-```
+## **2. High-Level Overview: What We're Building**
 
-## Quick Start
-```bash
-# Initialize
-go mod init project-name
+The goal is to create a robust, production-ready template that significantly accelerates the development of new Go backend services. This template will serve as a comprehensive "skeleton" project, pre-configured with established best practices and a curated set of tools for handling common backend tasks like database interaction, configuration, and authentication. The ideal outcome is a developer experience where one can clone the repository, quickly add a new business domain by following a clear guide, and immediately focus on writing valuable business logic without getting bogged down in repetitive boilerplate setup.
 
-# Setup environment
-cp .env.example .env
+## **3. Core Requirements and Goals**
 
-# Run migrations
-go run cmd/migrate/main.go
+### **Key Technologies:**
 
-# Start server
-go run cmd/server/main.go
-# Or with hot reload
-air
-```
+* **Framework:** Go Fiber v2 - A high-performance, Express.js-inspired web framework for building APIs.  
+* **Dependency Injection:** Uber's fx - To manage dependencies and ensure a modular, loosely coupled application structure.  
+* **Configuration:** Viper - For robust configuration management that supports .env files, YAML, and environment variables with clear precedence rules.  
+* **Database Migrations:** golang-migrate/migrate - To handle database schema evolution with versioned, repeatable SQL migration files.  
+* **SQL Generation:** sqlc - For generating fully type-safe, idiomatic Go code directly from raw SQL queries, catching errors at compile-time.  
+* **Authentication:** golang-jwt - A standard library for creating and verifying JSON Web Tokens for secure, stateless authentication.  
+* **API Documentation:** swaggo/swag - To automatically generate interactive API documentation from comments in the Go source code.  
+* **Development:** Hot-reloading with Air - To improve the development feedback loop by automatically rebuilding and restarting the server on file changes.  
+* **Testing & Mocking:**  
+  * go.uber.org/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.  
+  * DATA-DOG/go-sqlmock: For mocking the SQL database layer to test data access logic without a real database.
 
-## Adding New Domain
-1. Create directory structure:
-   ```bash
-   mkdir -p internal/{domain}/{entities,usecases,repositories,handlers,routes,models,tests}
-   ```
-2. Define entity with UUIDv7
-3. Create models (DTOs)
-4. Implement repository interface & implementation
-5. Implement usecase interface & implementation
-6. Create handlers
-7. Define routes
-8. Register dependencies in DI container
-9. Write tests
-10. Generate API docs
+### **Must-Have Features:**
 
-## Development Commands
-```bash
-# Development
-go run cmd/server/main.go
-air                             # Hot reload
-
-# Database
-go run cmd/migrate/main.go
-
-# Testing
-go test ./...
-
-# Linting
-golangci-lint run
-gofmt -s -w .
-
-# Documentation
-swag init -g cmd/server/main.go -o docs
-
-# Build
-go build -o bin/server cmd/server/main.go
-```
-
-## Environment Variables
-```env
-PORT=3000
-ENV=development
-
-# Database (canonical)
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=gofiber_skeleton
-DB_SCHEMA=public
-DB_SSLMODE=disable
-# Optional fallback if DB_* is not provided by the environment
-DB_URL=postgres://postgres:postgres@localhost:5432/gofiber_skeleton?sslmode=disable
-
-# Auth
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=24h
-
-# Cache (canonical)
-VALKEY_HOST=localhost
-VALKEY_PORT=6379
-VALKEY_PASSWORD=
-VALKEY_DB=0
-# Optional fallback if VALKEY_* is not provided by the environment
-VALKEY_URL=redis://localhost:6379
-
-# CORS
-CORS_ORIGINS=*
-# Notes:
-# - DATABASE_URL is deprecated in favor of DB_* or DB_URL fallback
-# - REDIS_URL is deprecated in favor of VALKEY_* or VALKEY_URL fallback
-```
-
-Precedence and fallback rules:
-- Database: Prefer DB_* vars. If DB_* are not set, accept DB_URL. If both are present, DB_* take precedence. DATABASE_URL remains deprecated.
-- Valkey: Prefer VALKEY_* vars. If VALKEY_* are not set, accept VALKEY_URL. If both are present, VALKEY_* take precedence. REDIS_URL remains deprecated.
-
-## Docker Setup
-- Multi-stage Dockerfile for production builds
-- Docker Compose with PostgreSQL and Valkey
-- Volume persistence for data
+* **Project Structure:** A clear and scalable directory structure that intuitively separates domains, shared infrastructure (like database connections and middleware), and command entry points (/cmd, /internal/domains, /db, etc.).  
+* **Configuration Management:** A flexible and environment-aware config system that prioritizes runtime environment variables for production but falls back to a .env file for easy local development.  
+* **Database Tooling:** Integrated tools and scripts for running migrations to update the database schema and for generating type-safe Go queries, ensuring database operations are reliable and maintainable.  
+* **Authentication:** A pre-built and fully functional auth domain to serve as a practical example, demonstrating user registration with password hashing and stateless authentication using JSON Web Tokens (JWT).  
+* **Containerization:** A compose.yml file that allows developers to spin up a consistent, isolated development environment with a single command, including PostgreSQL and a Valkey (or Redis) cache.  
+* **Developer Experience:** A suite of helper scripts or make commands for executing common tasks, such as running the full test suite, linting the code for style consistency, building a production binary, and generating API documentation.  
+* **Comprehensive Testing Strategy:** The template must demonstrate a robust testing approach. This includes:  
+  * **Unit Testability:** Using go.uber.org/mock/mockgen with //go:generate annotations on all repositories and usecases interfaces to ensure business logic can be tested in complete isolation.
+  * **Repository Testing:** Providing examples of repositories tests that use DATA-DOG/go-sqlmock to simulate database queries and responses, ensuring data logic is correct without requiring a live database connection.
+* **Clear Instructions:** The process for adding a new business domain to the project must be simple, repeatable, and thoroughly documented to guide developers.

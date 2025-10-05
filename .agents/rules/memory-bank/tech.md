@@ -1,283 +1,229 @@
-# Tech
+# Technology Stack
 
-This document captures the technologies, environment, tooling, and operational practices used in the Go Fiber Backend Mono-Repo Template.
+## Core Framework & Language
+- **Go**: Version 1.24.6+ (toolchain 1.25.0)
+- **Fiber v2**: v2.52.9 - Express.js-inspired web framework for high-performance APIs
 
-Related docs:
-- Brief: [.agents/rules/memory-bank/brief.md](.agents/rules/memory-bank/brief.md)
-- Product: [.agents/rules/memory-bank/product.md](.agents/rules/memory-bank/product.md)
-- Architecture: [.agents/rules/memory-bank/architecture.md](.agents/rules/memory-bank/architecture.md)
-- Tasks: [.agents/rules/memory-bank/tasks.md](.agents/rules/memory-bank/tasks.md)
+## Dependency Management
+- **Go Modules**: Standard Go dependency management
+- **Module Path**: `github.com/zercle/gofiber-skeleton`
 
-## Languages and Runtime
+## Key Dependencies
 
-- Go toolchain: Go 1.24.6+ (align [go.mod](go.mod:1) accordingly)
-- Target: Linux-amd64 by default; cross-compilation supported via Go
+### Web Framework & HTTP
+- `github.com/gofiber/fiber/v2` v2.52.9 - Core web framework
+- `github.com/arsmn/fiber-swagger/v2` v2.31.1 - Swagger UI integration for Fiber
 
-## Frameworks and Libraries
+### Database
+- **Driver**: `github.com/jackc/pgx/v5` v5.6.0 - PostgreSQL driver
+- **Connection**: Uses `database/sql` with `pgx` stdlib driver
+- **Query Generator**: sqlc v1.30.0 (generates type-safe Go from SQL)
+- **Database**: PostgreSQL 18 (Alpine-based Docker image)
 
-- HTTP server: gofiber/fiber v2
-- Dependency Injection and lifecycle: uber-go/fx
-- Configuration: spf13/viper (YAML config, .env, process env)
-- Database:
-  - Driver and pool: jackc/pgx v5 with pgxpool
-  - Migrations: golang-migrate/migrate
-  - Query generation: sqlc for type-safe bindings
-- JSON response format: omniti-labs/jsend
-- Authentication: golang-jwt/jwt v5 (JWT with custom claims)
-- Validation: go-playground/validator v10
-- Testing: Go testing + stretchr/testify, go-sqlmock
-- Developer experience:
-  - Hot reload: cosmtrek/air
-  - API docs: swaggo/swag
+### Caching (Infrastructure)
+- **Valkey**: v8 (Redis-compatible, Alpine-based)
+- **Note**: Redis client not yet integrated in code, infrastructure-ready
 
-## Repository Layout
+### Authentication & Security
+- `github.com/golang-jwt/jwt/v4` v4.5.2 - JWT token generation/validation
+- `golang.org/x/crypto` v0.42.0 - bcrypt password hashing
 
-See the structure documented in the brief and architecture docs. Key planned entry points:
-- Server entrypoint: [cmd/server/main.go](cmd/server/main.go)
-- Migration runner: [cmd/migrate/main.go](cmd/migrate/main.go)
-- Domain code under: [internal/domains/](internal/domains/)
-- Infrastructure under: [internal/infrastructure/](internal/infrastructure/)
-- Shared types and container under: [internal/shared/](internal/shared/)
-- Utilities under: [pkg/utils/](pkg/utils/) (optional)
-- Migrations: [db/migrations/](db/migrations/)
-- SQL queries for sqlc: [db/queries/](db/queries/)
-- API docs output: [docs/](docs/)
+### Configuration
+- `github.com/joho/godotenv` v1.5.1 - .env file loading
+- **Pattern**: Environment variables with fallback to .env file
 
-Note: The db directory is the single source of truth for all SQL migrations and query files. Legacy paths such as [migrations](migrations/) and [internal/queries](internal/queries) are deprecated.
+### Logging
+- `github.com/rs/zerolog` v1.34.0 - Structured JSON logging
 
-## Quick Start
+### Utilities
+- `github.com/google/uuid` v1.6.0 - UUID v7 generation
 
-- Initialize (for new repos):
-  - go mod init your-module
-- Setup environment:
-  - cp .env.example .env
-  - Set DB_* variables; DATABASE_URL is deprecated
-- Run migrations:
-  - Use the migrate CLI with a DSN constructed from DB_* variables.
-  - Example:
-    ```bash
-    export MIGRATE_URL=$(printf "postgres://%s:%s@%s:%s/%s?sslmode=%s" \
-      "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE")
-    migrate -path ./db/migrations -database "$MIGRATE_URL" up
-    ```
-- Start server:
-  - go run [cmd/server/main.go](cmd/server/main.go)
-  - Or with hot reload: air
+### API Documentation
+- `github.com/swaggo/swag` v1.16.6 - Swagger documentation generator
+- **Command**: `swag init -g cmd/server/main.go --output ./docs`
 
-## Development Environment
+### Testing & Mocking
+- `github.com/golang/mock` v1.6.0 - Mock generation for interfaces
+- **Pattern**: `//go:generate mockgen -source=<file>.go -destination=mocks/<mock>.go -package=mocks`
+- **Note**: `DATA-DOG/go-sqlmock` mentioned in brief but not yet in go.mod
 
-Prerequisites:
-- Go 1.24.6+ (align with [go.mod](go.mod:1))
-- Git
-- Optional for local services: Docker and Docker Compose
-- Optional: PostgreSQL 17 and Valkey 8 running locally
+## Development Tools
 
-Recommended global tools:
-- Air: hot reload
-  - Install: go install github.com/cosmtrek/air@latest
-- golang-migrate CLI
-  - Install: refer to https://github.com/golang-migrate/migrate
-- sqlc
-  - Install: refer to https://docs.sqlc.dev/en/latest/overview/install.html
-- swag CLI
-  - Install: go install github.com/swaggo/swag/cmd/swag@latest
-- golangci-lint
-  - Install: refer to https://golangci-lint.run/usage/install/
+### Hot Reload
+- **Air**: Mentioned in brief for development hot-reloading (not in dependencies yet)
+- **Configuration**: Not present in codebase
 
-## Setup and Workflow
+### Database Migrations
+- **Tool**: `golang-migrate/migrate` (mentioned in brief, not in go.mod)
+- **Current**: Migrations exist in `db/migrations/`, tooling not integrated
+- **Makefile**: Placeholder command `make migrate`
 
-Initial setup:
-1) Clone repository
-2) Ensure Go version aligns with [go.mod](go.mod:1)
-3) Download dependencies:
-   - go mod download
-4) Configure environment:
-   - Create .env from [.env.example](.env.example) and set DB_* variables
-5) Start local DB/Valkey (optional) using docker-compose or native services
+### SQL Code Generation
+- **sqlc**: v1.30.0
+- **Config**: `sqlc.yaml`
+  - Engine: PostgreSQL
+  - Schema: `db/migrations/`
+  - Queries: `db/queries/`
+  - Output: `internal/db/`
+  - Features: JSON tags, empty slices, interface, exact table names off, no prepared queries, pointers for null types
 
-Run in development:
-- Simple run:
-  - go run ./cmd/server
-- With hot reload:
-  - air
+### Code Quality
+- **Formatter**: `go fmt` via `make fmt`
+- **Linter**: `golangci-lint` via `make lint` (tool not in dependencies)
+- **Testing**: Standard `go test` with race detector (`make test-race`)
 
-Run migrations (examples):
-- Up to latest:
-  - export MIGRATE_URL=$(printf "postgres://%s:%s@%s:%s/%s?sslmode=%s" "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE")
-  - migrate -path ./db/migrations -database "$MIGRATE_URL" up
-- Rollback one:
-  - migrate -path ./db/migrations -database "$MIGRATE_URL" down 1
-- Create new migration pair:
-  - migrate create -ext sql -dir ./db/migrations -seq add_example_table
+### Build Tools
+- **Make**: Automation for common tasks
+- **Docker**: Multi-stage builds with Alpine base
 
-Generate SQL code with sqlc:
-- sqlc generate
+## Infrastructure
 
-## Configuration
+### Containerization
+- **Docker**: Multi-stage Dockerfile
+  - **Builder**: golang:alpine
+  - **Runtime**: alpine
+  - **Optimizations**: Static linking, stripped binaries (`-ldflags="-s -w -extldflags '-static'"`)
+  - **Security**: Non-root user (appuser/appgroup)
 
-Configuration is loaded with the following precedence:
-1) Internal defaults
-2) Configuration files: config.yaml in working directory or ./config
-3) Environment variables (explicit bindings)
+### Orchestration
+- **Docker Compose**: v3 format
+- **Services**:
+  - `app`: Go Fiber application (port 8080)
+  - `db`: PostgreSQL 18 Alpine (port 5432)
+  - `redis`: Valkey 8 Alpine (port 6379)
+- **Volumes**: Persistent storage for `db-data` and `redis-data`
+- **Health Checks**: All services monitored
 
-Database configuration:
-- Canonical DB_* variables:
-  - DB_HOST: database hostname
-  - DB_PORT: database port
-  - DB_USER: database user
-  - DB_PASSWORD: database password
-  - DB_NAME: database name
-  - DB_SCHEMA: default schema (used to set search_path)
-  - DB_SSLMODE: sslmode parameter for Postgres
-- Fallbacks:
-  - DB_URL is recognized when DB_* are not provided.
-  - If both DB_* and DB_URL are set, DB_* take precedence.
-- Deprecated:
-  - DATABASE_URL is deprecated. When a URL is required (e.g., CLI tools), compose a DSN at runtime from DB_*.
+### Environment Configuration
 
-Valkey configuration:
-- Canonical VALKEY_* variables:
-  - VALKEY_HOST: host
-  - VALKEY_PORT: port
-  - VALKEY_PASSWORD: optional password
-  - VALKEY_DB: database index
-- Fallbacks:
-  - VALKEY_URL is recognized when VALKEY_* are not provided.
-  - If both VALKEY_* and VALKEY_URL are set, VALKEY_* take precedence.
-- Deprecated:
-  - REDIS_URL is deprecated.
-
-Other common environment variables:
-- PORT: server port (e.g., 3000)
-- ENV: environment (development, staging, production)
-- JWT_SECRET: secret used to sign tokens
-- JWT_EXPIRES_IN: token expiration (e.g., 24h)
-- CORS_ORIGINS: CSV of allowed origins (e.g., *)
-
-Example .env:
-```env
-PORT=3000
-ENV=development
-
-# Database (canonical)
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=gofiber_skeleton
-DB_SCHEMA=public
-DB_SSLMODE=disable
-# Optional fallback if DB_* is not provided
-DB_URL=postgres://postgres:postgres@localhost:5432/gofiber_skeleton?sslmode=disable
-
-# Auth
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=24h
-
-# Cache (canonical)
-VALKEY_HOST=localhost
-VALKEY_PORT=6379
-VALKEY_PASSWORD=
-VALKEY_DB=0
-# Optional fallback if VALKEY_* is not provided
-VALKEY_URL=redis://localhost:6379
-
-# CORS
-CORS_ORIGINS=*
+**Required Variables** (.env or environment):
+```
+PORT=8080
+DATABASE_DSN="host=localhost user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+JWT_SECRET="supersecretjwtkey"
 ```
 
-Migrations example:
-```bash
-# Prefer DB_* by constructing MIGRATE_URL
-export MIGRATE_URL=$(printf "postgres://%s:%s@%s:%s/%s?sslmode=%s" \
-  "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE")
-# If DB_URL is provided and DB_* are not, you can use:
-# export MIGRATE_URL="$DB_URL"
-migrate -path ./db/migrations -database "$MIGRATE_URL" up
+**Docker Compose Defaults**:
+```
+POSTGRES_DB=fiber_forum
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+REDIS_URL=redis:6379
 ```
 
-## HTTP and Middleware
+## Build & Deployment
 
-Recommended order:
-1) Logger
-2) Recover
-3) CORS
-4) Auth
-5) Routes
-
-Response format:
-- Use jsend for consistent success, fail, and error responses
-- Map validation errors to clear messages and appropriate HTTP status codes
-
-## Database and Persistence
-
-- PostgreSQL 17 with pgxpool for efficient pooling
-- Versioned migrations using golang-migrate, stored under [db/migrations](db/migrations)
-- sqlc generates typed code from SQL files located under [db/queries](db/queries)
-- Generated code is typically emitted to [internal/infrastructure/database/queries](internal/infrastructure/database/queries) as configured in [sqlc.yaml](sqlc.yaml)
-- Keep domain code decoupled from SQL by depending on interfaces; SQL lives centrally in db/queries
-
-## Authentication
-
-- Use JWT (HS256 or as configured) with custom claims
-- Bearer token verification in middleware
-- Inject user context (e.g., userID, email) for downstream handlers and usecases
-
-## Observability
-
-- Structured logging with environment-aware formats
-- Panic recovery with stack traces enabled in development
-- Add health and readiness endpoints for orchestration as part of server setup
-- Future: Integrate metrics/tracing (OpenTelemetry) for unified observability
-
-## Security Guidelines
-
-- Never commit secrets; inject via environment variables or secret managers
-- Rotate JWT secrets and credentials per environment
-- Validate and sanitize all inputs strictly
-- Apply least-privilege DB roles for application connections
-- Enable TLS at the ingress or load balancer layer in production
-
-## CI/CD Considerations
-
-- Suggested pipeline stages:
-  - fmt and lint
-  - test
-  - build
-  - package (Docker)
-  - deploy (staging, then production)
-- Cache Go module downloads and build artifacts
-- Run migrations as part of deploy or pre-deploy hooks using DB_* variables
-
-## Docker and Containers
-
-- Use multi-stage builds for small production images
-- Example runtime env vars for the app container:
-  - PORT, ENV
-  - DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SCHEMA, DB_SSLMODE
-  - JWT_SECRET, JWT_EXPIRES_IN
-  - VALKEY_URL, CORS_ORIGINS
-- docker-compose can provision Postgres and Valkey for local development ([compose.yml](compose.yml))
-- Volume persistence for Postgres/Valkey data
-- Healthchecks and proper stop signals for graceful shutdown
-
-## Known Gaps and Next Steps
-
-- Consolidate any legacy migrations under [migrations](migrations/) to [db/migrations](db/migrations)
-- Consolidate any SQL under [internal/queries](internal/queries) or elsewhere to [db/queries](db/queries)
-- Ensure [sqlc.yaml](sqlc.yaml) points to [db/queries](db/queries) for inputs and desired output package path
-- Update CI and local scripts to construct MIGRATE_URL from DB_* variables
-- Review [internal/infrastructure/config/config.go](internal/infrastructure/config/config.go) to bind and use DB_* variables exclusively
-
-## Tooling Commands Reference
-
-Development:
+### Local Development
 ```bash
-go run ./cmd/server
-air
+make fmt          # Format code
+make sqlc         # Generate DB code
+make build        # Build binary to bin/server
+make run          # Build and run
+make test         # Run tests
+make test-race    # Run tests with race detector
+make lint         # Run linter
 ```
 
-Migrations:
+### CI Pipeline (Make target)
 ```bash
-export MIGRATE_URL=$(printf "postgres://%s:%s@%s:%s/%s?sslmode=%s" "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE")
-migrate -path ./db/migrations -database "$MIGRATE_URL" up
+make ci           # fmt → sqlc → lint → test-race → build → generate-docs
+```
+
+### Production Build
+- **Binary Location**: `bin/server`
+- **Static Binary**: Yes (fully static linking)
+- **Size Optimization**: Stripped symbols (`-s -w`)
+- **Entry Point**: `cmd/server/main.go`
+
+## Database Schema Management
+
+### Migration Files
+- **Location**: `db/migrations/`
+- **Naming**: `{number}_{description}.up.sql`
+- **Existing**:
+  - `001_create_users.up.sql`
+  - `002_create_roles.up.sql`
+  - `003_create_threads_posts_comments.up.sql`
+  - `004_create_sessions.up.sql`
+
+### Query Files
+- **Location**: `db/queries/`
+- **Format**: sqlc annotations (`-- name: FunctionName :one/:many/:exec`)
+- **Existing**: `users.sql`, `posts.sql`
+
+## Network Architecture
+
+### Development (Docker Compose)
+- **App**: http://localhost:8080
+- **Swagger**: http://localhost:8080/swagger/
+- **Health**: http://localhost:8080/health
+- **Readiness**: http://localhost:8080/ready
+- **PostgreSQL**: localhost:5432
+- **Redis/Valkey**: localhost:6379
+
+### API Versioning
+- **Base Path**: `/api/v1`
+- **Auth Routes**: `/api/v1/auth/*`
+- **Post Routes**: `/api/v1/posts/*`
+
+## Security Measures
+
+### Authentication
+- **Method**: JWT Bearer tokens in Authorization header
+- **Token Expiry**: 72 hours
+- **Password Hashing**: bcrypt with DefaultCost (10)
+
+### Rate Limiting
+- **API**: General rate limiting via `middleware.APIRateLimit()`
+- **Auth**: Stricter limits via `middleware.AuthRateLimit()`
+
+### Application Security
+- **Panic Recovery**: `fiber/v2/middleware/recover`
+- **Request ID**: Unique ID per request for tracing
+- **Graceful Shutdown**: 30-second timeout for in-flight requests
+
+## Monitoring & Observability
+
+### Logging
+- **Format**: Structured JSON (zerolog)
+- **Fields**: request_id, method, path, ip, status, duration, body_size, user_agent
+- **Levels**: Info (requests), Error (failures), Fatal (startup failures)
+
+### Health Checks
+- **Liveness**: `/health` - Always returns 200 if server running
+- **Readiness**: `/ready` - Checks database connectivity via Ping()
+
+## Technical Constraints
+
+### Language Version
+- **Minimum**: Go 1.24.6
+- **Toolchain**: Go 1.25.0
+
+### Database
+- **Engine**: PostgreSQL (pgx driver only, no MySQL/SQLite support)
+- **Connection**: `database/sql` interface, not direct pgx connection pool
+
+### Dependency Injection
+- **Current**: Manual DI in `router.go`
+- **Planned**: Uber fx (mentioned in brief, not implemented)
+
+## Missing/Planned Integrations
+
+Based on brief requirements not yet in codebase:
+1. **Air** (hot-reloading) - Mentioned but not configured
+2. **golang-migrate** - Migration runner not integrated
+3. **Uber fx** - DI framework mentioned but not used
+4. **go-sqlmock** - For repository testing, not in go.mod
+5. **Redis Client** - Infrastructure ready, client not integrated
+6. **Viper** - Brief mentions it, project uses godotenv instead
+
+## Version Control & CI/CD
+
+### Git
+- **Platform**: GitHub (module path suggests)
+- **Organization**: zercle
+- **Repository**: gofiber-skeleton
+
+### Docker Registry
+- **Images Used**: Official golang:alpine, alpine, postgres:18-alpine, valkey/valkey:8-alpine
+- **Custom Image**: Built from Dockerfile (not published)

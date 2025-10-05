@@ -1,115 +1,213 @@
-# Context
+# Current Context
 
-This document captures the current project focus, recent updates, and concrete next steps. It is fact-based and updated frequently.
+## Project State
+Go Fiber Skeleton template is in **active development** with core infrastructure and two example domains (user, post) implemented. The project has a working foundation but is not yet feature-complete per the brief requirements.
 
-Related docs:
-- Brief: [`brief.md`](.agents/rules/memory-bank/brief.md)
-- Product: [`product.md`](.agents/rules/memory-bank/product.md)
-- Architecture: [`architecture.md`](.agents/rules/memory-bank/architecture.md)
-- Tech: [`tech.md`](.agents/rules/memory-bank/tech.md)
-- Tasks: [`tasks.md`](.agents/rules/memory-bank/tasks.md)
+## Recent Implementation Status
 
-## Current Focus
+### ✅ Completed Features
+1. **Core Infrastructure**
+   - Fiber v2 web server with graceful shutdown
+   - PostgreSQL connection via database/sql + pgx driver
+   - Zerolog structured logging with request ID tracking
+   - JSend response format standardization
+   - Docker Compose environment (PostgreSQL 18 + Valkey 8)
+   - Multi-stage Dockerfile with Alpine-based production image
 
-- Adopt Go 1.24.6+, PostgreSQL 17, and Valkey 8 (replace Redis; rename REDIS_URL to VALKEY_URL)
-- Update Memory Bank to codify conventions:
-  - All SQL migrations and query files are placed only under [`db/migrations/`](db/migrations/) and [`db/queries/`](db/queries/) respectively.
-  - Database configuration uses canonical DB_* environment variables; [`DATABASE_URL`](.env.example) is deprecated.
-  - Configuration precedence and fallbacks:
-    - Database: Prefer DB_*; if not set, accept DB_URL; if both present, DB_* take precedence.
-    - Cache: Prefer VALKEY_*; if not set, accept VALKEY_URL; if both present, VALKEY_* take precedence; REDIS_URL is deprecated.
-  - Each domain provides its own mocks under [`internal/domains/<domain>/mocks`](internal/domains/) generated via go.uber.org/mock/mockgen; DB-layer tests use DATA-DOG/go-sqlmock.
+2. **Configuration System**
+   - godotenv-based config loading (.env file support)
+   - Environment variable override capability
+   - Config struct with Port, DatabaseDSN, JWTSecret
 
-## Repository Snapshot
+3. **Database Tooling**
+   - sqlc integration with complete configuration (sqlc.yaml)
+   - Four migration files created (users, roles, threads/posts/comments, sessions)
+   - Type-safe query generation for users and posts
+   - Makefile command for sqlc generation
 
-- Module: see [`go.mod`](go.mod)
-- Key runtime entries:
-  - Server: [`cmd/server/main.go`](cmd/server/main.go)
-  - Migration runner: [`cmd/migrate/main.go`](cmd/migrate/main.go)
-- Infrastructure and domains:
-  - Config: [`internal/infrastructure/config/config.go`](internal/infrastructure/config/config.go)
-  - Database: [`internal/infrastructure/database/database.go`](internal/infrastructure/database/database.go)
-  - Generated query code: [`internal/infrastructure/database/queries`](internal/infrastructure/database/queries)
-  - Domains: [`internal/domains/auth`](internal/domains/auth) and [`internal/domains/posts`](internal/domains/posts)
-- SQL locations (current state):
-  - Canonical: [`db/migrations/`](db/migrations/)
-  - Legacy to deprecate: [`migrations/`](migrations/), [`internal/queries`](internal/queries), and any stray SQL under infra
-- Environment example currently includes [`DATABASE_URL`](.env.example)
+4. **Authentication Domain (User)**
+   - Complete 4-layer implementation (entity, repository, usecase, handler)
+   - User registration with bcrypt password hashing
+   - JWT-based login with 72-hour token expiry
+   - Auth middleware for protected routes
+   - Swagger documentation annotations
 
-Notes:
-- Align local toolchain with Go version declared in [`go.mod`](go.mod).
+5. **Post Domain**
+   - Complete 4-layer implementation demonstrating Clean Architecture
+   - CRUD operations with ownership validation
+   - Mock generation setup (//go:generate annotations)
+   - Mock files generated for repository and usecase
 
-## Recent Updates
-- All previously defined "Next Steps (Prioritized)" up to "Update domain tests to rely on mocks and go-sqlmock" have been completed.
-- Architecture updated to codify db layout and domain mocks:
-  - [`architecture.md`](.agents/rules/memory-bank/architecture.md)
-- Tech updated to adopt DB_* env vars, deprecate DATABASE_URL, and set db/* paths:
-  - [`tech.md`](.agents/rules/memory-bank/tech.md)
-- Tasks updated for workflows covering db/*, DB_* vars, and mock generation:
-  - [`tasks.md`](.agents/rules/memory-bank/tasks.md)
-- Stack versions updated:
-  - Go 1.24.6+, PostgreSQL 17, Valkey 8 replacing Redis; REDIS_URL deprecated in favor of VALKEY_URL
-- Domain testing implemented:
-  - Auth and posts domain usecase tests updated to use go.uber.org/mock/gomock exclusively
-  - Generated mocks available under each domain's `mocks/` package  
-  - All tests now run with full isolation from database dependencies
-  - Comprehensive test coverage for all usecase methods including error scenarios
+6. **Middleware**
+   - Request ID generation
+   - Structured logging with duration metrics
+   - API rate limiting
+   - Auth-specific rate limiting
+   - Panic recovery
 
+7. **API Documentation**
+   - Swagger/OpenAPI integration via swaggo
+   - Auto-generation from code comments
+   - Swagger UI accessible at /swagger
 
-## Decisions
+8. **Development Tooling**
+   - Comprehensive Makefile (fmt, build, run, test, sqlc, lint, ci)
+   - Docker Compose with health checks
+   - Test infrastructure (placeholder tests exist)
 
-- Database environment variables (canonical):
-  - DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, DB_SCHEMA, DB_SSLMODE
-  - DATABASE_URL is deprecated; construct DSNs from DB_* at runtime for tools as needed.
-- Configuration precedence and fallbacks:
-  - Database: Prefer DB_*; if DB_* are not present, accept DB_URL; if both are present, DB_* take precedence.
-  - Cache: Prefer VALKEY_* (VALKEY_HOST, VALKEY_PORT, VALKEY_PASSWORD, VALKEY_DB); if not present, accept VALKEY_URL; if both are present, VALKEY_* take precedence. REDIS_URL is deprecated.
-- SQL placement:
-  - Migrations live only under [`db/migrations`](db/migrations/)
-  - Queries for sqlc live only under [`db/queries`](db/queries/)
-- Domain mocks:
-  - Per-domain mocks live under [`internal/domains/<domain>/mocks`](internal/domains/)
-  - Generated by go.uber.org/mock/mockgen from repository interfaces
-  - DB-layer tests use DATA-DOG/go-sqlmock; no real DB is required for unit tests
-- Supported versions:
-  - Go 1.24.6+ (align [go.mod](go.mod:1) accordingly)
-  - PostgreSQL 17
-- Cache layer:
-  - Use Valkey v8 (Redis-compatible) for caching, rate limiting, and session/ephemeral state
-  - Environment variables: VALKEY_* or VALKEY_URL; REDIS_URL is deprecated
-## Divergences from prior state
+### ⚠️ Partially Implemented
+1. **Testing Strategy**
+   - Mock generation infrastructure ready (mockgen annotations present)
+   - Mock files generated for post domain
+   - Placeholder test file exists (`internal/post/tests/post_test.go`)
+   - **Missing**: Actual unit tests with mock usage
+   - **Missing**: Repository tests with go-sqlmock (dependency not added)
 
-- Legacy paths exist and must be refactored:
-  - Top-level [`migrations/`](migrations/) → moved into [`db/migrations/`](db/migrations/) (Completed)
-  - [`internal/queries`](internal/queries) and any stray SQL → consolidated into [`db/queries/`](db/queries/) (Completed)
-- Environment example:
-  - [`.env.example`](.env.example) currently uses DATABASE_URL; will be migrated to DB_* variables (Completed)
-  - [`.env.example`](.env.example) currently uses REDIS_URL; will be migrated to VALKEY_URL (Completed)
+2. **Database Migrations**
+   - Migration files created
+   - **Missing**: golang-migrate integration
+   - **Missing**: Makefile migrate command implementation (currently placeholder)
 
+3. **Dependency Injection**
+   - Brief specifies Uber fx
+   - **Current**: Manual DI in router.go (works but not using fx)
 
-## Next Steps (Prioritized)
+### ❌ Not Yet Implemented
+1. **Hot Reloading**
+   - Air mentioned in brief but not configured
+   - No .air.toml configuration file
 
-All previous next steps have been addressed, including:
+2. **Viper Configuration**
+   - Brief specifies Viper for config management
+   - **Current**: Using godotenv instead (simpler but less flexible)
 
-1. ✅ Update domain tests to rely on mocks and `go-sqlmock` (Completed)
+3. **Redis/Valkey Integration**
+   - Infrastructure running in Docker Compose
+   - **Missing**: Go client library and integration code
 
-The project now has comprehensive test coverage with proper isolation.
+4. **Comprehensive Testing**
+   - go-sqlmock not in dependencies
+   - No actual test implementations beyond placeholder
 
-## Follow-up Implementation Plan
+5. **Additional Domains**
+   - Migrations exist for roles, threads, comments
+   - **Missing**: Implementation code for these domains
 
-- Update .env.example:
-  - Replace DATABASE_URL with DB_* keys; provide a reference DSN construction snippet in docs (Completed)
-- Refactor SQL locations:
-  - Move and rename as necessary; search and replace imports/usages in code generation and build scripts (Completed)
-- Update configuration loader:
-  - Bind DB_* via Viper; construct and expose DSN for clients that need URL form (Completed)
-- Regenerate sqlc:
-  - Point to [`db/queries`](db/queries); verify generated code continues under [`internal/infrastructure/database/queries`](internal/infrastructure/database/queries) (Completed)
-- Validate pipelines:
-  - Run migrations locally and in CI using constructed MIGRATE_URL (Completed)
-  - Run unit tests with mocks and sqlmock; ensure no hard dependency on real DB (Completed)
+6. **Domain Addition Guide**
+   - Brief requires "clear instructions" for adding domains
+   - **Missing**: Documentation in README or separate guide
 
-## Risks
+## Active Work Focus
+**Status**: Foundation complete, awaiting direction for next phase
 
-- Refactor touches multiple systems (sqlc, migrate CLI, config loader); sequence changes carefully to keep builds green
-- Ensure all references to legacy paths are removed to prevent drift
+### Immediate Next Steps (Not Yet Started)
+1. Implement comprehensive test suite using existing mock infrastructure
+2. Add golang-migrate integration for database migrations
+3. Document the process for adding new domains
+4. Implement remaining domains (threads, comments, roles)
+5. Add Air for hot-reloading in development
+
+## Current File State
+
+### Recently Modified/Generated
+- `internal/db/*.go` - sqlc-generated code (current with queries)
+- `internal/post/repository/mocks/repository.go` - Generated mocks
+- `internal/post/usecase/mocks/usecase.go` - Generated mocks
+- `docs/*` - Swagger documentation (generated)
+
+### Needs Attention
+- `Makefile` - migrate command is placeholder, needs implementation
+- `README.md` - Basic, needs domain addition guide
+- `internal/post/tests/post_test.go` - Placeholder, needs real tests
+- `go.mod` - Missing: go-sqlmock, Air, potentially golang-migrate
+
+## Known Gaps Between Brief and Implementation
+
+### Critical Gaps
+1. **Testing Not Demonstrated**: Brief emphasizes "comprehensive testing strategy" with examples, current has only infrastructure
+2. **Migration Tool Not Integrated**: Brief specifies golang-migrate, not connected
+3. **No Domain Addition Guide**: Brief requires "clear instructions," not documented
+4. **Viper vs godotenv**: Brief specifies Viper, implementation uses simpler godotenv
+
+### Medium Priority Gaps
+1. **Uber fx**: Mentioned in brief, not used (manual DI works but not as specified)
+2. **Air**: Development tool mentioned, not configured
+3. **Incomplete Domains**: Roles, threads, comments have migrations but no code
+
+### Low Priority Gaps
+1. **Redis Integration**: Infrastructure ready but client not connected
+2. **Additional Middleware**: Could expand rate limiting, add CORS, etc.
+
+## Technical Decisions Made
+
+### Deviations from Brief
+1. **godotenv instead of Viper**: Simpler approach chosen, works for current needs
+2. **Manual DI instead of Uber fx**: Less complexity, easier to understand for template users
+3. **Minimal initial domains**: Focus on quality examples (user, post) rather than full forum
+
+### Architectural Patterns Established
+1. **4-Layer Domain Structure**: entity → repository → usecase → handler (strictly enforced)
+2. **Interface-Driven Design**: All repositories and usecases defined as interfaces
+3. **Mock Generation Pattern**: `//go:generate mockgen` annotations on interfaces
+4. **JSend Response Standard**: All handlers use response.Success/Fail/Error
+5. **UUID v7**: Time-sortable UUIDs for all entities
+
+## Blockers & Questions
+
+### Current Blockers: None
+Project is functional and deployable as-is. Gaps are features awaiting implementation.
+
+### Pending Decisions
+1. Should Viper replace godotenv to match brief exactly?
+2. Should Uber fx be added for DI, or keep manual approach for simplicity?
+3. Priority order for implementing remaining domains vs. completing testing suite?
+4. Should Air configuration be added, or leave to individual developer preference?
+
+## Environment Notes
+
+### Development Setup Requirements
+1. Docker and Docker Compose installed
+2. Go 1.24.6+ installed
+3. sqlc installed for regenerating queries
+4. swag installed for regenerating API docs
+5. mockgen installed for regenerating mocks
+
+### Current Database Schema
+- **users**: id, username, email, password_hash, created_at, updated_at
+- **roles**: (migration exists, table structure unknown without reading file)
+- **threads**: (migration exists, structure partially known - has posts relation)
+- **posts**: id, thread_id, user_id, content, created_at, updated_at
+- **comments**: (migration exists, table structure unknown)
+- **sessions**: (migration exists, table structure unknown)
+
+## Integration Points
+
+### External Services (via Docker Compose)
+- PostgreSQL: localhost:5432 (db service)
+- Valkey/Redis: localhost:6379 (redis service, not yet used by app)
+
+### API Endpoints Implemented
+- `GET /health` - Liveness check
+- `GET /ready` - Readiness check (DB ping)
+- `GET /swagger/*` - API documentation
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/posts` - Create post (protected)
+- `GET /api/v1/posts/:id` - Get post
+- `GET /api/v1/posts/user/:user_id` - List user's posts
+- `PUT /api/v1/posts/:id` - Update post (protected, ownership check)
+- `DELETE /api/v1/posts/:id` - Delete post (protected, ownership check)
+
+### Stub Routes (Not Implemented)
+- `GET /api/v1/users`
+- `GET /api/v1/threads`
+- `GET /api/v1/comments`
+
+## Next Session Priorities
+
+**When work resumes, prioritize:**
+1. Review and validate Memory Bank files with user
+2. Decide on Viper vs godotenv and Uber fx vs manual DI
+3. Implement test suite with mocks (demonstrates testing strategy from brief)
+4. Integrate golang-migrate for proper migration management
+5. Document domain addition process in README or separate guide

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install tools
+        run: |
+          go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Tidy modules
+        run: go mod tidy
+
+      - name: Generate SQL code
+        run: sqlc generate
+
+      - name: Lint code
+        run: golangci-lint run
+
+      - name: Run tests
+        run: go test ./... -race
+
+      - name: Build binary
+        run: go build ./...
+
+      - name: Generate API docs
+        run: swag init -g cmd/server/main.go --output ./docs

@@ -1,54 +1,32 @@
-# Build stage
-FROM golang:1.24-alpine AS builder
+# Build Stage
+FROM golang:alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache git ca-certificates tzdata
-
-# Set working directory
 WORKDIR /app
 
-# Copy go mod and sum files
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
+RUN go build -ldflags="-s -w -extldflags '-static'" -o /app/bin/server ./cmd/server
 
-# Final stage
-FROM alpine:latest
+# Run Stage
+FROM alpine
 
-# Install runtime dependencies
-RUN apk --no-cache add ca-certificates tzdata wget tini
-
-# Create non-root user
-RUN addgroup -g 1001 -S appuser && \
-    adduser -u 1001 -S appuser -G appuser
-
-# Set working directory
 WORKDIR /app
 
-# Copy binary from builder stage
-COPY --from=builder /app/main .
-
-# Copy migrations directory
-COPY --from=builder /app/migrations ./migrations
-
-# Change ownership to non-root user
-RUN chown -R appuser:appuser /app
+# Create a non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-# Expose port
-EXPOSE 3000
+COPY --from=builder /app/bin/server /app/bin/server
+COPY --from=builder /app/.env.example /app/.env.example
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+# Expose the port the app runs on
+EXPOSE 8080
 
-# Run the application
-ENTRYPOINT [ "tini --" ] 
-CMD ["./main"]
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["/app/bin/server", "health"]
+
+# Command to run the executable
+CMD ["/app/bin/server"]

@@ -12,7 +12,8 @@ const docTemplate = `{
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
-            "email": "support@example.com"
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
         },
         "license": {
             "name": "MIT",
@@ -23,57 +24,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/change-password": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Change the authenticated user's password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Change user password",
-                "parameters": [
-                    {
-                        "description": "Password change data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/login": {
             "post": {
-                "description": "Authenticate user with email and password",
+                "description": "Authenticate user and return JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -81,7 +34,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "authentication"
                 ],
                 "summary": "User login",
                 "parameters": [
@@ -91,146 +44,27 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.LoginRequest"
+                            "$ref": "#/definitions/handler.loginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Login successful with JWT token",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.LoginResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Invalid credentials",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/profile": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get authenticated user's profile information",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Get user profile",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.UserData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/refresh": {
-            "post": {
-                "description": "Generate new access token using refresh token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Refresh access token",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.RefreshTokenRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.RefreshTokenResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
@@ -238,7 +72,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Register a new user account",
+                "description": "Create a new user account with username, email, and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -246,120 +80,50 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "authentication"
                 ],
-                "summary": "User registration",
+                "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "Registration data",
+                        "description": "Registration details",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterRequest"
+                            "$ref": "#/definitions/handler.registerRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "User registered successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.RegisterResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
             }
         },
         "/posts": {
-            "get": {
-                "description": "Retrieve a paginated list of posts",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "List posts",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Number of posts to return",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Number of posts to skip",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Filter by published status",
-                        "name": "published",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new blog post",
+                "description": "Create a new post in a thread (requires authentication)",
                 "consumes": [
                     "application/json"
                 ],
@@ -372,156 +136,38 @@ const docTemplate = `{
                 "summary": "Create a new post",
                 "parameters": [
                     {
-                        "description": "Post data",
+                        "description": "Post details",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreatePostRequest"
+                            "$ref": "#/definitions/handler.createPostRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Post created successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posts/my-posts": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a paginated list of the authenticated user's posts",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "List user's posts",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Number of posts to return",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Number of posts to skip",
-                        "name": "offset",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostListResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posts/slug/{slug}": {
-            "get": {
-                "description": "Retrieve a specific post by its slug",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "Get a post by slug",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Post Slug",
-                        "name": "slug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostWithAuthorResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
@@ -529,7 +175,7 @@ const docTemplate = `{
         },
         "/posts/{id}": {
             "get": {
-                "description": "Retrieve a specific post by its ID",
+                "description": "Retrieve a single post by its ID",
                 "produces": [
                     "application/json"
                 ],
@@ -540,7 +186,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID",
+                        "description": "Post ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -548,33 +194,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Post retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostWithAuthorResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid post ID",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Post not found",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
@@ -585,7 +219,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update an existing post",
+                "description": "Update an existing post (requires authentication and ownership)",
                 "consumes": [
                     "application/json"
                 ],
@@ -599,62 +233,44 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID",
+                        "description": "Post ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Update post data",
+                        "description": "Updated post content",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdatePostRequest"
+                            "$ref": "#/definitions/handler.updatePostRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Post updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
@@ -665,10 +281,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete an existing post",
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Delete an existing post (requires authentication and ownership)",
                 "tags": [
                     "posts"
                 ],
@@ -676,7 +289,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID",
+                        "description": "Post ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -684,170 +297,65 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "No Content"
+                        "description": "Post deleted successfully"
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid post ID",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
             }
         },
-        "/posts/{id}/publish": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Publish an existing post",
+        "/users/{user_id}/posts": {
+            "get": {
+                "description": "Retrieve all posts created by a specific user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posts"
                 ],
-                "summary": "Publish a post",
+                "summary": "List posts by user",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID",
-                        "name": "id",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Posts retrieved successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid user ID",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posts/{id}/unpublish": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Unpublish an existing post",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "summary": "Unpublish a post",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/jsend.JSendResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/models.PostResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/jsend.JSendResponse"
+                            "$ref": "#/definitions/response.JSendResponse"
                         }
                     }
                 }
@@ -855,68 +363,22 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "jsend.JSendResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "Optional error code",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "Data for success/fail"
-                },
-                "message": {
-                    "description": "Error message for error",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "\"success\", \"fail\", or \"error\"",
-                    "type": "string"
-                }
-            }
-        },
-        "models.ChangePasswordRequest": {
-            "type": "object",
-            "required": [
-                "confirm_password",
-                "current_password",
-                "new_password"
-            ],
-            "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
-                "current_password": {
-                    "type": "string"
-                },
-                "new_password": {
-                    "type": "string",
-                    "minLength": 8
-                }
-            }
-        },
-        "models.CreatePostRequest": {
+        "handler.createPostRequest": {
             "type": "object",
             "required": [
                 "content",
-                "title"
+                "thread_id"
             ],
             "properties": {
                 "content": {
-                    "type": "string",
-                    "minLength": 10
+                    "type": "string"
                 },
-                "is_published": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 1
+                "thread_id": {
+                    "type": "string"
                 }
             }
         },
-        "models.LoginRequest": {
+        "handler.loginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -931,238 +393,48 @@ const docTemplate = `{
                 }
             }
         },
-        "models.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "expires_at": {
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserData"
-                }
-            }
-        },
-        "models.PostListResponse": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "posts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.PostWithAuthorResponse"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.PostResponse": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_published": {
-                    "type": "boolean"
-                },
-                "published_at": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.PostWithAuthorResponse": {
-            "type": "object",
-            "properties": {
-                "author_email": {
-                    "type": "string"
-                },
-                "author_first_name": {
-                    "type": "string"
-                },
-                "author_full_name": {
-                    "type": "string"
-                },
-                "author_last_name": {
-                    "type": "string"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_published": {
-                    "type": "boolean"
-                },
-                "published_at": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RefreshTokenRequest": {
+        "handler.registerRequest": {
             "type": "object",
             "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RefreshTokenResponse": {
-            "type": "object",
-            "properties": {
-                "expires_at": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RegisterRequest": {
-            "type": "object",
-            "required": [
-                "confirm_password",
                 "email",
-                "first_name",
-                "last_name",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
-                "confirm_password": {
-                    "type": "string"
-                },
                 "email": {
                     "type": "string"
-                },
-                "first_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2
-                },
-                "last_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2
                 },
                 "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 6
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
-        "models.RegisterResponse": {
+        "handler.updatePostRequest": {
             "type": "object",
-            "properties": {
-                "expires_at": {
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserData"
-                }
-            }
-        },
-        "models.UpdatePostRequest": {
-            "type": "object",
+            "required": [
+                "content"
+            ],
             "properties": {
                 "content": {
-                    "type": "string",
-                    "minLength": 10
-                },
-                "is_published": {
-                    "type": "boolean"
-                },
-                "title": {
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 1
+                    "type": "string"
                 }
             }
         },
-        "models.UserData": {
+        "response.JSendResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
                     "type": "string"
                 },
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "is_email_verified": {
-                    "type": "boolean"
-                },
-                "last_login_at": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "updated_at": {
+                "status": {
                     "type": "string"
                 }
             }
@@ -1181,11 +453,11 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
-	Schemes:          []string{},
-	Title:            "GoFiber Skeleton API",
-	Description:      "A production-ready Go Fiber backend template with clean architecture",
+	Schemes:          []string{"http", "https"},
+	Title:            "Go Fiber Skeleton API",
+	Description:      "Production-ready Go backend template using Fiber v2 framework with Clean Architecture",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
