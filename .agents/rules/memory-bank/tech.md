@@ -1,81 +1,94 @@
-# Technology Stack: Go Fiber Template Repository
+# Technology Stack
 
-This document outlines the core technologies and tools utilized in the Go Fiber Template Repository.
+This document enumerates the sanctioned tooling, libraries, and operational practices for the modern Go Fiber template. All components are selected for long-term maintainability, active community support, and compatibility with cloud-native deployments.
 
-## 1. Backend Framework & Language
+## Languages and Runtime
 
--   **Go (Golang):** The primary programming language for its performance, concurrency features, and strong typing.
--   **Fiber v2:** A high-performance, Express.js-inspired web framework for Go, used for building RESTful APIs.
+- **Go 1.25+** with toolchain pinning via `go env -w GOTOOLCHAIN=go1.25.0`.
+- **TypeScript 5.x** for supporting scripts, infrastructure CDK, and optional frontend SDKs.
+- **SQL** (PostgreSQL dialect) with sqlc code generation.
 
-## 2. Dependency Management & Injection
+## Core Frameworks & Libraries
 
--   **Go Modules:** Standard Go dependency management system.
--   **Uber's fx:** A dependency injection framework for Go, built on the concept of "application as a function graph," promoting modularity and testability.
+| Concern | Technology |
+| --- | --- |
+| HTTP server | Fiber v3 with middleware ecosystem (recover, cors, limiter, helmet) |
+| gRPC services | `google.golang.org/grpc` with Buf toolchain |
+| Configuration | Viper + env overrides, SOPS-encrypted config bundles |
+| Dependency injection | Uber Fx or Wire for compile-time graph |
+| Validation | go-playground/validator v10 with domain-specific wrappers |
+| Auth & Security | PASETO v2 tokens, bcrypt/argon2id hashing, OPA for policy checks |
+| Background jobs | Asynq (Redis-backed) for scheduled workflows |
+| Rate limiting | Redis-based sliding window implemented via Go Redis client |
 
-## 3. Configuration Management
+## Data Layer
 
--   **Viper:** A complete Go configuration solution that supports various formats (JSON, TOML, YAML, HCL, INI, envfile) and environment variables, with clear precedence rules.
--   **`dotenv`:** For loading environment variables from `.env` files during local development.
+- **Primary database**: PostgreSQL 18 (Cloud SQL/Aurora compatible) using **sqlc** generated repositories, migrations managed by **Atlas**.
+- **Caching**: Valkey 8 via go-redis client.
+- **Search**: Meilisearch 1.x with HTTP SDK integration.
+- **Messaging/Eventing**: NATS JetStream for pub/sub and command bus semantics.
+- **Analytics pipeline**: ClickHouse via Kafka Connect (optional module).
 
-## 4. Database & Query Builders
+## Observability
 
--   **PostgreSQL 18:** The relational database for production data storage with full ACID compliance.
--   **`golang-migrate/migrate`:** A database migration tool for Go, enabling version-controlled schema evolution.
--   **`sqlc`:** ✅ **ACTIVE** - Generates fully type-safe, idiomatic Go code from raw SQL queries, catching errors at compile-time and simplifying data access. Replaces ORM for better performance and type safety.
+- **Tracing**: OpenTelemetry Go SDK exporting OTLP → Collector → Tempo/Jaeger.
+- **Metrics**: Prometheus client with exemplars, Grafana dashboards provisioned via Jsonnet.
+- **Logging**: Zerolog structured logs with trace correlation; Loki integration through Promtail sidecars.
+- **Error tracking**: Sentry Go SDK with performance tracing enabled.
 
-## 5. Authentication & Authorization
+## DevEx Tooling
 
--   **`golang-jwt`:** A Go package for creating and verifying JSON Web Tokens (JWTs), used for stateless authentication.
--   **Bcrypt:** For secure hashing of user passwords.
+- **Package management**: Go modules (proxy-aware), npm/pnpm for TypeScript assets.
+- **Task runner**: Taskfile.yml orchestrating dev, build, test, and codegen flows.
+- **Hot reload**: Air for Go binaries, Tilt for multi-service dev orchestration.
+- **Linting & formatting**: golangci-lint, gofmt, revive, sqlfluff (SQL), eslint/prettier (TS).
+- **Code generation**: sqlc, Buf (proto), mockery (interfaces), oapi-codegen (OpenAPI), swagger docs via Swag.
+- **Secrets management**: SOPS + age, integrated with AWS/GCP KMS.
 
-## 6. Caching
+## Testing Strategy
 
--   **Valkey 8:** ✅ **CONFIGURED** - Redis-compatible in-memory data structure store for caching, rate limiting storage, and session management. Integrated via `docker-compose.yml` with persistent data volume.
+- Unit tests with Go testing package + Testify.
+- Mock generation via mockery and go.uber.org/mock.
+- Integration tests leveraging Testcontainers-Go for ephemeral PostgreSQL/Redis/NATS.
+- Contract tests generated from OpenAPI/gRPC definitions validated with Dredd/Buf.
+- Load testing harness using k6 scripts stored under `tools/k6`.
 
-## 7. API Documentation
+## CI/CD
 
--   **`swaggo/swag`:** ✅ **ACTIVE** - Automatically generates Swagger/OpenAPI 2.0 documentation from Go source code comments. All endpoints documented with request/response schemas. Access at `/swagger/*`.
+- GitHub Actions workflow matrix:
+  - Lint & unit tests (Go, SQL, Proto).
+  - Integration tests using service containers.
+  - Build & push multi-arch Docker images (linux/amd64, linux/arm64).
+  - Upload coverage to Codecov.
+  - Trigger Helm chart packaging via `helmfile sync`.
+- Deployment promotion orchestrated by Argo CD with progressive delivery (Argo Rollouts).
+- Security scans: Trivy (images), Gosec (code), Dependabot updates.
 
-## 8. Development & Tooling
+## Infrastructure as Code
 
--   **Air:** A live-reloading command-line tool for Go applications, significantly improving the development feedback loop by automatically rebuilding and restarting the server on file changes.
--   **Docker & Docker Compose:** For containerizing the application and its dependencies (PostgreSQL, Valkey), providing a consistent and isolated development environment.
--   **Makefile:** Contains helper commands for common development tasks (e.g., `make run`, `make test`, `make migrate`).
--   **`go generate`:** Used with `mockgen` and `sqlc` for code generation.
+- **Terraform** modules provisioning cloud infrastructure (networking, managed DB/cache, secrets).
+- **Helmfile** manages Kubernetes releases; base charts align with official community charts.
+- **Cilium** for service mesh & network security, optional Linkerd integration for lightweight scenarios.
+- **External Secrets Operator** to bridge Vault/Secrets Manager into cluster secrets.
 
-## 9. Testing & Mocking
+## Compliance & Governance
 
--   **`go test`:** Go's built-in testing framework.
--   **`go.uber.org/mock/mockgen`:** ✅ **CONFIGURED** - Generates mock implementations of Go interfaces via `//go:generate` directives for isolated unit testing.
--   **`DATA-DOG/go-sqlmock`:** Library for mocking SQL database driver for repository testing without real database.
--
-## 10. Request Validation
+- Policy enforcement via Open Policy Agent (OPA) integrated in API gateway and CI checks.
+- Data retention & residency handled through PostgreSQL partitioning strategies and policy configs.
+- Audit trails stored in immutable PostgreSQL schemas with time-based access controls.
+- Static application security testing (SAST) and dependency CVE scanning part of CI pipeline.
 
--   **`go-playground/validator/v10`:** ✅ **ACTIVE** - Comprehensive struct and field validation with tags (required, email, min, max, etc.). Integrated in all handlers with JSend error responses.
+## Supported Environments
 
-## 11. Observability & Monitoring
+| Environment | Runtime | Tooling |
+| --- | --- | --- |
+| Local | Docker Desktop/Colima with Tilt, Air, Taskfile | Compose, Meilisearch, NATS, Redis, Postgres |
+| Staging | Kubernetes (K3s/KinD or managed) | Helmfile, Argo CD, Prometheus stack |
+| Production | Managed Kubernetes (GKE/AKS/EKS) | Cloud SQL/Aurora, Managed Redis/NATS, Cloud Load Balancers, Cloud Armor/WAF |
 
--   **`rs/zerolog`:** ✅ **ACTIVE** - High-performance structured logging with request context (request_id, method, path, status, duration, IP, user_agent).
--   **Request ID Middleware:** ✅ **ACTIVE** - UUID-based request tracing across distributed systems via X-Request-ID header.
--   **Distributed Tracing:** Planned integration with OpenTelemetry for end-to-end request tracing.
--   **Metrics:** Planned integration with Prometheus/Grafana for application performance monitoring.
+## Reference Repositories & Inspirations
 
-## 12. Code Quality & Linting
-
--   **`go fmt`:** Go's official code formatter.
--   **`golangci-lint`:** ✅ **ACTIVE** - Fast Go linters aggregator enforcing code style. Integrated in CI/CD pipeline.
-
-## 13. Production Middleware
-
--   **Recovery Middleware:** ✅ **ACTIVE** - Gracefully handles panics and prevents server crashes.
--   **Rate Limiting:** ✅ **ACTIVE** - 100 req/min for API endpoints, 5 req/min for auth (brute force protection).
--   **Graceful Shutdown:** ✅ **ACTIVE** - SIGTERM/SIGINT handling with 30s timeout for zero-downtime deployments.
-
-## 14. Project Structure
-
--   **Mono-repo:** Single repository with modular feature-based architecture.
--   **Clean Architecture / Domain-Driven Design:** ✅ **IMPLEMENTED** - Strict separation into `cmd/`, `internal/`, `pkg/`, and `db/` with feature-based organization (`internal/user/`, `internal/post/`).
-
-## 15. API Response Standards
-
--   **JSend Specification:** ✅ **ACTIVE** - All API responses follow JSend format with `status`, `data`, `message`, and `code` fields for consistency and client-side error handling.
+- gofiber-boilerplate community templates (architecture inspiration)
+- Entgo clean architecture example for domain layering patterns
+- OpenTelemetry demo for observability wiring best practices
+- Buffer/Segment public infra blueprints for data streaming and governance

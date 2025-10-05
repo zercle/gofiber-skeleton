@@ -1,78 +1,84 @@
-# Architecture: Go Fiber Template Repository
+# Architecture Overview
 
-## Core Architectural Principles
+This document defines the target architecture for the modern Go Fiber backend template, establishing module boundaries, runtime topology, and integration patterns.
 
-This project is built upon a **Domain-Driven Clean Architecture** within a **mono-repo structure**. This design choice prioritizes:
+## System Topology
 
-1.  **Domain Isolation:** Each business domain (e.g., `auth`, `posts`) is a self-contained module, minimizing dependencies between domains. This enhances modularity and reduces the blast radius of changes.
-2.  **SOLID Principles:** Strict adherence to Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion principles.
-3.  **Testability:** Components are designed for independent testing, with interfaces and dependency injection facilitating easy mocking.
-4.  **Scalability & Maintainability:** The clear separation of concerns and modular design support long-term project health and team collaboration.
-5.  **Abstraction-Driven Development:** Public components interact with abstractions (interfaces) rather than concrete implementations, promoting flexibility and testability.
-6.  **Composition over Inheritance:** Favoring smaller, purpose-specific abstractions.
-
-## Feature-Based Architecture Overview
-
-The architecture is organized around individual features, each encapsulated within its own directory structure. This design prioritizes feature cohesion and simplifies navigation by grouping all code related to a specific feature (handlers, usecases, repositories, tests, configs) together.
-
-### Directory Layout
-
-```text
-project/
-├── cmd/
-│   └── server/
-│       └── main.go      # Main application logic
-├── internal/
-│   ├── config/          # Configuration loading
-│   ├── db/              # Database connections and models
-│   ├── user/            # Feature: User (entity, model, repository, usecase, handler, middleware, tests)
-│   │   ├── entity/
-│   │   ├── model/
-│   │   ├── repository/
-│   │   ├── usecase/
-│   │   ├── handler/
-│   │   ├── middleware/
-│   │   └── tests/
-│   ├── post/            # Feature: Post (entity, model, repository, usecase, handler, middleware, tests)
-│   │   ├── entity/
-│   │   ├── model/
-│   │   ├── repository/
-│   │   ├── usecase/
-│   │   ├── handler/
-│   │   ├── middleware/
-│   │   └── tests/
-│   └── server/          # Fiber router setup
-├── db/                  # SQL files
-│   ├── migrations/      # Database migration scripts
-│   └── queries/         # sqlc query definitions
-├── migrations/          # SQL schema migrations
-├── go.mod               # Go module definition
-└── go.sum               # Go module checksum file
+```mermaid
+flowchart LR
+Client[API Consumers] --> API[HTTP Gateway]
+API --> Usecases[Application Services]
+Usecases --> Persistence[PostgreSQL Adapter]
+Usecases --> Cache[Redis Cache Adapter]
+Usecases --> Messaging[NATS JetStream Adapter]
+Usecases --> Search[Meilisearch Adapter]
+Usecases --> Observability[OTel Collector]
+Persistence --> PostgreSQL[PostgreSQL Cluster]
+Cache --> Redis[Redis Cluster]
+Messaging --> EventBus[NATS JetStream]
+Search --> SearchCluster[Meilisearch]
+Observability --> OTLP[OTel Pipeline]
 ```
 
-This feature-based structure enhances modularity by keeping feature logic self-contained, reducing dependencies across unrelated features, and improving maintainability as the application grows.
+## Layered Architecture
 
-Implemented user authentication and post CRUD features under `internal/user` and `internal/post`. User authentication uses `golang.org/x/crypto/bcrypt` for password hashing and `github.com/golang-jwt/jwt/v4` for JWT-based sessions.
+- **cmd/**: thin entrypoints for REST (Fiber) and gRPC gateways, wiring DI containers and lifecycle hooks.
+- **internal/core/**: domain aggregates, value objects, domain services, and business rules with zero infrastructure knowledge.
+- **internal/app/**: application service layer orchestrating use cases, transaction boundaries, and saga coordination.
+- **internal/ports/**: inbound adapters exposing HTTP handlers, gRPC services, scheduled jobs, and message consumers.
+- **internal/adapters/**: outbound integrations for persistence, cache, messaging, search, payments, email, and observability sinks.
+- **pkg/shared/**: reusable utilities (validation, error codecs, telemetry helpers) designed for import stability.
+- **configs/**: environment-specific configuration bundles and schema definitions consumed by Viper and env vars.
 
-## Dependency Flow
+## Domain Modules
 
-Dependencies generally flow inwards:
-`Entrypoints` → `API/Transport` → `Application/Service` → `Domain Models`
-`Application/Service` depends on `Data Access` (via interfaces).
-`Shared Libraries/Utilities` are depended upon by other layers.
+| Module | Responsibility | Key Entities |
+| --- | --- | --- |
+| auth | Identity lifecycle, credential storage, session tokens, MFA enrollment | User, Credential, Session, AuditTrail |
+| forum | Threads, posts, comments, reactions, moderation workflows | Thread, Post, Comment, Reaction, ModerationQueue |
+| notifications | Template-driven email, push, and websocket fan-out | NotificationTemplate, DeliveryAttempt |
+| admin | RBAC policy management, tenant provisioning, feature flags | Role, Permission, TenantProfile |
+| analytics | Event capture, aggregation, and trend queries over OLAP store | EventRecord, MetricSlice |
 
-## Key Architectural Decisions
+## Data Persistence and Messaging
 
--   **Uber fx for DI:** Provides a structured way to manage dependencies, promote modularity, and simplify application startup/shutdown.
--   **sqlc for Type-Safe SQL:** Eliminates manual SQL query writing and reduces runtime errors by generating Go code from SQL.
--   **golang-migrate/migrate:** Ensures controlled and versioned database schema evolution.
--   **JWT for Authentication:** Stateless, scalable authentication mechanism.
--   **User Auth Dependencies:** Password hashing with `golang.org/x/crypto/bcrypt` and JWT sessions via `github.com/golang-jwt/jwt/v4`.
--   **Mono-repo with Domain Separation:** Allows for shared tooling and simplified dependency management while maintaining strong domain boundaries.
--   **JSend Compliant Responses:** Standardized API response format for consistency and clarity.
+- **Primary store**: PostgreSQL 16 with sqlc-generated repositories, leveraging UUID v7 keys and temporal tables for auditing.
+- **Caching**: Redis Cluster (Valkey compatible) used for session tokens, rate limiting buckets, and projection caches.
+- **Messaging**: NATS JetStream provides event streaming, command bus patterns, and at-least-once delivery semantics.
+- **Search index**: Meilisearch for low-latency thread and post discovery with incremental sync workers.
+- **Long-term analytics**: Optional ClickHouse pipeline fed via change data capture for dashboards.
 
-## Future Considerations
+## API Surface
 
--   **Event-Driven Architecture:** Introduction of a message bus (`internal/shared/bus/`) for inter-domain communication and asynchronous processing.
--   **Observability:** Further integration of tracing, metrics, and structured logging across all layers.
--   **Error Handling:** Consistent, centralized error handling strategy with clear error codes and messages.
+- RESTful HTTP API served via Fiber 3 with JSend + problem+json codecs.
+- gRPC gateway exposing high-throughput endpoints for internal services and SDK generation.
+- Async APIs exposed through WebSocket channels and server-sent events for live thread updates.
+- OpenAPI and Buf schema registries versioned per release channel.
+
+## Observability and Reliability
+
+- Distributed tracing via OpenTelemetry SDK exporting to collector, with Grafana Tempo as backend.
+- Metrics emitted in Prometheus format, scraped by Prometheus Operator, visualized in Grafana dashboards.
+- Structured logging through Zerolog enriched with request IDs, trace IDs, and user claims.
+- Circuit breakers and bulkheads implemented with resilience middleware around outbound adapters.
+- Chaos testing hooks integrated into staging via Litmus to validate failure scenarios.
+
+## Security and Compliance
+
+- JWT access tokens signed with PASETO-compatible keys, refresh tokens stored in Redis with rotation policies.
+- Attribute-based access control (ABAC) layered over RBAC for fine-grained permissions.
+- Audit logging persisted to immutable append-only tables with retention policies.
+- Secrets management delegated to HashiCorp Vault with dynamic database credentials.
+- Compliance hooks for GDPR erasure requests and data residency enforced through policy engine.
+
+## Deployment Topologies
+
+- **Local**: Tilt orchestrates Docker Compose services (API, PostgreSQL, Redis, NATS, Meilisearch, OTel collector) with hot reload via Air.
+- **Staging**: Kubernetes cluster managed by Helmfile, leveraging KEDA for event-driven scaling and Argo Rollouts for canary deployments.
+- **Production**: Multi-region GKE/AKS deployment with Cloud SQL or Aurora Postgres, Redis Enterprise, and managed NATS, fronted by API Gateway + Cloud Armor.
+
+## Extension Points
+
+- Code generation pipelines for mocks (`mockery`), protobuf (`buf`), and GraphQL (optional) triggered via `task generate`.
+- Plugin system for domain modules by registering port interfaces within the DI container.
+- Feature flag hooks via LaunchDarkly or open-source alternatives exposed through adapter layer.
