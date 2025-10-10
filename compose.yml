@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:18-alpine
     container_name: gofiber_postgres
     environment:
       POSTGRES_USER: postgres
@@ -21,7 +21,7 @@ services:
       - gofiber_network
 
   redis:
-    image: valkey/valkey:7-alpine
+    image: valkey/valkey:8-alpine
     container_name: gofiber_redis
     ports:
       - "6379:6379"

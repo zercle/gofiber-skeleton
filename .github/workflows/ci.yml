@@ -2,43 +2,67 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
+    name: Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gofiber_skeleton_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
-
-      - name: Install tools
-        run: |
-          go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          go install github.com/swaggo/swag/cmd/swag@latest
-
-      - name: Tidy modules
-        run: go mod tidy
-
-      - name: Generate SQL code
-        run: sqlc generate
-
-      - name: Lint code
-        run: golangci-lint run
+          go-version: '1.25'
+          cache: true
 
       - name: Run tests
-        run: go test ./... -race
+        run: go test -v -race -coverprofile=coverage.out ./...
 
-      - name: Build binary
-        run: go build ./...
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.out
 
-      - name: Generate API docs
-        run: swag init -g cmd/server/main.go --output ./docs
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v4
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Gosec
+        uses: securego/gosec@master
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
