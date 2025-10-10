@@ -2,102 +2,206 @@ package config
 
 import (
 	"fmt"
-	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
+// Config holds all application configuration
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
 	JWT      JWTConfig
+	App      AppConfig
 }
 
+// ServerConfig holds server-specific configuration
 type ServerConfig struct {
-	Port string
-	Env  string
+	Port         string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
 }
 
+// DatabaseConfig holds database connection configuration
 type DatabaseConfig struct {
-	DSN             string
+	Host            string
+	Port            string
+	User            string
+	Password        string
+	DBName          string
+	SSLMode         string
 	MaxOpenConns    int
 	MaxIdleConns    int
-	ConnMaxLifetime int
+	ConnMaxLifetime time.Duration
 }
 
+// RedisConfig holds Redis connection configuration
 type RedisConfig struct {
-	Addr     string
+	Host     string
+	Port     string
 	Password string
 	DB       int
 }
 
+// JWTConfig holds JWT configuration
 type JWTConfig struct {
-	Secret          string
-	ExpirationHours int
+	Secret           string
+	AccessExpiration time.Duration
+	RefreshExpiration time.Duration
 }
 
-func LoadConfig() (*Config, error) {
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("./")
+// AppConfig holds general application configuration
+type AppConfig struct {
+	Name        string
+	Environment string
+	Debug       bool
+	Version     string
+}
 
-	// Enable automatic environment variable reading
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+// Load reads configuration from environment variables and config files
+func Load() (*Config, error) {
+	v := viper.New()
 
-	// Read .env file if it exists
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return nil, fmt.Errorf("failed to read config file: %w", err)
-		}
-		// Config file not found, will use environment variables
-	}
+	// Set config file properties
+	v.SetConfigName(".env")
+	v.SetConfigType("env")
+	v.AddConfigPath(".")
+	v.AddConfigPath("./configs")
+
+	// Read config file (optional, fall back to env vars)
+	_ = v.ReadInConfig()
+
+	// Bind environment variables
+	v.AutomaticEnv()
 
 	// Set defaults
-	setDefaults()
+	setDefaults(v)
 
-	config := &Config{}
-	if err := viper.Unmarshal(config); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	cfg := &Config{
+		Server: ServerConfig{
+			Port:         v.GetString("PORT"),
+			ReadTimeout:  v.GetDuration("SERVER_READ_TIMEOUT"),
+			WriteTimeout: v.GetDuration("SERVER_WRITE_TIMEOUT"),
+			IdleTimeout:  v.GetDuration("SERVER_IDLE_TIMEOUT"),
+		},
+		Database: DatabaseConfig{
+			Host:            v.GetString("DB_HOST"),
+			Port:            v.GetString("DB_PORT"),
+			User:            v.GetString("DB_USER"),
+			Password:        v.GetString("DB_PASSWORD"),
+			DBName:          v.GetString("DB_NAME"),
+			SSLMode:         v.GetString("DB_SSLMODE"),
+			MaxOpenConns:    v.GetInt("DB_MAX_OPEN_CONNS"),
+			MaxIdleConns:    v.GetInt("DB_MAX_IDLE_CONNS"),
+			ConnMaxLifetime: v.GetDuration("DB_CONN_MAX_LIFETIME"),
+		},
+		Redis: RedisConfig{
+			Host:     v.GetString("REDIS_HOST"),
+			Port:     v.GetString("REDIS_PORT"),
+			Password: v.GetString("REDIS_PASSWORD"),
+			DB:       v.GetInt("REDIS_DB"),
+		},
+		JWT: JWTConfig{
+			Secret:            v.GetString("JWT_SECRET"),
+			AccessExpiration:  v.GetDuration("JWT_ACCESS_EXPIRATION"),
+			RefreshExpiration: v.GetDuration("JWT_REFRESH_EXPIRATION"),
+		},
+		App: AppConfig{
+			Name:        v.GetString("APP_NAME"),
+			Environment: v.GetString("APP_ENV"),
+			Debug:       v.GetBool("APP_DEBUG"),
+			Version:     v.GetString("APP_VERSION"),
+		},
 	}
 
-	return config, nil
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }
 
-func setDefaults() {
+// setDefaults sets default values for configuration
+func setDefaults(v *viper.Viper) {
 	// Server defaults
-	viper.SetDefault("SERVER.PORT", "8080")
-	viper.SetDefault("SERVER.ENV", "development")
+	v.SetDefault("PORT", "3000")
+	v.SetDefault("SERVER_READ_TIMEOUT", 10*time.Second)
+	v.SetDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
+	v.SetDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
 
 	// Database defaults
-	viper.SetDefault("DATABASE.DSN", "host=db user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai")
-	viper.SetDefault("DATABASE.MAXOPENCONNS", 25)
-	viper.SetDefault("DATABASE.MAXIDLECONNS", 5)
-	viper.SetDefault("DATABASE.CONNMAXLIFETIME", 300)
+	v.SetDefault("DB_HOST", "localhost")
+	v.SetDefault("DB_PORT", "5432")
+	v.SetDefault("DB_USER", "postgres")
+	v.SetDefault("DB_PASSWORD", "postgres")
+	v.SetDefault("DB_NAME", "gofiber_skeleton")
+	v.SetDefault("DB_SSLMODE", "disable")
+	v.SetDefault("DB_MAX_OPEN_CONNS", 25)
+	v.SetDefault("DB_MAX_IDLE_CONNS", 5)
+	v.SetDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute)
 
 	// Redis defaults
-	viper.SetDefault("REDIS.ADDR", "redis:6379")
-	viper.SetDefault("REDIS.PASSWORD", "")
-	viper.SetDefault("REDIS.DB", 0)
+	v.SetDefault("REDIS_HOST", "localhost")
+	v.SetDefault("REDIS_PORT", "6379")
+	v.SetDefault("REDIS_PASSWORD", "")
+	v.SetDefault("REDIS_DB", 0)
 
 	// JWT defaults
-	viper.SetDefault("JWT.SECRET", "supersecretjwtkey")
-	viper.SetDefault("JWT.EXPIRATIONHOURS", 72)
+	v.SetDefault("JWT_SECRET", "your-secret-key-change-in-production")
+	v.SetDefault("JWT_ACCESS_EXPIRATION", 15*time.Minute)
+	v.SetDefault("JWT_REFRESH_EXPIRATION", 7*24*time.Hour)
+
+	// App defaults
+	v.SetDefault("APP_NAME", "gofiber-skeleton")
+	v.SetDefault("APP_ENV", "development")
+	v.SetDefault("APP_DEBUG", true)
+	v.SetDefault("APP_VERSION", "1.0.0")
 }
 
-// GetString gets a string config value
-func GetString(key string) string {
-	return viper.GetString(key)
+// Validate validates the configuration
+func (c *Config) Validate() error {
+	if c.Server.Port == "" {
+		return fmt.Errorf("server port is required")
+	}
+
+	if c.Database.Host == "" {
+		return fmt.Errorf("database host is required")
+	}
+
+	if c.Database.DBName == "" {
+		return fmt.Errorf("database name is required")
+	}
+
+	if c.JWT.Secret == "" || c.JWT.Secret == "your-secret-key-change-in-production" {
+		if c.App.Environment == "production" {
+			return fmt.Errorf("JWT secret must be set in production")
+		}
+	}
+
+	return nil
 }
 
-// GetInt gets an integer config value
-func GetInt(key string) int {
-	return viper.GetInt(key)
+// GetDSN returns the database connection string
+func (c *DatabaseConfig) GetDSN() string {
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode,
+	)
 }
 
-// GetBool gets a boolean config value
-func GetBool(key string) bool {
-	return viper.GetBool(key)
+// GetRedisAddr returns the Redis connection address
+func (c *RedisConfig) GetAddr() string {
+	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+}
+
+// IsProduction returns true if the app is running in production
+func (c *AppConfig) IsProduction() bool {
+	return c.Environment == "production"
+}
+
+// IsDevelopment returns true if the app is running in development
+func (c *AppConfig) IsDevelopment() bool {
+	return c.Environment == "development"
 }

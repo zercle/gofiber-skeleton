@@ -5,37 +5,31 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"github.com/zercle/gofiber-skeleton/internal/response"
 )
 
-// RateLimit creates a rate limiting middleware
-func RateLimit(maxRequests int, expiration time.Duration) fiber.Handler {
+// RateLimit returns rate limiting middleware
+func RateLimit(max int, duration time.Duration) fiber.Handler {
 	return limiter.New(limiter.Config{
-		Max:        maxRequests,
-		Expiration: expiration,
+		Max:        max,
+		Expiration: duration,
 		KeyGenerator: func(c *fiber.Ctx) string {
-			// Use IP address as the key
 			return c.IP()
 		},
 		LimitReached: func(c *fiber.Ctx) error {
-			return response.Fail(c, fiber.StatusTooManyRequests, fiber.Map{
-				"error": "Rate limit exceeded. Please try again later.",
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Rate limit exceeded. Please try again later.",
 			})
 		},
-		SkipFailedRequests:     false,
-		SkipSuccessfulRequests: false,
-		LimiterMiddleware:      limiter.SlidingWindow{},
 	})
 }
 
-// APIRateLimit creates a standard rate limit for API endpoints
-func APIRateLimit() fiber.Handler {
-	// 100 requests per minute
-	return RateLimit(100, 1*time.Minute)
+// AuthRateLimit returns rate limiting for authentication endpoints
+func AuthRateLimit() fiber.Handler {
+	return RateLimit(5, 15*time.Minute) // 5 requests per 15 minutes
 }
 
-// AuthRateLimit creates a stricter rate limit for authentication endpoints
-func AuthRateLimit() fiber.Handler {
-	// 5 requests per minute to prevent brute force attacks
-	return RateLimit(5, 1*time.Minute)
+// APIRateLimit returns rate limiting for API endpoints
+func APIRateLimit() fiber.Handler {
+	return RateLimit(100, 1*time.Minute) // 100 requests per minute
 }

@@ -12,8 +12,8 @@ dist/
 
 # Output of the go coverage tool
 *.out
+coverage.txt
 coverage.html
-coverage.out
 
 # Dependency directories
 vendor/
@@ -21,35 +21,36 @@ vendor/
 # Go workspace file
 go.work
 
-# Environment variables
+# Environment files
 .env
+.env.local
+.env.*.local
 
-# IDE specific files
-.vscode/
+# IDE directories
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
-
-# OS specific files
 .DS_Store
-Thumbs.db
 
-# Air temporary files
+# Air (hot reload) temporary files
 tmp/
 
-# Log files
+# Logs
 *.log
-build-errors.log
+logs/
 
-# Database files
+# Database
 *.db
 *.sqlite
-*.sqlite3
 
-# Generated documentation (optional - uncomment if you don't want to commit docs)
-# docs/
+# Generated files
+internal/db/*.go
+!internal/db/.gitkeep
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
 
-# Temporary files
-*_tmp
-*_temp
+# OS specific
+Thumbs.db

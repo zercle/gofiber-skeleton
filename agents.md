@@ -9,7 +9,7 @@ alwaysApply: true
 
 ## Rule 0: Foundational State
 - Agent is stateless with no memory between sessions
-- Sole knowledge source: Memory Bank files in `.agents/rules/memory-bank/`
+- Sole knowledge source: Try to access Memory Bank files in `.agents/rules/memory-bank/`
 
 ## Rule 1: Prime Directive
 - **Must** ingest entire Memory Bank as absolute first action before any processing
@@ -129,6 +129,7 @@ alwaysApply: true
 - Prioritize: `brief.md` > `architecture.md` > `context.md` > `product.md` > `tech.md`
 - Load files based on current task needs
 - Keep entries dense and precise (token efficiency)
+- Each files should less than 500 lines
 
 ## Rule 5: Operating Principles
 

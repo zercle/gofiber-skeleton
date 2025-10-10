@@ -5,14 +5,26 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
-// CORS creates a CORS middleware with production-ready settings
+// CORS returns CORS middleware with default configuration
 func CORS() fiber.Handler {
 	return cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:3000,http://localhost:8080",
+		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
-		AllowCredentials: true,
-		ExposeHeaders:    "Content-Length,Content-Range",
-		MaxAge:           3600,
+		AllowCredentials: false,
+		ExposeHeaders:    "Content-Length",
+		MaxAge:           86400,
+	})
+}
+
+// CORSWithConfig returns CORS middleware with custom configuration
+func CORSWithConfig(allowOrigins, allowMethods, allowHeaders string, allowCredentials bool) fiber.Handler {
+	return cors.New(cors.Config{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     allowMethods,
+		AllowHeaders:     allowHeaders,
+		AllowCredentials: allowCredentials,
+		ExposeHeaders:    "Content-Length",
+		MaxAge:           86400,
 	})
 }

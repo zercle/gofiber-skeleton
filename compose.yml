@@ -1,56 +1,68 @@
+version: '3.9'
+
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gofiber_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gofiber_skeleton
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gofiber_network
+
+  redis:
+    image: valkey/valkey:7-alpine
+    container_name: gofiber_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gofiber_network
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: gofiber_app
     ports:
-      - "8080:8080"
+      - "3000:3000"
     environment:
-      # Load environment variables from .env file (if present) or .env.example
-      # For production, these should be set directly in the deployment environment
-      - PORT=${PORT:-8080}
-      - DATABASE_DSN=${DATABASE_DSN:-host=db user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai}
-      - JWT_SECRET=${JWT_SECRET:-supersecretjwtkey}
-      - REDIS_URL=${REDIS_URL:-redis:6379}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: gofiber_skeleton
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      APP_ENV: development
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
-
-  db:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-fiber_forum}
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: valkey/valkey:8-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    command: valkey-server --save 60 1 --loglevel warning
+    networks:
+      - gofiber_network
 
 volumes:
-  db-data:
-  redis-data:
+  postgres_data:
+  redis_data:
+
+networks:
+  gofiber_network:
+    driver: bridge
