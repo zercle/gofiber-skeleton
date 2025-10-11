@@ -1,19 +1,42 @@
+# Git
 .git
 .gitignore
-.env
-.vscode
-.idea
-vendor/
-node_modules/
-*.log
-*.tmp
-*.swp
-*.bak
-*.swo
-*.DS_Store
-coverage/
-dist/
-build/
+
+# Documentation
+*.md
+docs/
+
+# Build artifacts
+bin/
 tmp/
-*.test
-*.prof
+coverage.out
+coverage.html
+
+# Dependencies
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+*_test.go
+testdata/
+
+# Development
+.env
+.env.local
+.air.toml
+
+# CI/CD
+.github/
+
+# Agents
+.agents/

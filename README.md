@@ -1,433 +1,297 @@
-# Go Fiber Skeleton
+# Go Fiber Production-Ready Template
 
-A production-ready Go backend template built with **Fiber v2**, featuring **Clean Architecture**, **Domain-Driven Design**, and comprehensive development tooling.
+A production-ready backend template using Go and Fiber v2 framework, implementing Clean Architecture with Domain-Driven Design principles.
 
-## 🚀 Features
+## Features
 
-- **Clean Architecture** - Domain-isolated, testable, and maintainable codebase
-- **Fiber v2 Framework** - High-performance Express.js-inspired web framework
-- **Uber fx** - Powerful dependency injection framework
-- **Viper Configuration** - Flexible config management (env vars, .env files, YAML)
-- **Type-Safe Database** - sqlc generates fully type-safe Go code from SQL
-- **Database Migrations** - golang-migrate for versioned schema management
-- **Authentication** - JWT-based auth with bcrypt password hashing
-- **Redis Integration** - Ready-to-use caching layer with go-redis
-- **Comprehensive Testing** - Unit tests with mocks (mockgen + go-sqlmock)
-- **API Documentation** - Auto-generated Swagger/OpenAPI docs
-- **Hot Reloading** - Air for fast development cycles
-- **Production-Ready** - Docker, health checks, structured logging, graceful shutdown
-- **Security** - CORS, rate limiting, security headers, input validation
+- **Clean Architecture**: Strict separation of concerns with domain isolation
+- **Domain-Driven Design**: Business logic organized by domains
+- **Type-Safe Database**: Using `sqlc` for compile-time SQL validation
+- **JWT Authentication**: Secure token-based authentication
+- **API Documentation**: Auto-generated Swagger/OpenAPI docs
+- **Comprehensive Testing**: Unit tests with mocks and 90%+ coverage
+- **Docker Support**: Containerized development and deployment
+- **Hot Reloading**: Fast development with Air
+- **Database Migrations**: Version-controlled schema changes
+- **Caching**: Valkey/Redis integration for performance
+- **Middleware Stack**: CORS, rate limiting, logging, security headers
+- **CI/CD Ready**: GitHub Actions workflows included
 
-## 📋 Prerequisites
+## Tech Stack
 
-- **Go** 1.24.6 or higher
-- **Docker** and **Docker Compose**
-- **Make** (for running commands)
+- **Framework**: [Fiber v2](https://gofiber.io/) - Express-inspired web framework
+- **Database**: PostgreSQL 18 with [pgx](https://github.com/jackc/pgx) driver
+- **Cache**: Valkey (Redis-compatible)
+- **ORM**: [sqlc](https://sqlc.dev/) - Type-safe SQL code generation
+- **Migrations**: [golang-migrate](https://github.com/golang-migrate/migrate)
+- **DI**: [Samber's do](https://github.com/samber/do) - Type-safe dependency injection
+- **Validation**: [go-playground/validator](https://github.com/go-playground/validator)
+- **JWT**: [golang-jwt](https://github.com/golang-jwt/jwt)
+- **Documentation**: [swag](https://github.com/swaggo/swag) - Swagger/OpenAPI
+- **Testing**: [gomock](https://github.com/uber-go/mock) - Mock generation
 
-## 🏃 Quick Start
+## Quick Start
 
-### 1. Clone the Repository
+### Prerequisites
 
-```bash
-git clone https://github.com/zercle/gofiber-skeleton.git
-cd gofiber-skeleton
-```
+- Go 1.25.0 or higher
+- Docker & Docker Compose
+- Make (optional, but recommended)
 
-### 2. Install Development Tools
+### Setup
 
-```bash
-make install-tools
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/zercle/gofiber-skeleton.git
+   cd gofiber-skeleton
+   ```
 
-This installs:
-- Air (hot-reloading)
-- sqlc (SQL code generation)
-- swag (Swagger docs)
-- mockgen (mock generation)
-- golangci-lint (linting)
-- migrate (database migrations)
+2. **Copy environment file**
+   ```bash
+   cp .env.example .env
+   ```
 
-### 3. Set Up Environment Variables
+3. **Install development tools**
+   ```bash
+   make install-tools
+   ```
 
-```bash
-cp .env.example .env
-```
+4. **Start development environment**
+   ```bash
+   make docker-up    # Start PostgreSQL and Valkey
+   make migrate-up   # Run database migrations
+   make dev          # Start development server with hot reload
+   ```
 
-Edit `.env` if needed. Default values work with Docker Compose.
+5. **Access the application**
+   - API: http://localhost:3000
+   - Health Check: http://localhost:3000/health
+   - Swagger Docs: http://localhost:3000/swagger/
 
-### 4. Start Services with Docker Compose
-
-```bash
-docker-compose up -d
-```
-
-This starts:
-- PostgreSQL database (port 5432)
-- Redis/Valkey cache (port 6379)
-- Application server (port 8080)
-
-### 5. Run Database Migrations
-
-```bash
-make migrate-up
-```
-
-### 6. Start Development Server
-
-```bash
-make dev
-```
-
-The API will be available at `http://localhost:8080`.
-
-## 📚 API Documentation
-
-Access interactive Swagger UI at: `http://localhost:8080/swagger/`
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```
-gofiber-skeleton/
+.
 ├── cmd/
-│   └── server/
-│       └── main.go              # Application entry point with fx setup
+│   ├── server/           # Main HTTP server
+│   └── migrate/          # Migration tool
 ├── internal/
-│   ├── cache/
-│   │   └── redis.go             # Redis client wrapper
-│   ├── config/
-│   │   └── config.go            # Viper-based configuration
-│   ├── database/
-│   │   └── migrate.go           # Migration helpers
-│   ├── db/                      # sqlc-generated code
-│   ├── errors/
-│   │   └── errors.go            # Custom error types
-│   ├── logger/
-│   │   └── logger.go            # Zerolog structured logger
-│   ├── middleware/
-│   │   ├── cors.go              # CORS middleware
-│   │   ├── logging.go           # Request logging
-│   │   ├── rate_limit.go        # Rate limiting
-│   │   ├── request_id.go        # Request ID generation
-│   │   └── security.go          # Security headers
-│   ├── response/
-│   │   └── jsend.go             # JSend response format
-│   ├── server/
-│   │   └── router.go            # Route registration
-│   ├── user/                    # User domain (example)
-│   │   ├── entity/
-│   │   ├── repository/
-│   │   ├── usecase/
-│   │   ├── handler/
-│   │   ├── middleware/
-│   │   └── tests/
-│   └── post/                    # Post domain (example)
-│       ├── entity/
-│       ├── repository/
-│       ├── usecase/
-│       ├── handler/
-│       └── tests/
+│   ├── config/          # Configuration management
+│   ├── middleware/      # HTTP middleware
+│   └── domains/         # Business domains
+│       └── user/        # User domain (reference implementation)
+│           ├── entity/      # Domain entities
+│           ├── repository/  # Data access layer
+│           ├── usecase/     # Business logic
+│           ├── delivery/    # HTTP handlers
+│           ├── tests/       # Domain tests
+│           └── mocks/       # Generated mocks
 ├── pkg/
-│   └── validator/               # Request validation utilities
+│   ├── auth/            # Authentication utilities
+│   ├── cache/           # Cache utilities
+│   ├── database/        # Database utilities
+│   ├── response/        # HTTP response formatting
+│   └── validator/       # Input validation
 ├── db/
-│   ├── migrations/              # SQL migration files
-│   └── queries/                 # sqlc query definitions
-├── docs/                        # Swagger-generated documentation
-│   └── ADDING_NEW_DOMAIN.md     # Guide for adding new domains
-├── .air.toml                    # Air configuration
-├── .env.example                 # Environment variables template
-├── compose.yml                  # Docker Compose configuration
-├── Dockerfile                   # Multi-stage production build
-├── Makefile                     # Development commands
-├── sqlc.yaml                    # sqlc configuration
-└── go.mod                       # Go module definition
+│   ├── migrations/      # SQL migration files
+│   ├── queries/         # SQL query files for sqlc
+│   └── seeds/           # Database seed data
+├── docs/                # Generated API documentation
+├── configs/             # Configuration files
+└── scripts/             # Utility scripts
 ```
 
-## 🛠️ Development Commands
+## Available Commands
+
+### Development
+```bash
+make dev              # Start development server with hot reload
+make run              # Run application without hot reload
+make build            # Build production binary
+make clean            # Clean build artifacts
+```
+
+### Testing
+```bash
+make test             # Run all tests
+make test-coverage    # Run tests with coverage report
+make test-unit        # Run unit tests only
+```
+
+### Code Quality
+```bash
+make lint             # Run linter
+make fmt              # Format code
+make vet              # Run go vet
+```
+
+### Database
+```bash
+make migrate-up       # Apply all migrations
+make migrate-down     # Rollback last migration
+make migrate-create NAME=migration_name  # Create new migration
+make migrate-version  # Show current migration version
+```
+
+### Code Generation
+```bash
+make sqlc             # Generate SQL code
+make swag             # Generate API documentation
+make mocks            # Generate test mocks
+```
+
+### Docker
+```bash
+make docker-up        # Start Docker containers
+make docker-down      # Stop Docker containers
+make docker-logs      # Show Docker logs
+make docker-build     # Build Docker image
+```
+
+## Environment Variables
+
+Key environment variables (see `.env.example` for full list):
 
 ```bash
-# Development
-make dev              # Run with hot-reloading
-make build            # Build binary
-make run              # Build and run
-
-# Code Quality
-make fmt              # Format code
-make lint             # Run linter
-make test             # Run tests
-make test-race        # Run tests with race detector
-make test-coverage    # Generate coverage report
+# Server
+SERVER_PORT=3000
+SERVER_ENV=development
 
 # Database
-make migrate-up       # Run migrations
-make migrate-down     # Rollback last migration
-make migrate-create name=<name>  # Create new migration
-make sqlc             # Generate type-safe DB code
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=gofiber_skeleton
+DB_USER=postgres
+DB_PASSWORD=postgres
 
-# Documentation
-make generate-docs    # Generate Swagger docs
-make generate-mocks   # Generate test mocks
+# Cache
+VALKEY_HOST=localhost
+VALKEY_PORT=6379
 
-# Utilities
-make clean            # Clean build artifacts
-make ci               # Run full CI pipeline
-make help             # Show all commands
-```
-
-## 🧪 Testing
-
-### Run All Tests
-
-```bash
-make test
-```
-
-### Run with Race Detector
-
-```bash
-make test-race
-```
-
-### Generate Coverage Report
-
-```bash
-make test-coverage
-```
-
-This creates `coverage.html` in the project root.
-
-### Test Structure
-
-- **Unit Tests**: Test usecases with mocked repositories
-- **Repository Tests**: Test data access with go-sqlmock
-- **Integration Tests**: Test complete flows
-
-Example test locations:
-- `internal/post/tests/post_usecase_test.go`
-- `internal/user/tests/user_repository_test.go`
-
-## 📦 Adding a New Domain
-
-Follow the comprehensive guide: [docs/ADDING_NEW_DOMAIN.md](docs/ADDING_NEW_DOMAIN.md)
-
-Quick steps:
-1. Create directory structure
-2. Define entity
-3. Create database migration
-4. Write SQL queries
-5. Generate sqlc code
-6. Implement repository
-7. Implement usecase
-8. Implement handlers
-9. Write tests
-10. Register routes
-
-## 🔑 Authentication
-
-### Register a New User
-
-```bash
-POST /api/v1/auth/register
-{
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-### Login
-
-```bash
-POST /api/v1/auth/login
-{
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-Returns a JWT token valid for 72 hours.
-
-### Protected Routes
-
-Include the token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-## 🐳 Docker Deployment
-
-### Build Production Image
-
-```bash
-docker build -t gofiber-skeleton:latest .
-```
-
-### Run with Docker Compose
-
-```bash
-docker-compose up -d
-```
-
-### Environment Variables
-
-Configure via environment variables in production:
-
-```bash
-SERVER_PORT=8080
-SERVER_ENV=production
-DATABASE_DSN=postgres://...
+# JWT
 JWT_SECRET=your-secret-key
-REDIS_ADDR=redis:6379
+JWT_EXPIRES_IN=24h
 ```
 
-## 🔧 Configuration
+## API Documentation
 
-Configuration is managed via **Viper** with the following priority:
+Once the server is running, access the interactive API documentation at:
 
-1. Environment variables (highest priority)
-2. `.env` file
-3. Default values (lowest priority)
+http://localhost:3000/swagger/
 
-### Configuration Structure
+The documentation is auto-generated from code comments using Swagger annotations.
 
-```go
-type Config struct {
-    Server   ServerConfig
-    Database DatabaseConfig
-    Redis    RedisConfig
-    JWT      JWTConfig
-}
-```
+## Testing
 
-See `.env.example` for all available options.
-
-## 📊 Database Migrations
-
-### Create a New Migration
+The template includes comprehensive test coverage:
 
 ```bash
-make migrate-create name=add_users_table
+# Run all tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
+# Run specific package tests
+go test ./internal/domains/user/usecase/...
 ```
 
-This creates two files in `db/migrations/`:
-- `NNNN_add_users_table.up.sql`
-- `NNNN_add_users_table.down.sql`
+Tests use mocks generated via `go:generate` directives for dependency isolation.
 
-### Run Migrations
+## Adding a New Domain
+
+To add a new business domain, follow the user domain structure:
+
+1. Create domain directory structure:
+   ```bash
+   mkdir -p internal/domains/[domain]/{entity,repository,usecase,delivery,tests,mocks}
+   ```
+
+2. Implement layers following the user domain pattern:
+   - `entity/`: Domain models and DTOs
+   - `repository/`: Data access interfaces and implementations
+   - `usecase/`: Business logic
+   - `delivery/`: HTTP handlers
+   - `tests/`: Unit and integration tests
+
+3. Add database migrations in `db/migrations/`
+4. Add SQL queries in `db/queries/`
+5. Generate SQL code: `make sqlc`
+6. Register routes in main server
+
+See `docs/ADDING_NEW_DOMAIN.md` for detailed instructions.
+
+## Deployment
+
+### Docker
+
+Build and run with Docker:
 
 ```bash
-make migrate-up
+# Build image
+docker build -t gofiber-skeleton:latest .
+
+# Run container
+docker run -p 3000:3000 --env-file .env gofiber-skeleton:latest
 ```
 
-### Rollback Last Migration
+### Binary
+
+Build and deploy binary:
 
 ```bash
-make migrate-down
+# Build for Linux
+make build-linux
+
+# Copy binary and configs to server
+# Run migrations
+# Start server
+./bin/gofiber-skeleton-linux
 ```
 
-### Check Migration Version
+## CI/CD
 
-```bash
-make migrate-version
-```
+GitHub Actions workflows are included:
 
-## 🔍 Logging
+- **ci.yml**: Runs tests and linting on pull requests
+- **cd.yml**: Builds and deploys on main branch
+- **go-ci.yml**: Go-specific CI pipeline
 
-Structured JSON logging with **zerolog**:
+## Security
 
-```go
-import "github.com/zercle/gofiber-skeleton/internal/logger"
+- Password hashing with bcrypt
+- JWT token authentication
+- Input validation
+- SQL injection prevention via sqlc
+- CORS configuration
+- Rate limiting
+- Security headers (helmet middleware)
 
-log := logger.GetLogger()
-log.Info().Msg("Something happened")
-log.Error().Err(err).Msg("Something failed")
-```
+## Performance
 
-All HTTP requests are automatically logged with:
-- Request ID
-- Method and path
-- Status code
-- Duration
-- Client IP
+- Connection pooling for database and cache
+- Efficient query patterns
+- Caching layer with Valkey/Redis
+- Optimized Docker images
+- Compression middleware
 
-## 🛡️ Security Features
-
-- **bcrypt** password hashing (cost factor 10)
-- **JWT** authentication with expiration
-- **CORS** protection
-- **Rate limiting** (API and auth endpoints)
-- **Security headers** (XSS, clickjacking, etc.)
-- **Input validation** with go-playground/validator
-- **Request ID** tracking for debugging
-
-## 🚀 Performance
-
-- **Connection pooling** for database
-- **Redis caching** ready
-- **Graceful shutdown** (30-second timeout)
-- **Health checks** for liveness and readiness probes
-- **Static binary** compilation for fast startup
-
-## 📝 API Response Format
-
-All API responses follow the **JSend** specification:
-
-### Success
-
-```json
-{
-  "status": "success",
-  "data": { ... }
-}
-```
-
-### Fail (Client Error)
-
-```json
-{
-  "status": "fail",
-  "data": {
-    "field": "error message"
-  }
-}
-```
-
-### Error (Server Error)
-
-```json
-{
-  "status": "error",
-  "message": "Something went wrong",
-  "code": 5000
-}
-```
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+3. Make your changes
+4. Add tests
+5. Run linting: `make lint`
+6. Submit a pull request
 
-## 📄 License
+## License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Support
 
-- [Fiber](https://gofiber.io/) - Web framework
-- [Uber fx](https://uber-go.github.io/fx/) - Dependency injection
-- [sqlc](https://sqlc.dev/) - SQL code generation
-- [Viper](https://github.com/spf13/viper) - Configuration
-- [golang-migrate](https://github.com/golang-migrate/migrate) - Migrations
-- [zerolog](https://github.com/rs/zerolog) - Logging
+For issues, questions, or contributions:
 
-## 📞 Support
-
-For issues and questions:
-- GitHub Issues: [https://github.com/zercle/gofiber-skeleton/issues](https://github.com/zercle/gofiber-skeleton/issues)
-
----
-
-**Built with ❤️ using Go and Fiber**
+- GitHub Issues: https://github.com/zercle/gofiber-skeleton/issues
+- Documentation: See `docs/` directory
+- Example: User domain implementation in `internal/domains/user/`

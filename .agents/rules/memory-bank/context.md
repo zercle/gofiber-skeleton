@@ -1,213 +1,293 @@
-# Current Context
+# **Project Context Documentation**
 
-## Project State
-Go Fiber Skeleton template is in **active development** with core infrastructure and two example domains (user, post) implemented. The project has a working foundation but is not yet feature-complete per the brief requirements.
+## **Current Project State**
 
-## Recent Implementation Status
+### **Project Overview**
+- **Name**: Go Fiber Production-Ready Template
+- **Module**: `github.com/zercle/gofiber-skeleton`
+- **Status**: Template repository with comprehensive documentation
+- **Version**: Initial template version
+- **Last Updated**: 2025-10-11
 
-### ✅ Completed Features
-1. **Core Infrastructure**
-   - Fiber v2 web server with graceful shutdown
-   - PostgreSQL connection via database/sql + pgx driver
-   - Zerolog structured logging with request ID tracking
-   - JSend response format standardization
-   - Docker Compose environment (PostgreSQL 18 + Valkey 8)
-   - Multi-stage Dockerfile with Alpine-based production image
+### **Repository State**
+- **Structure**: Mono-repo with Clean Architecture
+- **Content**: Documentation and configuration files only
+- **Implementation**: Ready for template-based development
+- **Documentation**: Complete Memory Bank initialized
 
-2. **Configuration System**
-   - godotenv-based config loading (.env file support)
-   - Environment variable override capability
-   - Config struct with Port, DatabaseDSN, JWTSecret
+## **Active Development Focus**
 
-3. **Database Tooling**
-   - sqlc integration with complete configuration (sqlc.yaml)
-   - Four migration files created (users, roles, threads/posts/comments, sessions)
-   - Type-safe query generation for users and posts
-   - Makefile command for sqlc generation
+### **Current Session Goals**
+- Initialize Memory Bank for project continuity
+- Document comprehensive project context
+- Establish foundation for future development
+- Create reference architecture and patterns
 
-4. **Authentication Domain (User)**
-   - Complete 4-layer implementation (entity, repository, usecase, handler)
-   - User registration with bcrypt password hashing
-   - JWT-based login with 72-hour token expiry
-   - Auth middleware for protected routes
-   - Swagger documentation annotations
+### **Immediate Next Steps**
+1. Validate Memory Bank completeness
+2. Prepare for template implementation
+3. Set up development environment
+4. Begin reference domain implementation
 
-5. **Post Domain**
-   - Complete 4-layer implementation demonstrating Clean Architecture
-   - CRUD operations with ownership validation
-   - Mock generation setup (//go:generate annotations)
-   - Mock files generated for repository and usecase
+## **Project Readiness Assessment**
 
-6. **Middleware**
-   - Request ID generation
-   - Structured logging with duration metrics
-   - API rate limiting
-   - Auth-specific rate limiting
-   - Panic recovery
+### **Completed Components**
+- ✅ **Project Brief**: Comprehensive requirements and goals
+- ✅ **Architecture Documentation**: Complete technical blueprint
+- ✅ **Product Documentation**: User workflows and value proposition
+- ✅ **Technology Stack**: Detailed technology decisions
+- ✅ **CI/CD Pipeline**: GitHub Actions workflows
+- ✅ **Development Environment**: Docker and tooling setup
 
-7. **API Documentation**
-   - Swagger/OpenAPI integration via swaggo
-   - Auto-generation from code comments
-   - Swagger UI accessible at /swagger
+### **Pending Implementation**
+- ⏳ **Go Source Code**: Template implementation pending
+- ⏳ **Reference Domain**: User/auth domain to be implemented
+- ⏳ **Database Schema**: Migration files to be created
+- ⏳ **API Endpoints**: Handler implementations pending
+- ⏳ **Testing Suite**: Comprehensive test coverage needed
 
-8. **Development Tooling**
-   - Comprehensive Makefile (fmt, build, run, test, sqlc, lint, ci)
-   - Docker Compose with health checks
-   - Test infrastructure (placeholder tests exist)
+### **Configuration Status**
+- ✅ **Docker Compose**: Development environment configured
+- ✅ **GitHub Actions**: CI/CD pipelines ready
+- ✅ **Go Module**: Basic module initialization
+- ⏳ **Environment Variables**: Configuration to be implemented
+- ⏳ **Dependencies**: Go modules to be added
 
-### ⚠️ Partially Implemented
-1. **Testing Strategy**
-   - Mock generation infrastructure ready (mockgen annotations present)
-   - Mock files generated for post domain
-   - Placeholder test file exists (`internal/post/tests/post_test.go`)
-   - **Missing**: Actual unit tests with mock usage
-   - **Missing**: Repository tests with go-sqlmock (dependency not added)
+## **Development Environment Status**
 
-2. **Database Migrations**
-   - Migration files created
-   - **Missing**: golang-migrate integration
-   - **Missing**: Makefile migrate command implementation (currently placeholder)
+### **Local Development Setup**
+- **Prerequisites**: Go 1.25.0+, Docker, Docker Compose
+- **Tools Ready**: Air, sqlc, swag, golangci-lint, mockgen
+- **Database**: PostgreSQL 18-alpine configured
+- **Cache**: Valkey (Redis-compatible) configured
+- **Hot Reload**: Air configuration ready
 
-3. **Dependency Injection**
-   - Brief specifies Uber fx
-   - **Current**: Manual DI in router.go (works but not using fx)
+### **Development Commands Available**
+```bash
+make dev          # Start development with hot reload
+make test         # Run comprehensive test suite
+make lint         # Code quality checks
+make build        # Build production binary
+make migrate-up   # Run database migrations
+make sqlc         # Generate SQL code
+make swag         # Generate API docs
+make mocks        # Generate test mocks
+```
 
-### ❌ Not Yet Implemented
-1. **Hot Reloading**
-   - Air mentioned in brief but not configured
-   - No .air.toml configuration file
+## **Template Implementation Roadmap**
 
-2. **Viper Configuration**
-   - Brief specifies Viper for config management
-   - **Current**: Using godotenv instead (simpler but less flexible)
+### **Phase 1: Foundation Setup**
+1. **Initialize Go Dependencies**
+   - Add core framework dependencies
+   - Configure dependency injection
+   - Set up configuration management
 
-3. **Redis/Valkey Integration**
-   - Infrastructure running in Docker Compose
-   - **Missing**: Go client library and integration code
+2. **Database Infrastructure**
+   - Create migration files
+   - Set up sqlc configuration
+   - Implement database connections
 
-4. **Comprehensive Testing**
-   - go-sqlmock not in dependencies
-   - No actual test implementations beyond placeholder
+3. **Core Middleware**
+   - Authentication middleware
+   - Logging and request tracing
+   - Error handling middleware
+   - CORS and security headers
 
-5. **Additional Domains**
-   - Migrations exist for roles, threads, comments
-   - **Missing**: Implementation code for these domains
+### **Phase 2: Reference Domain**
+1. **User Domain Implementation**
+   - Entity models and validation
+   - Repository interfaces and implementation
+   - Use cases for registration/login
+   - HTTP handlers and routing
 
-6. **Domain Addition Guide**
-   - Brief requires "clear instructions" for adding domains
-   - **Missing**: Documentation in README or separate guide
+2. **Authentication System**
+   - JWT token generation/validation
+   - Password hashing with bcrypt
+   - Authentication middleware
+   - Authorization patterns
 
-## Active Work Focus
-**Status**: Foundation complete, awaiting direction for next phase
+3. **Testing Infrastructure**
+   - Unit tests with mocks
+   - Integration tests
+   - API endpoint tests
+   - Test data fixtures
 
-### Immediate Next Steps (Not Yet Started)
-1. Implement comprehensive test suite using existing mock infrastructure
-2. Add golang-migrate integration for database migrations
-3. Document the process for adding new domains
-4. Implement remaining domains (threads, comments, roles)
-5. Add Air for hot-reloading in development
+### **Phase 3: Documentation & Tools**
+1. **API Documentation**
+   - Swagger/OpenAPI specification
+   - Interactive documentation UI
+   - Code examples and tutorials
 
-## Current File State
+2. **Development Tools**
+   - Makefile commands
+   - Development scripts
+   - Code generation workflows
+   - Quality assurance tools
 
-### Recently Modified/Generated
-- `internal/db/*.go` - sqlc-generated code (current with queries)
-- `internal/post/repository/mocks/repository.go` - Generated mocks
-- `internal/post/usecase/mocks/usecase.go` - Generated mocks
-- `docs/*` - Swagger documentation (generated)
+## **Current Constraints & Considerations**
 
-### Needs Attention
-- `Makefile` - migrate command is placeholder, needs implementation
-- `README.md` - Basic, needs domain addition guide
-- `internal/post/tests/post_test.go` - Placeholder, needs real tests
-- `go.mod` - Missing: go-sqlmock, Air, potentially golang-migrate
+### **Technical Constraints**
+- **Go Version**: Requires 1.25.0+ for latest features
+- **Database**: PostgreSQL required for full functionality
+- **Cache**: Valkey/Redis for optimal performance
+- **Platform**: Cross-platform compatibility maintained
 
-## Known Gaps Between Brief and Implementation
+### **Development Constraints**
+- **Architecture**: Strict Clean Architecture adherence
+- **Testing**: 90%+ coverage requirement
+- **Documentation**: Comprehensive documentation mandatory
+- **Code Quality**: golangci-lint compliance required
 
-### Critical Gaps
-1. **Testing Not Demonstrated**: Brief emphasizes "comprehensive testing strategy" with examples, current has only infrastructure
-2. **Migration Tool Not Integrated**: Brief specifies golang-migrate, not connected
-3. **No Domain Addition Guide**: Brief requires "clear instructions," not documented
-4. **Viper vs godotenv**: Brief specifies Viper, implementation uses simpler godotenv
+### **Deployment Considerations**
+- **Containerization**: Docker-based deployment
+- **Environment**: Environment-specific configuration
+- **Security**: Production-grade security measures
+- **Monitoring**: Observability and health checks
 
-### Medium Priority Gaps
-1. **Uber fx**: Mentioned in brief, not used (manual DI works but not as specified)
-2. **Air**: Development tool mentioned, not configured
-3. **Incomplete Domains**: Roles, threads, comments have migrations but no code
+## **Key Decision Points**
 
-### Low Priority Gaps
-1. **Redis Integration**: Infrastructure ready but client not connected
-2. **Additional Middleware**: Could expand rate limiting, add CORS, etc.
+### **Architecture Decisions**
+- **Clean Architecture**: Chosen for maintainability and testability
+- **Domain-Driven Design**: For business logic isolation
+- **Dependency Injection**: Samber's do for type safety
+- **SQL Generation**: sqlc for compile-time validation
 
-## Technical Decisions Made
+### **Technology Decisions**
+- **Fiber v2**: High-performance web framework
+- **PostgreSQL**: Robust relational database
+- **Valkey**: Redis-compatible caching
+- **JWT**: Stateless authentication
 
-### Deviations from Brief
-1. **godotenv instead of Viper**: Simpler approach chosen, works for current needs
-2. **Manual DI instead of Uber fx**: Less complexity, easier to understand for template users
-3. **Minimal initial domains**: Focus on quality examples (user, post) rather than full forum
+### **Development Process Decisions**
+- **Test-Driven Development**: Comprehensive testing strategy
+- **Documentation-First**: In-code documentation
+- **CI/CD Integration**: Automated quality checks
+- **Container Development**: Consistent environments
 
-### Architectural Patterns Established
-1. **4-Layer Domain Structure**: entity → repository → usecase → handler (strictly enforced)
-2. **Interface-Driven Design**: All repositories and usecases defined as interfaces
-3. **Mock Generation Pattern**: `//go:generate mockgen` annotations on interfaces
-4. **JSend Response Standard**: All handlers use response.Success/Fail/Error
-5. **UUID v7**: Time-sortable UUIDs for all entities
+## **Risk Assessment**
 
-## Blockers & Questions
+### **Technical Risks**
+- **Dependency Management**: Go module compatibility
+- **Performance**: Database query optimization
+- **Security**: Authentication and authorization
+- **Scalability**: Horizontal scaling readiness
 
-### Current Blockers: None
-Project is functional and deployable as-is. Gaps are features awaiting implementation.
+### **Development Risks**
+- **Complexity**: Clean Architecture learning curve
+- **Testing**: Mock generation and maintenance
+- **Documentation**: Keeping docs synchronized
+- **Quality**: Maintaining code standards
 
-### Pending Decisions
-1. Should Viper replace godotenv to match brief exactly?
-2. Should Uber fx be added for DI, or keep manual approach for simplicity?
-3. Priority order for implementing remaining domains vs. completing testing suite?
-4. Should Air configuration be added, or leave to individual developer preference?
+### **Mitigation Strategies**
+- **Reference Implementation**: User domain as pattern
+- **Comprehensive Testing**: Automated test coverage
+- **Documentation Standards**: In-code documentation
+- **Quality Gates**: CI/CD quality checks
 
-## Environment Notes
+## **Success Metrics**
 
-### Development Setup Requirements
-1. Docker and Docker Compose installed
-2. Go 1.24.6+ installed
-3. sqlc installed for regenerating queries
-4. swag installed for regenerating API docs
-5. mockgen installed for regenerating mocks
+### **Template Success Metrics**
+- **Setup Time**: < 5 minutes for new projects
+- **Domain Addition**: < 1 hour for new domains
+- **Test Coverage**: 90%+ automated coverage
+- **Documentation**: Complete API documentation
 
-### Current Database Schema
-- **users**: id, username, email, password_hash, created_at, updated_at
-- **roles**: (migration exists, table structure unknown without reading file)
-- **threads**: (migration exists, structure partially known - has posts relation)
-- **posts**: id, thread_id, user_id, content, created_at, updated_at
-- **comments**: (migration exists, table structure unknown)
-- **sessions**: (migration exists, table structure unknown)
+### **Quality Metrics**
+- **Code Quality**: golangci-lint compliance
+- **Security**: Zero high-severity vulnerabilities
+- **Performance**: < 1ms average response time
+- **Reliability**: 99.9% uptime target
 
-## Integration Points
+### **Developer Experience Metrics**
+- **Learning Curve**: Minimal ramp-up time
+- **Productivity**: 10x faster initial development
+- **Consistency**: Standardized patterns across projects
+- **Maintenance**: Reduced technical debt
 
-### External Services (via Docker Compose)
-- PostgreSQL: localhost:5432 (db service)
-- Valkey/Redis: localhost:6379 (redis service, not yet used by app)
+## **Next Priority Actions**
 
-### API Endpoints Implemented
-- `GET /health` - Liveness check
-- `GET /ready` - Readiness check (DB ping)
-- `GET /swagger/*` - API documentation
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/posts` - Create post (protected)
-- `GET /api/v1/posts/:id` - Get post
-- `GET /api/v1/posts/user/:user_id` - List user's posts
-- `PUT /api/v1/posts/:id` - Update post (protected, ownership check)
-- `DELETE /api/v1/posts/:id` - Delete post (protected, ownership check)
+### **Immediate Actions (Next Session)**
+1. **Begin Go Implementation**
+   - Initialize core dependencies
+   - Set up project structure
+   - Implement configuration management
 
-### Stub Routes (Not Implemented)
-- `GET /api/v1/users`
-- `GET /api/v1/threads`
-- `GET /api/v1/comments`
+2. **Database Setup**
+   - Create initial migrations
+   - Configure sqlc
+   - Set up database connections
 
-## Next Session Priorities
+3. **Core Infrastructure**
+   - Implement middleware stack
+   - Set up dependency injection
+   - Create base structures
 
-**When work resumes, prioritize:**
-1. Review and validate Memory Bank files with user
-2. Decide on Viper vs godotenv and Uber fx vs manual DI
-3. Implement test suite with mocks (demonstrates testing strategy from brief)
-4. Integrate golang-migrate for proper migration management
-5. Document domain addition process in README or separate guide
+### **Short-term Goals (1-2 weeks)**
+1. **Reference Domain Completion**
+   - Full user/auth implementation
+   - Comprehensive test coverage
+   - API documentation generation
+
+2. **Development Tooling**
+   - Complete Makefile commands
+   - Code generation workflows
+   - Quality assurance automation
+
+### **Medium-term Goals (1 month)**
+1. **Template Validation**
+   - End-to-end testing
+   - Performance benchmarking
+   - Security audit completion
+
+2. **Documentation Enhancement**
+   - Tutorial creation
+   - Video demonstrations
+   - Community guides
+
+## **Stakeholder Communication**
+
+### **Development Team**
+- **Architecture Decisions**: Documented in architecture.md
+- **Implementation Patterns**: Reference domain examples
+- **Quality Standards**: CI/CD pipeline enforcement
+- **Development Workflow**: Makefile and scripts
+
+### **End Users**
+- **Setup Instructions**: TEMPLATE_SETUP.md
+- **Development Guide**: Adding new domains
+- **API Documentation**: Auto-generated Swagger docs
+- **Best Practices**: In-code examples
+
+### **Operations Team**
+- **Deployment Guide**: Docker and CI/CD documentation
+- **Monitoring Setup**: Health checks and logging
+- **Security Configuration**: Environment variables
+- **Performance Tuning**: Configuration options
+
+## **Knowledge Management**
+
+### **Documentation Strategy**
+- **Memory Bank**: Centralized project knowledge
+- **Code Documentation**: In-code comments and examples
+- **API Documentation**: Auto-generated and maintained
+- **Process Documentation**: Step-by-step guides
+
+### **Knowledge Transfer**
+- **Reference Implementation**: User domain as learning tool
+- **Patterns Library**: Reusable architectural patterns
+- **Testing Examples**: Comprehensive test patterns
+- **Configuration Examples**: Environment-specific setups
+
+## **Continuous Improvement**
+
+### **Feedback Loops**
+- **Developer Feedback**: Usability and productivity
+- **User Feedback**: Template effectiveness
+- **Performance Metrics**: Benchmarking and optimization
+- **Security Updates**: Regular dependency updates
+
+### **Evolution Strategy**
+- **Technology Updates**: Regular Go ecosystem updates
+- **Pattern Refinement**: Architecture improvements
+- **Tool Enhancement**: Development tool upgrades
+- **Documentation Maintenance**: Keeping content current

@@ -1,229 +1,391 @@
-# Technology Stack
+# **Technology Stack Documentation**
 
-## Core Framework & Language
-- **Go**: Version 1.24.6+ (toolchain 1.25.0)
-- **Fiber v2**: v2.52.9 - Express.js-inspired web framework for high-performance APIs
+## **Core Technologies**
 
-## Dependency Management
-- **Go Modules**: Standard Go dependency management
-- **Module Path**: `github.com/zercle/gofiber-skeleton`
+### **Go Language & Runtime**
+- **Version**: Go 1.25.0
+- **Module**: `github.com/zercle/gofiber-skeleton`
+- **Features**: Generics, goroutines, garbage collection
+- **Benefits**: Performance, concurrency, type safety
 
-## Key Dependencies
+### **Web Framework: Fiber v2**
+- **Package**: `github.com/gofiber/fiber/v2`
+- **Architecture**: Express.js-inspired, high-performance
+- **Features**: 
+  - Zero-allocation HTTP router
+  - Middleware support
+  - WebSocket support
+  - Static file serving
+  - Template engine integration
+- **Performance**: 10x faster than Express.js
 
-### Web Framework & HTTP
-- `github.com/gofiber/fiber/v2` v2.52.9 - Core web framework
-- `github.com/arsmn/fiber-swagger/v2` v2.31.1 - Swagger UI integration for Fiber
+## **Dependency Injection**
 
-### Database
-- **Driver**: `github.com/jackc/pgx/v5` v5.6.0 - PostgreSQL driver
-- **Connection**: Uses `database/sql` with `pgx` stdlib driver
-- **Query Generator**: sqlc v1.30.0 (generates type-safe Go from SQL)
-- **Database**: PostgreSQL 18 (Alpine-based Docker image)
+### **Samber's Do**
+- **Package**: `github.com/samber/do`
+- **Type**: Generics-based DI container
+- **Features**:
+  - Type-safe dependency resolution
+  - Automatic dependency graph resolution
+  - Lifecycle management
+  - Interface-based design
+- **Benefits**: Compile-time safety, clean architecture
 
-### Caching (Infrastructure)
-- **Valkey**: v8 (Redis-compatible, Alpine-based)
-- **Note**: Redis client not yet integrated in code, infrastructure-ready
+## **Database Technologies**
 
-### Authentication & Security
-- `github.com/golang-jwt/jwt/v4` v4.5.2 - JWT token generation/validation
-- `golang.org/x/crypto` v0.42.0 - bcrypt password hashing
+### **Database: PostgreSQL**
+- **Version**: 18-alpine (Docker)
+- **Features**:
+  - ACID compliance
+  - JSON support
+  - Full-text search
+  - Connection pooling
+- **Connection**: `pgx` driver for Go
 
-### Configuration
-- `github.com/joho/godotenv` v1.5.1 - .env file loading
-- **Pattern**: Environment variables with fallback to .env file
+### **Database Migration: golang-migrate**
+- **Package**: `github.com/golang-migrate/migrate`
+- **Features**:
+  - Version-controlled migrations
+  - Rollback capabilities
+  - Multiple database support
+  - CLI tool integration
+- **Migration Files**: `db/migrations/`
 
-### Logging
-- `github.com/rs/zerolog` v1.34.0 - Structured JSON logging
+### **SQL Generation: sqlc**
+- **Package**: `github.com/sqlc-dev/sqlc`
+- **Features**:
+  - Compile-time SQL validation
+  - Type-safe query generation
+  - Auto-generated Go code
+  - IDE support with autocomplete
+- **Query Files**: `db/queries/`
+- **Generated Code**: `internal/domains/*/repository/`
 
-### Utilities
-- `github.com/google/uuid` v1.6.0 - UUID v7 generation
+## **Caching Technology**
 
-### API Documentation
-- `github.com/swaggo/swag` v1.16.6 - Swagger documentation generator
-- **Command**: `swag init -g cmd/server/main.go --output ./docs`
+### **Cache: Valkey (Redis-compatible)**
+- **Image**: `valkey/valkey:latest`
+- **Features**:
+  - Redis-compatible API
+  - In-memory data structure store
+  - Pub/sub capabilities
+  - Persistence options
+- **Go Client**: `github.com/redis/go-redis/v9`
 
-### Testing & Mocking
-- `github.com/golang/mock` v1.6.0 - Mock generation for interfaces
-- **Pattern**: `//go:generate mockgen -source=<file>.go -destination=mocks/<mock>.go -package=mocks`
-- **Note**: `DATA-DOG/go-sqlmock` mentioned in brief but not yet in go.mod
+## **Authentication & Security**
 
-## Development Tools
+### **JWT: golang-jwt**
+- **Package**: `github.com/golang-jwt/jwt/v5`
+- **Features**:
+  - Token generation and validation
+  - Multiple signing algorithms
+  - Claims customization
+  - Middleware integration
 
-### Hot Reload
-- **Air**: Mentioned in brief for development hot-reloading (not in dependencies yet)
-- **Configuration**: Not present in codebase
+### **Password Hashing: bcrypt**
+- **Package**: `golang.org/x/crypto/bcrypt`
+- **Features**:
+  - Adaptive hash function
+  - Salt generation
+  - Configurable cost factor
+  - Built-in Go library
 
-### Database Migrations
-- **Tool**: `golang-migrate/migrate` (mentioned in brief, not in go.mod)
-- **Current**: Migrations exist in `db/migrations/`, tooling not integrated
-- **Makefile**: Placeholder command `make migrate`
+## **Configuration Management**
 
-### SQL Code Generation
-- **sqlc**: v1.30.0
-- **Config**: `sqlc.yaml`
-  - Engine: PostgreSQL
-  - Schema: `db/migrations/`
-  - Queries: `db/queries/`
-  - Output: `internal/db/`
-  - Features: JSON tags, empty slices, interface, exact table names off, no prepared queries, pointers for null types
+### **Viper**
+- **Package**: `github.com/spf13/viper`
+- **Features**:
+  - Multiple configuration sources
+  - Environment variable support
+  - .env file support
+  - YAML/JSON/TOML support
+  - Live configuration reloading
+- **Precedence**: Environment > .env > defaults
 
-### Code Quality
-- **Formatter**: `go fmt` via `make fmt`
-- **Linter**: `golangci-lint` via `make lint` (tool not in dependencies)
-- **Testing**: Standard `go test` with race detector (`make test-race`)
+## **API Documentation**
 
-### Build Tools
-- **Make**: Automation for common tasks
-- **Docker**: Multi-stage builds with Alpine base
+### **Swagger: swaggo/swag**
+- **Package**: `github.com/swaggo/swag`
+- **Features**:
+  - Automatic OpenAPI specification
+  - Interactive UI documentation
+  - Code-based documentation
+  - Schema generation
+- **Output**: `docs/swagger.json`, `docs/swagger.html`
+- **Web UI**: `/swagger/` endpoint
 
-## Infrastructure
+## **Development Tools**
 
-### Containerization
-- **Docker**: Multi-stage Dockerfile
-  - **Builder**: golang:alpine
-  - **Runtime**: alpine
-  - **Optimizations**: Static linking, stripped binaries (`-ldflags="-s -w -extldflags '-static'"`)
-  - **Security**: Non-root user (appuser/appgroup)
+### **Hot Reloading: Air**
+- **Package**: `github.com/cosmtrek/air`
+- **Features**:
+  - Automatic server restart
+  - File watching
+  - Build optimization
+  - Configuration via `.air.toml`
 
-### Orchestration
-- **Docker Compose**: v3 format
+### **Code Quality: golangci-lint**
+- **Package**: `github.com/golangci/golangci-lint`
+- **Features**:
+  - 50+ linters integrated
+  - Fast parallel execution
+  - Configuration via `.golangci.yml`
+  - CI/CD integration
+
+## **Testing Framework**
+
+### **Mock Generation: go.uber.org/mock**
+- **Package**: `go.uber.org/mock/mockgen`
+- **Features**:
+  - Interface-based mock generation
+  - `//go:generate` integration
+  - Customizable mock behavior
+  - Test isolation support
+
+### **SQL Mocking: go-sqlmock**
+- **Package**: `github.com/DATA-DOG/go-sqlmock`
+- **Features**:
+  - SQL driver mocking
+  - Query expectation matching
+  - Transaction simulation
+  - Database-independent testing
+
+## **Containerization**
+
+### **Docker**
+- **Base Images**: 
+  - `golang:1.25-alpine` (build stage)
+  - `alpine:latest` (runtime stage)
+- **Features**:
+  - Multi-stage builds
+  - Minimal runtime image
+  - Security scanning
+  - Layer optimization
+
+### **Docker Compose**
+- **File**: `compose.yml`
 - **Services**:
-  - `app`: Go Fiber application (port 8080)
-  - `db`: PostgreSQL 18 Alpine (port 5432)
-  - `redis`: Valkey 8 Alpine (port 6379)
-- **Volumes**: Persistent storage for `db-data` and `redis-data`
-- **Health Checks**: All services monitored
+  - PostgreSQL database
+  - Valkey cache
+  - Application container
+- **Features**:
+  - Development environment
+  - Service orchestration
+  - Volume management
+  - Network configuration
 
-### Environment Configuration
+## **CI/CD Pipeline**
 
-**Required Variables** (.env or environment):
-```
-PORT=8080
-DATABASE_DSN="host=localhost user=user password=password dbname=fiber_forum port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-JWT_SECRET="supersecretjwtkey"
-```
+### **GitHub Actions**
+- **Workflows**:
+  - `ci.yml`: Continuous integration
+  - `cd.yml`: Continuous deployment
+  - `go-ci.yml`: Go-specific pipeline
+- **Features**:
+  - Automated testing
+  - Code quality checks
+  - Security scanning
+  - Docker image building
+  - Multi-environment deployment
 
-**Docker Compose Defaults**:
-```
-POSTGRES_DB=fiber_forum
-POSTGRES_USER=user
-POSTGRES_PASSWORD=password
-REDIS_URL=redis:6379
-```
+### **Code Quality Tools**
+- **Gosec**: Security vulnerability scanning
+- **Trivy**: Container security scanning
+- **Codecov**: Test coverage reporting
 
-## Build & Deployment
+## **Monitoring & Observability**
 
-### Local Development
+### **Structured Logging**
+- **Package**: `github.com/gofiber/fiber/v2/middleware/logger`
+- **Features**:
+  - Request/response logging
+  - Structured log format
+  - Configurable log levels
+  - Output customization
+
+### **Request Tracing**
+- **Package**: Custom middleware
+- **Features**:
+  - Request ID generation
+  - Request propagation
+  - Performance tracking
+  - Debugging support
+
+### **Health Checks**
+- **Package**: Custom health endpoints
+- **Features**:
+  - Database connectivity
+  - Cache connectivity
+  - Application status
+  - Dependency health
+
+## **Response Handling**
+
+### **JSend Response Format**
+- **Package**: Custom response utilities
+- **Features**:
+  - Standardized response format
+  - Success/error handling
+  - Data pagination
+  - Consistent API responses
+
+### **Error Handling**
+- **Package**: Custom error middleware
+- **Features**:
+  - Centralized error handling
+  - Error categorization
+  - Stack trace management
+  - User-friendly error messages
+
+## **Performance Optimizations**
+
+### **Connection Pooling**
+- **Database**: `pgxpool` for PostgreSQL
+- **Cache**: Redis connection pool
+- **Features**:
+  - Configurable pool size
+  - Connection lifecycle management
+  - Performance monitoring
+  - Resource optimization
+
+### **Middleware Stack**
+- **CORS**: Cross-origin resource sharing
+- **Rate Limiting**: Request rate control
+- **Compression**: Gzip response compression
+- **Recovery**: Panic recovery middleware
+
+## **Development Environment**
+
+### **Required Tools**
 ```bash
-make fmt          # Format code
-make sqlc         # Generate DB code
-make build        # Build binary to bin/server
-make run          # Build and run
-make test         # Run tests
-make test-race    # Run tests with race detector
-make lint         # Run linter
+# Go runtime
+go version 1.25.0+
+
+# Development tools
+make - build automation
+docker - containerization
+docker-compose - local development
+air - hot reloading
+sqlc - SQL code generation
+swag - API documentation
+golangci-lint - code quality
+mockgen - mock generation
 ```
 
-### CI Pipeline (Make target)
+### **Development Commands**
 ```bash
-make ci           # fmt → sqlc → lint → test-race → build → generate-docs
+make dev          # Start development server
+make test         # Run test suite
+make lint         # Code quality checks
+make build        # Build production binary
+make migrate-up   # Run database migrations
+make migrate-down # Rollback migrations
+make sqlc         # Generate SQL code
+make swag         # Generate API docs
+make mocks        # Generate test mocks
 ```
 
-### Production Build
-- **Binary Location**: `bin/server`
-- **Static Binary**: Yes (fully static linking)
-- **Size Optimization**: Stripped symbols (`-s -w`)
-- **Entry Point**: `cmd/server/main.go`
+## **Environment Configuration**
 
-## Database Schema Management
+### **Required Environment Variables**
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=gofiber_skeleton
+DB_SSLMODE=disable
 
-### Migration Files
-- **Location**: `db/migrations/`
-- **Naming**: `{number}_{description}.up.sql`
-- **Existing**:
-  - `001_create_users.up.sql`
-  - `002_create_roles.up.sql`
-  - `003_create_threads_posts_comments.up.sql`
-  - `004_create_sessions.up.sql`
+# Cache
+VALKEY_HOST=localhost
+VALKEY_PORT=6379
+VALKEY_PASSWORD=""
+VALKEY_DB=0
 
-### Query Files
-- **Location**: `db/queries/`
-- **Format**: sqlc annotations (`-- name: FunctionName :one/:many/:exec`)
-- **Existing**: `users.sql`, `posts.sql`
+# Authentication
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=24h
 
-## Network Architecture
+# Server
+SERVER_HOST=0.0.0.0
+SERVER_PORT=3000
+SERVER_ENV=development
+```
 
-### Development (Docker Compose)
-- **App**: http://localhost:8080
-- **Swagger**: http://localhost:8080/swagger/
-- **Health**: http://localhost:8080/health
-- **Readiness**: http://localhost:8080/ready
-- **PostgreSQL**: localhost:5432
-- **Redis/Valkey**: localhost:6379
+### **Configuration Files**
+- `.env`: Local development variables
+- `config.yml`: Default configuration
+- `docker-compose.yml`: Container orchestration
+- `.air.toml`: Hot reload configuration
+- `.golangci.yml`: Linting rules
 
-### API Versioning
-- **Base Path**: `/api/v1`
-- **Auth Routes**: `/api/v1/auth/*`
-- **Post Routes**: `/api/v1/posts/*`
+## **Security Considerations**
 
-## Security Measures
+### **Dependencies**
+- Regular security updates via `go get -u`
+- Vulnerability scanning with `gosec` and `Trivy`
+- Dependency version pinning in `go.mod`
+- SBOM generation for compliance
 
-### Authentication
-- **Method**: JWT Bearer tokens in Authorization header
-- **Token Expiry**: 72 hours
-- **Password Hashing**: bcrypt with DefaultCost (10)
+### **Runtime Security**
+- Input validation and sanitization
+- SQL injection prevention with sqlc
+- XSS protection via Fiber middleware
+- Rate limiting and DDoS protection
+- Secure headers configuration
 
-### Rate Limiting
-- **API**: General rate limiting via `middleware.APIRateLimit()`
-- **Auth**: Stricter limits via `middleware.AuthRateLimit()`
+## **Performance Benchmarks**
 
-### Application Security
-- **Panic Recovery**: `fiber/v2/middleware/recover`
-- **Request ID**: Unique ID per request for tracing
-- **Graceful Shutdown**: 30-second timeout for in-flight requests
+### **Expected Performance**
+- **Throughput**: 100,000+ requests/second
+- **Latency**: < 1ms average response time
+- **Memory**: < 100MB baseline memory usage
+- **CPU**: Efficient goroutine utilization
 
-## Monitoring & Observability
+### **Monitoring Metrics**
+- Request rate and response times
+- Database query performance
+- Cache hit ratios
+- Memory and CPU usage
+- Error rates and patterns
 
-### Logging
-- **Format**: Structured JSON (zerolog)
-- **Fields**: request_id, method, path, ip, status, duration, body_size, user_agent
-- **Levels**: Info (requests), Error (failures), Fatal (startup failures)
+## **Technology Rationale**
 
-### Health Checks
-- **Liveness**: `/health` - Always returns 200 if server running
-- **Readiness**: `/ready` - Checks database connectivity via Ping()
+### **Why Go?**
+- Performance and efficiency
+- Strong typing and safety
+- Excellent concurrency support
+- Rich standard library
+- Growing ecosystem
 
-## Technical Constraints
+### **Why Fiber?**
+- Express.js familiarity
+- High performance
+- Rich middleware ecosystem
+- Comprehensive documentation
+- Active development
 
-### Language Version
-- **Minimum**: Go 1.24.6
-- **Toolchain**: Go 1.25.0
+### **Why Clean Architecture?**
+- Testability and maintainability
+- Domain-driven design
+- Separation of concerns
+- Framework independence
+- Long-term sustainability
 
-### Database
-- **Engine**: PostgreSQL (pgx driver only, no MySQL/SQLite support)
-- **Connection**: `database/sql` interface, not direct pgx connection pool
+## **Future Technology Considerations**
 
-### Dependency Injection
-- **Current**: Manual DI in `router.go`
-- **Planned**: Uber fx (mentioned in brief, not implemented)
+### **Potential Enhancements**
+- **GraphQL**: Alternative to REST APIs
+- **gRPC**: High-performance RPC framework
+- **Kubernetes**: Container orchestration
+- **Prometheus**: Metrics collection
+- **Jaeger**: Distributed tracing
+- **Vault**: Secret management
 
-## Missing/Planned Integrations
-
-Based on brief requirements not yet in codebase:
-1. **Air** (hot-reloading) - Mentioned but not configured
-2. **golang-migrate** - Migration runner not integrated
-3. **Uber fx** - DI framework mentioned but not used
-4. **go-sqlmock** - For repository testing, not in go.mod
-5. **Redis Client** - Infrastructure ready, client not integrated
-6. **Viper** - Brief mentions it, project uses godotenv instead
-
-## Version Control & CI/CD
-
-### Git
-- **Platform**: GitHub (module path suggests)
-- **Organization**: zercle
-- **Repository**: gofiber-skeleton
-
-### Docker Registry
-- **Images Used**: Official golang:alpine, alpine, postgres:18-alpine, valkey/valkey:8-alpine
-- **Custom Image**: Built from Dockerfile (not published)
+### **Technology Debt Management**
+- Regular dependency updates
+- Technology lifecycle planning
+- Performance monitoring and optimization
+- Security audit scheduling
+- Code review processes

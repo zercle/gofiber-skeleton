@@ -1,153 +1,77 @@
 run:
   timeout: 5m
   tests: true
+  skip-dirs:
+    - tmp
+    - bin
+    - vendor
+    - testdata
+    - mocks
+  skip-files:
+    - ".*_mock.go$"
 
 output:
-  formats: colored-line-number
+  format: colored-line-number
   print-issued-lines: true
   print-linter-name: true
 
 linters:
   enable:
-    - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
-    - govet         # Vet examines Go source code
-    - ineffassign   # Detect ineffectual assignments
-    - staticcheck   # Static analysis
-    - unused        # Check for unused code
-    - gofmt         # Check formatting
-    - misspell      # Check for misspelled words
-    - revive        # Fast, configurable linter
-    - gosec         # Security problems
-    - gocritic      # Go source code linter
-    - bodyclose     # Check HTTP body close
-    - copyloopvar   # Check loop variable copies (replaces exportloopref)
-    - noctx         # Find sending http request without context.Context
-    - sqlclosecheck # Check sql.Rows and sql.Stmt are closed
-    - unconvert     # Remove unnecessary type conversions
-    - unparam       # Unused function parameters
-    - wastedassign  # Wasted assignment statements
-  disable:
-    - typecheck     # Disabled because it conflicts with generated code
-    - goimports     # Disabled - conflicts with local formatting preferences
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - goconst
+    - godot
+    - gocyclo
+    - revive
+    - unconvert
+    - unparam
+    - nakedret
+    - prealloc
+    - exportloopref
+    - gosec
+    - bodyclose
+    - noctx
+    - nilerr
+    - rowserrcheck
+    - sqlclosecheck
+    - wastedassign
 
 linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
-    exclude-functions:
-      - (*github.com/gofiber/fiber/v2.Ctx).SendString
-      - (*github.com/gofiber/fiber/v2.Ctx).JSON
 
   govet:
-    enable:
-      - shadow
-    disable:
-      - fieldalignment
+    check-shadowing: true
 
-  gofmt:
-    simplify: true
-
-  goimports:
-    local-prefixes: github.com/zercle/gofiber-skeleton
-
-  revive:
-    rules:
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-      - name: error-naming
-      - name: exported
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-      - name: var-declaration
-      - name: package-comments
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
-
-  gosec:
-    excludes:
-      - G404 # Use of weak random number generator - ok for non-crypto use
-
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - whyNoLint
-      - unnamedResult
-      - paramTypeCombine
-      - rangeValCopy
+  gocyclo:
+    min-complexity: 15
 
   misspell:
     locale: US
 
-  unused:
-    check-exported: false
+  nakedret:
+    max-func-lines: 30
+
+  gosec:
+    excludes:
+      - G104
+      - G204
 
 issues:
-  exclude-dirs:
-    - bin
-    - vendor
-    - tmp
-    - docs
-
-  exclude-files:
-    - ".*\\.pb\\.go$"
-    - ".*\\.gen\\.go$"
-
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
   exclude-rules:
-    # Exclude some linters from running on tests files
     - path: _test\.go
       linters:
         - gosec
+        - goconst
         - errcheck
-        - gocritic
-        - govet
-        - revive
-
-    # Exclude swagger generated files
-    - path: docs/
-      linters:
-        - revive
-        - stylecheck
-
-    # Exclude generated mocks
-    - path: mocks/
-      linters:
-        - revive
-        - stylecheck
-        - unused
-
-    # Exclude sqlc generated code
-    - path: internal/db/
-      linters:
-        - revive
-        - stylecheck
-        - gocritic
-
-  max-issues-per-linter: 50
-  max-same-issues: 3
-
-severity:
-  default-severity: error
-  rules:
-    - linters:
-        - revive
-      severity: warning
