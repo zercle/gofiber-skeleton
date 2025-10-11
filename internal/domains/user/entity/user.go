@@ -6,87 +6,60 @@ import (
 	"github.com/google/uuid"
 )
 
-// User represents a user in the system
+// User represents a user entity
 type User struct {
-	ID           uuid.UUID `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // Never expose password hash in JSON
-	FullName     string    `json:"full_name"`
-	IsActive     bool      `json:"is_active"`
-	IsVerified   bool      `json:"is_verified"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           uuid.UUID  `json:"id"`
+	Username     string     `json:"username"`
+	Email        string     `json:"email"`
+	PasswordHash string     `json:"-"` // Never expose password hash in JSON
+	FullName     *string    `json:"full_name,omitempty"`
+	IsActive     bool       `json:"is_active"`
+	IsVerified   bool       `json:"is_verified"`
+	LastLoginAt  *time.Time `json:"last_login_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
-// NewUser creates a new user instance
-func NewUser(email, passwordHash, fullName string) *User {
-	return &User{
-		ID:           uuid.New(),
-		Email:        email,
-		PasswordHash: passwordHash,
-		FullName:     fullName,
-		IsActive:     true,
-		IsVerified:   false,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
+// RegisterRequest represents a registration request
+type RegisterRequest struct {
+	Username string  `json:"username" validate:"required,username"`
+	Email    string  `json:"email" validate:"required,email"`
+	Password string  `json:"password" validate:"required,password"`
+	FullName *string `json:"full_name,omitempty"`
 }
 
-// IsValidForRegistration checks if user data is valid for registration
-func (u *User) IsValidForRegistration() bool {
-	return u.Email != "" && u.PasswordHash != "" && u.FullName != ""
+// LoginRequest represents a login request
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
-// Activate activates the user account
-func (u *User) Activate() {
-	u.IsActive = true
-	u.UpdatedAt = time.Now()
+// LoginResponse represents a login response
+type LoginResponse struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int64  `json:"expires_in"`
+	User         *User  `json:"user"`
 }
 
-// Deactivate deactivates the user account
-func (u *User) Deactivate() {
-	u.IsActive = false
-	u.UpdatedAt = time.Now()
+// UpdateUserRequest represents an update user request
+type UpdateUserRequest struct {
+	FullName *string `json:"full_name,omitempty"`
+	Email    *string `json:"email,omitempty" validate:"omitempty,email"`
+	Username *string `json:"username,omitempty" validate:"omitempty,username"`
 }
 
-// Verify marks the user as verified
-func (u *User) Verify() {
-	u.IsVerified = true
-	u.UpdatedAt = time.Now()
+// ChangePasswordRequest represents a change password request
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,password"`
 }
 
-// UpdatePassword updates the user's password hash
-func (u *User) UpdatePassword(newPasswordHash string) {
-	u.PasswordHash = newPasswordHash
-	u.UpdatedAt = time.Now()
-}
-
-// UpdateProfile updates the user's profile information
-func (u *User) UpdateProfile(fullName string) {
-	if fullName != "" {
-		u.FullName = fullName
-	}
-	u.UpdatedAt = time.Now()
-}
-
-// PublicUser returns a user struct without sensitive information
-type PublicUser struct {
-	ID         uuid.UUID `json:"id"`
-	Email      string    `json:"email"`
-	FullName   string    `json:"full_name"`
-	IsActive   bool      `json:"is_active"`
-	IsVerified bool      `json:"is_verified"`
-	CreatedAt  time.Time `json:"created_at"`
-}
-
-// ToPublic converts User to PublicUser
-func (u *User) ToPublic() *PublicUser {
-	return &PublicUser{
-		ID:         u.ID,
-		Email:      u.Email,
-		FullName:   u.FullName,
-		IsActive:   u.IsActive,
-		IsVerified: u.IsVerified,
-		CreatedAt:  u.CreatedAt,
-	}
+// UserListResponse represents a paginated user list response
+type UserListResponse struct {
+	Users      []*User `json:"users"`
+	TotalCount int64   `json:"total_count"`
+	Page       int     `json:"page"`
+	PerPage    int     `json:"per_page"`
 }

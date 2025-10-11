@@ -2,9 +2,18 @@ run:
   timeout: 5m
   tests: true
   skip-dirs:
+    - tmp
+    - bin
     - vendor
-    - internal/db
-    - docs
+    - testdata
+    - mocks
+  skip-files:
+    - ".*_mock.go$"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
 
 linters:
   enable:
@@ -18,15 +27,21 @@ linters:
     - goimports
     - misspell
     - goconst
-    - gocritic
+    - godot
     - gocyclo
     - revive
-    - gosec
     - unconvert
-    - dupl
+    - unparam
+    - nakedret
+    - prealloc
+    - exportloopref
+    - gosec
     - bodyclose
     - noctx
-    - exportloopref
+    - nilerr
+    - rowserrcheck
+    - sqlclosecheck
+    - wastedassign
 
 linters-settings:
   errcheck:
@@ -39,36 +54,24 @@ linters-settings:
   gocyclo:
     min-complexity: 15
 
-  dupl:
-    threshold: 100
-
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-
   misspell:
     locale: US
 
-  revive:
-    rules:
-      - name: exported
-        arguments:
-          - "checkPrivateReceivers"
-          - "sayRepetitiveInsteadOfStutters"
+  nakedret:
+    max-func-lines: 30
 
   gosec:
     excludes:
-      - G404 # Use of weak random number generator
+      - G104
+      - G204
 
 issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
   exclude-rules:
     - path: _test\.go
       linters:
         - gosec
-        - dupl
         - goconst
-
-output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+        - errcheck

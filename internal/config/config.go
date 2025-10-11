@@ -11,197 +11,255 @@ import (
 type Config struct {
 	Server   ServerConfig
 	Database DatabaseConfig
-	Redis    RedisConfig
+	Cache    CacheConfig
 	JWT      JWTConfig
-	App      AppConfig
+	CORS     CORSConfig
+	RateLimit RateLimitConfig
+	Log      LogConfig
+	Swagger  SwaggerConfig
 }
 
-// ServerConfig holds server-specific configuration
+// ServerConfig holds server configuration
 type ServerConfig struct {
-	Port         string
+	Host         string
+	Port         int
+	Env          string
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	IdleTimeout  time.Duration
 }
 
-// DatabaseConfig holds database connection configuration
+// DatabaseConfig holds database configuration
 type DatabaseConfig struct {
 	Host            string
-	Port            string
+	Port            int
 	User            string
 	Password        string
-	DBName          string
+	Name            string
 	SSLMode         string
 	MaxOpenConns    int
 	MaxIdleConns    int
 	ConnMaxLifetime time.Duration
 }
 
-// RedisConfig holds Redis connection configuration
-type RedisConfig struct {
+// CacheConfig holds cache configuration
+type CacheConfig struct {
 	Host     string
-	Port     string
+	Port     int
 	Password string
 	DB       int
+	PoolSize int
 }
 
 // JWTConfig holds JWT configuration
 type JWTConfig struct {
 	Secret           string
-	AccessExpiration time.Duration
-	RefreshExpiration time.Duration
+	ExpiresIn        time.Duration
+	RefreshExpiresIn time.Duration
 }
 
-// AppConfig holds general application configuration
-type AppConfig struct {
-	Name        string
-	Environment string
-	Debug       bool
-	Version     string
+// CORSConfig holds CORS configuration
+type CORSConfig struct {
+	AllowedOrigins   []string
+	AllowedMethods   []string
+	AllowedHeaders   []string
+	AllowCredentials bool
 }
 
-// Load reads configuration from environment variables and config files
+// RateLimitConfig holds rate limiting configuration
+type RateLimitConfig struct {
+	Max        int
+	Expiration time.Duration
+}
+
+// LogConfig holds logging configuration
+type LogConfig struct {
+	Level  string
+	Format string
+	Output string
+}
+
+// SwaggerConfig holds Swagger configuration
+type SwaggerConfig struct {
+	Enabled  bool
+	Host     string
+	BasePath string
+}
+
+// Load reads configuration from environment and files
 func Load() (*Config, error) {
-	v := viper.New()
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("./configs")
 
-	// Set config file properties
-	v.SetConfigName(".env")
-	v.SetConfigType("env")
-	v.AddConfigPath(".")
-	v.AddConfigPath("./configs")
-
-	// Read config file (optional, fall back to env vars)
-	_ = v.ReadInConfig()
+	// Read config file if exists
+	_ = viper.ReadInConfig()
 
 	// Bind environment variables
-	v.AutomaticEnv()
+	viper.AutomaticEnv()
 
 	// Set defaults
-	setDefaults(v)
+	setDefaults()
 
-	cfg := &Config{
+	config := &Config{
 		Server: ServerConfig{
-			Port:         v.GetString("PORT"),
-			ReadTimeout:  v.GetDuration("SERVER_READ_TIMEOUT"),
-			WriteTimeout: v.GetDuration("SERVER_WRITE_TIMEOUT"),
-			IdleTimeout:  v.GetDuration("SERVER_IDLE_TIMEOUT"),
+			Host:         viper.GetString("SERVER_HOST"),
+			Port:         viper.GetInt("SERVER_PORT"),
+			Env:          viper.GetString("SERVER_ENV"),
+			ReadTimeout:  viper.GetDuration("SERVER_READ_TIMEOUT"),
+			WriteTimeout: viper.GetDuration("SERVER_WRITE_TIMEOUT"),
 		},
 		Database: DatabaseConfig{
-			Host:            v.GetString("DB_HOST"),
-			Port:            v.GetString("DB_PORT"),
-			User:            v.GetString("DB_USER"),
-			Password:        v.GetString("DB_PASSWORD"),
-			DBName:          v.GetString("DB_NAME"),
-			SSLMode:         v.GetString("DB_SSLMODE"),
-			MaxOpenConns:    v.GetInt("DB_MAX_OPEN_CONNS"),
-			MaxIdleConns:    v.GetInt("DB_MAX_IDLE_CONNS"),
-			ConnMaxLifetime: v.GetDuration("DB_CONN_MAX_LIFETIME"),
+			Host:            viper.GetString("DB_HOST"),
+			Port:            viper.GetInt("DB_PORT"),
+			User:            viper.GetString("DB_USER"),
+			Password:        viper.GetString("DB_PASSWORD"),
+			Name:            viper.GetString("DB_NAME"),
+			SSLMode:         viper.GetString("DB_SSLMODE"),
+			MaxOpenConns:    viper.GetInt("DB_MAX_OPEN_CONNS"),
+			MaxIdleConns:    viper.GetInt("DB_MAX_IDLE_CONNS"),
+			ConnMaxLifetime: viper.GetDuration("DB_CONN_MAX_LIFETIME"),
 		},
-		Redis: RedisConfig{
-			Host:     v.GetString("REDIS_HOST"),
-			Port:     v.GetString("REDIS_PORT"),
-			Password: v.GetString("REDIS_PASSWORD"),
-			DB:       v.GetInt("REDIS_DB"),
+		Cache: CacheConfig{
+			Host:     viper.GetString("VALKEY_HOST"),
+			Port:     viper.GetInt("VALKEY_PORT"),
+			Password: viper.GetString("VALKEY_PASSWORD"),
+			DB:       viper.GetInt("VALKEY_DB"),
+			PoolSize: viper.GetInt("VALKEY_POOL_SIZE"),
 		},
 		JWT: JWTConfig{
-			Secret:            v.GetString("JWT_SECRET"),
-			AccessExpiration:  v.GetDuration("JWT_ACCESS_EXPIRATION"),
-			RefreshExpiration: v.GetDuration("JWT_REFRESH_EXPIRATION"),
+			Secret:           viper.GetString("JWT_SECRET"),
+			ExpiresIn:        viper.GetDuration("JWT_EXPIRES_IN"),
+			RefreshExpiresIn: viper.GetDuration("JWT_REFRESH_EXPIRES_IN"),
 		},
-		App: AppConfig{
-			Name:        v.GetString("APP_NAME"),
-			Environment: v.GetString("APP_ENV"),
-			Debug:       v.GetBool("APP_DEBUG"),
-			Version:     v.GetString("APP_VERSION"),
+		CORS: CORSConfig{
+			AllowedOrigins:   viper.GetStringSlice("CORS_ALLOWED_ORIGINS"),
+			AllowedMethods:   viper.GetStringSlice("CORS_ALLOWED_METHODS"),
+			AllowedHeaders:   viper.GetStringSlice("CORS_ALLOWED_HEADERS"),
+			AllowCredentials: viper.GetBool("CORS_ALLOW_CREDENTIALS"),
+		},
+		RateLimit: RateLimitConfig{
+			Max:        viper.GetInt("RATE_LIMIT_MAX"),
+			Expiration: viper.GetDuration("RATE_LIMIT_EXPIRATION"),
+		},
+		Log: LogConfig{
+			Level:  viper.GetString("LOG_LEVEL"),
+			Format: viper.GetString("LOG_FORMAT"),
+			Output: viper.GetString("LOG_OUTPUT"),
+		},
+		Swagger: SwaggerConfig{
+			Enabled:  viper.GetBool("SWAGGER_ENABLED"),
+			Host:     viper.GetString("SWAGGER_HOST"),
+			BasePath: viper.GetString("SWAGGER_BASE_PATH"),
 		},
 	}
 
-	if err := cfg.Validate(); err != nil {
-		return nil, err
+	if err := validate(config); err != nil {
+		return nil, fmt.Errorf("config validation failed: %w", err)
 	}
 
-	return cfg, nil
+	return config, nil
 }
 
-// setDefaults sets default values for configuration
-func setDefaults(v *viper.Viper) {
+// setDefaults sets default configuration values
+func setDefaults() {
 	// Server defaults
-	v.SetDefault("PORT", "3000")
-	v.SetDefault("SERVER_READ_TIMEOUT", 10*time.Second)
-	v.SetDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
-	v.SetDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
+	viper.SetDefault("SERVER_HOST", "0.0.0.0")
+	viper.SetDefault("SERVER_PORT", 3000)
+	viper.SetDefault("SERVER_ENV", "development")
+	viper.SetDefault("SERVER_READ_TIMEOUT", 10*time.Second)
+	viper.SetDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
 
 	// Database defaults
-	v.SetDefault("DB_HOST", "localhost")
-	v.SetDefault("DB_PORT", "5432")
-	v.SetDefault("DB_USER", "postgres")
-	v.SetDefault("DB_PASSWORD", "postgres")
-	v.SetDefault("DB_NAME", "gofiber_skeleton")
-	v.SetDefault("DB_SSLMODE", "disable")
-	v.SetDefault("DB_MAX_OPEN_CONNS", 25)
-	v.SetDefault("DB_MAX_IDLE_CONNS", 5)
-	v.SetDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute)
+	viper.SetDefault("DB_HOST", "localhost")
+	viper.SetDefault("DB_PORT", 5432)
+	viper.SetDefault("DB_USER", "postgres")
+	viper.SetDefault("DB_PASSWORD", "postgres")
+	viper.SetDefault("DB_NAME", "gofiber_skeleton")
+	viper.SetDefault("DB_SSLMODE", "disable")
+	viper.SetDefault("DB_MAX_OPEN_CONNS", 25)
+	viper.SetDefault("DB_MAX_IDLE_CONNS", 5)
+	viper.SetDefault("DB_CONN_MAX_LIFETIME", 5*time.Minute)
 
-	// Redis defaults
-	v.SetDefault("REDIS_HOST", "localhost")
-	v.SetDefault("REDIS_PORT", "6379")
-	v.SetDefault("REDIS_PASSWORD", "")
-	v.SetDefault("REDIS_DB", 0)
+	// Cache defaults
+	viper.SetDefault("VALKEY_HOST", "localhost")
+	viper.SetDefault("VALKEY_PORT", 6379)
+	viper.SetDefault("VALKEY_PASSWORD", "")
+	viper.SetDefault("VALKEY_DB", 0)
+	viper.SetDefault("VALKEY_POOL_SIZE", 10)
 
 	// JWT defaults
-	v.SetDefault("JWT_SECRET", "your-secret-key-change-in-production")
-	v.SetDefault("JWT_ACCESS_EXPIRATION", 15*time.Minute)
-	v.SetDefault("JWT_REFRESH_EXPIRATION", 7*24*time.Hour)
+	viper.SetDefault("JWT_SECRET", "change-me-in-production")
+	viper.SetDefault("JWT_EXPIRES_IN", 24*time.Hour)
+	viper.SetDefault("JWT_REFRESH_EXPIRES_IN", 168*time.Hour)
 
-	// App defaults
-	v.SetDefault("APP_NAME", "gofiber-skeleton")
-	v.SetDefault("APP_ENV", "development")
-	v.SetDefault("APP_DEBUG", true)
-	v.SetDefault("APP_VERSION", "1.0.0")
+	// CORS defaults
+	viper.SetDefault("CORS_ALLOWED_ORIGINS", []string{"*"})
+	viper.SetDefault("CORS_ALLOWED_METHODS", []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"})
+	viper.SetDefault("CORS_ALLOWED_HEADERS", []string{"Origin", "Content-Type", "Accept", "Authorization"})
+	viper.SetDefault("CORS_ALLOW_CREDENTIALS", true)
+
+	// Rate limit defaults
+	viper.SetDefault("RATE_LIMIT_MAX", 100)
+	viper.SetDefault("RATE_LIMIT_EXPIRATION", 60*time.Second)
+
+	// Log defaults
+	viper.SetDefault("LOG_LEVEL", "info")
+	viper.SetDefault("LOG_FORMAT", "json")
+	viper.SetDefault("LOG_OUTPUT", "stdout")
+
+	// Swagger defaults
+	viper.SetDefault("SWAGGER_ENABLED", true)
+	viper.SetDefault("SWAGGER_HOST", "localhost:3000")
+	viper.SetDefault("SWAGGER_BASE_PATH", "/api/v1")
 }
 
-// Validate validates the configuration
-func (c *Config) Validate() error {
-	if c.Server.Port == "" {
-		return fmt.Errorf("server port is required")
+// validate validates configuration values
+func validate(config *Config) error {
+	if config.Server.Port < 1 || config.Server.Port > 65535 {
+		return fmt.Errorf("invalid server port: %d", config.Server.Port)
 	}
 
-	if c.Database.Host == "" {
-		return fmt.Errorf("database host is required")
+	if config.JWT.Secret == "change-me-in-production" && config.Server.Env == "production" {
+		return fmt.Errorf("JWT secret must be changed in production")
 	}
 
-	if c.Database.DBName == "" {
+	if config.Database.Name == "" {
 		return fmt.Errorf("database name is required")
-	}
-
-	if c.JWT.Secret == "" || c.JWT.Secret == "your-secret-key-change-in-production" {
-		if c.App.Environment == "production" {
-			return fmt.Errorf("JWT secret must be set in production")
-		}
 	}
 
 	return nil
 }
 
-// GetDSN returns the database connection string
-func (c *DatabaseConfig) GetDSN() string {
+// IsDevelopment returns true if running in development mode
+func (c *Config) IsDevelopment() bool {
+	return c.Server.Env == "development"
+}
+
+// IsProduction returns true if running in production mode
+func (c *Config) IsProduction() bool {
+	return c.Server.Env == "production"
+}
+
+// GetServerAddress returns the full server address
+func (c *Config) GetServerAddress() string {
+	return fmt.Sprintf("%s:%d", c.Server.Host, c.Server.Port)
+}
+
+// GetDatabaseDSN returns the database connection string
+func (c *Config) GetDatabaseDSN() string {
 	return fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode,
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		c.Database.Host,
+		c.Database.Port,
+		c.Database.User,
+		c.Database.Password,
+		c.Database.Name,
+		c.Database.SSLMode,
 	)
 }
 
-// GetRedisAddr returns the Redis connection address
-func (c *RedisConfig) GetAddr() string {
-	return fmt.Sprintf("%s:%s", c.Host, c.Port)
-}
-
-// IsProduction returns true if the app is running in production
-func (c *AppConfig) IsProduction() bool {
-	return c.Environment == "production"
-}
-
-// IsDevelopment returns true if the app is running in development
-func (c *AppConfig) IsDevelopment() bool {
-	return c.Environment == "development"
+// GetCacheAddress returns the cache address
+func (c *Config) GetCacheAddress() string {
+	return fmt.Sprintf("%s:%d", c.Cache.Host, c.Cache.Port)
 }

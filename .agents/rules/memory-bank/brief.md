@@ -21,7 +21,8 @@ The goal is to provide a robust, production-ready starting point that significan
 * **API Documentation:** swaggo/swag - To automatically generate interactive API documentation from comments in the Go source code.  
 * **Development:** Hot-reloading with Air - To improve the development feedback loop by automatically rebuilding and restarting the server on file changes.  
 * **Testing & Mocking:**  
-  * go.uber.org/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.  
+  * go.uber.org/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.
+  * DATA-DOG/go-sqlmock: For mocking SQL driver in testing.
   * Complete test coverage examples in the reference domain.
 
 ### **Template Features:**

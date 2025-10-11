@@ -1,30 +1,21 @@
 package middleware
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/zercle/gofiber-skeleton/internal/config"
 )
 
-// CORS returns CORS middleware with default configuration
-func CORS() fiber.Handler {
+// CORS creates a CORS middleware
+func CORS(cfg *config.Config) fiber.Handler {
 	return cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
-		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
-		AllowCredentials: false,
-		ExposeHeaders:    "Content-Length",
-		MaxAge:           86400,
-	})
-}
-
-// CORSWithConfig returns CORS middleware with custom configuration
-func CORSWithConfig(allowOrigins, allowMethods, allowHeaders string, allowCredentials bool) fiber.Handler {
-	return cors.New(cors.Config{
-		AllowOrigins:     allowOrigins,
-		AllowMethods:     allowMethods,
-		AllowHeaders:     allowHeaders,
-		AllowCredentials: allowCredentials,
-		ExposeHeaders:    "Content-Length",
-		MaxAge:           86400,
+		AllowOrigins:     strings.Join(cfg.CORS.AllowedOrigins, ","),
+		AllowMethods:     strings.Join(cfg.CORS.AllowedMethods, ","),
+		AllowHeaders:     strings.Join(cfg.CORS.AllowedHeaders, ","),
+		AllowCredentials: cfg.CORS.AllowCredentials,
+		ExposeHeaders:    "Content-Length,Content-Type",
+		MaxAge:           3600,
 	})
 }

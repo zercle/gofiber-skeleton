@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
 
-// RequestID returns request ID middleware
+// RequestID creates a request ID middleware
 func RequestID() fiber.Handler {
 	return requestid.New(requestid.Config{
 		Header:     "X-Request-ID",

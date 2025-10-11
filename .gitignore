@@ -1,56 +1,51 @@
-# Binaries for programs and plugins
+# Binaries
+bin/
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-bin/
-dist/
+main
 
-# Test binary, built with `go test -c`
-*.test
-
-# Output of the go coverage tool
+# Test coverage
 *.out
-coverage.txt
 coverage.html
-
-# Dependency directories
-vendor/
 
 # Go workspace file
 go.work
 
-# Environment files
-.env
-.env.local
-.env.*.local
+# Temporary files
+tmp/
+*.tmp
+*.log
 
-# IDE directories
-.idea/
+# IDE
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
 .DS_Store
 
-# Air (hot reload) temporary files
-tmp/
-
-# Logs
-*.log
-logs/
+# Environment variables
+.env
+.env.local
 
 # Database
 *.db
 *.sqlite
 
+# Build artifacts
+dist/
+build/
+
+# Dependencies
+vendor/
+
 # Generated files
-internal/db/*.go
-!internal/db/.gitkeep
-docs/docs.go
 docs/swagger.json
 docs/swagger.yaml
+docs/docs.go
 
-# OS specific
-Thumbs.db
+# Mocks (optional, can be committed)
+*_mock.go

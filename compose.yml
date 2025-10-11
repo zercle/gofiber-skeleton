@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.8'
 
 services:
   postgres:
@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/seeds:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -20,48 +21,26 @@ services:
     networks:
       - gofiber_network
 
-  redis:
-    image: valkey/valkey:8-alpine
-    container_name: gofiber_redis
+  valkey:
+    image: valkey/valkey:latest
+    container_name: gofiber_valkey
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - valkey_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - gofiber_network
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: gofiber_app
-    ports:
-      - "3000:3000"
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: gofiber_skeleton
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      APP_ENV: development
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - gofiber_network
-
 volumes:
   postgres_data:
-  redis_data:
+    driver: local
+  valkey_data:
+    driver: local
 
 networks:
   gofiber_network:

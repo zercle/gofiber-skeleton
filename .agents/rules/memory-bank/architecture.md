@@ -1,191 +1,270 @@
-# **System Architecture: Go Fiber Production-Ready Template**
+# **Architecture Documentation**
 
-## **Current State: Template Foundation**
+## **System Overview**
 
-This project is currently in **template initialization phase** with only the foundational Memory Bank structure in place. The actual Go Fiber application structure has not been implemented yet.
+This Go Fiber skeleton implements **Domain-Driven Clean Architecture** with strict separation of concerns and SOLID principles. The architecture follows a mono-repo structure with isolated business domains, shared infrastructure, and comprehensive tooling for production-ready applications.
 
-## **Intended Architecture (Based on brief.md)**
+## **Architectural Patterns**
 
-### **High-Level Architecture Pattern**
-- **Architecture Style:** Domain-Driven Clean Architecture
-- **Structure:** Mono-repo with strict domain isolation
-- **Principles:** SOLID principles, dependency injection, type safety
+### **Clean Architecture Layers**
 
-### **Planned Directory Structure**
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        A[HTTP Handlers] --> B[Middleware]
+        B --> C[Router]
+    end
+    
+    subgraph "Application Layer"
+        D[Use Cases] --> E[Domain Services]
+    end
+    
+    subgraph "Domain Layer"
+        F[Entities] --> G[Domain Interfaces]
+        G --> H[Business Rules]
+    end
+    
+    subgraph "Infrastructure Layer"
+        I[Repositories] --> J[Database]
+        I --> K[External APIs]
+        L[Config] --> M[Environment]
+    end
+    
+    A --> D
+    D --> F
+    D --> I
+    I --> F
 ```
-/
+
+### **Directory Structure**
+
+```
+.
 ├── cmd/                    # Application entry points
-│   └── server/
-│       └── main.go        # Main application entry
-├── internal/               # Private application code
-│   ├── domains/           # Business domains
-│   │   └── user/          # Reference implementation domain
-│   │       ├── entity/    # Domain entities
-│   │       ├── repository/ # Repository interfaces
-│   │       ├── usecase/   # Business logic
-│   │       └── handler/   # HTTP handlers
-│   ├── infrastructure/    # Shared infrastructure
-│   │   ├── database/      # Database connections
-│   │   ├── middleware/    # HTTP middleware
-│   │   └── config/        # Configuration management
-│   └── shared/            # Shared utilities
-├── db/                    # Database-related files
-│   ├── migrations/        # SQL migration files
-│   └── queries/           # SQLC query files
-├── docs/                  # Documentation
-│   └── ADDING_NEW_DOMAIN.md
-├── configs/               # Configuration files
-├── scripts/               # Utility scripts
-├── compose.yml            # Docker Compose configuration
-├── Dockerfile             # Container configuration
-├── Makefile              # Development commands
-└── go.mod                # Go module definition
+│   ├── server/            # Main HTTP server
+│   └── migrate/           # Database migration tool
+├── internal/              # Private application code
+│   ├── domains/          # Business domains
+│   │   ├── user/         # User/auth domain
+│   │   └── [domain]/     # Additional domains
+│   ├── middleware/       # HTTP middleware
+│   └── config/          # Configuration management
+├── pkg/                  # Shared library code
+│   ├── database/        # Database utilities
+│   ├── cache/           # Cache utilities
+│   └── response/        # Response formatting
+├── db/                  # Database-related files
+│   ├── migrations/      # SQL migration files
+│   ├── queries/         # SQLC query files
+│   └── seeds/           # Database seeds
+├── docs/                # Generated documentation
+├── configs/             # Configuration files
+└── scripts/             # Utility scripts
 ```
 
-### **Component Relationships**
+## **Domain Architecture**
 
-#### **Domain Layer (Business Logic)**
-- **Entity:** Core business objects with domain rules
-- **Repository:** Data access interfaces (abstract)
-- **Usecase:** Application business logic and workflows
-- **Handler:** HTTP request/response handling
+### **Domain Structure Pattern**
 
-#### **Infrastructure Layer (Technical Implementation)**
-- **Database:** PostgreSQL with sqlc for type-safe queries
-- **Cache:** Valkey (Redis-compatible) for caching
-- **Authentication:** JWT-based stateless authentication
-- **Middleware:** CORS, security, rate limiting, logging
-
-#### **Application Layer (Orchestration)**
-- **Dependency Injection:** Samber's do framework
-- **Configuration:** Viper with environment-aware settings
-- **Routing:** Fiber v2 HTTP router
-- **Documentation:** Swagger/OpenAPI auto-generation
-
-### **Data Flow Architecture**
+Each domain follows the same architectural pattern:
 
 ```
-HTTP Request → Middleware → Handler → Usecase → Repository → Database
-                    ↓
-                 Response ← Handler ← Usecase ← Repository ← Database
+domains/[domain]/
+├── entity/           # Domain entities and models
+├── repository/       # Repository interfaces
+├── usecase/          # Business logic use cases
+├── delivery/         # HTTP handlers/transport
+├── tests/            # Domain-specific tests
+└── mocks/            # Generated mocks
 ```
 
-### **Key Architectural Decisions**
+### **Domain Components**
 
-#### **Dependency Injection Strategy**
-- **Framework:** Samber's do (Go 1.18+ generics-based)
-- **Scope:** Application-level dependency container
-- **Benefits:** Type safety, testability, loose coupling
+1. **Entity Layer**: Pure business objects with no external dependencies
+2. **Repository Layer**: Data access interfaces for persistence
+3. **Usecase Layer**: Application business logic and workflows
+4. **Delivery Layer**: HTTP handlers and request/response processing
 
-#### **Database Architecture**
-- **Primary DB:** PostgreSQL for persistent data
-- **Migration Tool:** golang-migrate/migrate
-- **Query Generation:** sqlc for compile-time type safety
-- **Connection Pooling:** Built-in PostgreSQL driver pooling
+## **Data Flow Architecture**
 
-#### **Security Architecture**
-- **Authentication:** JWT tokens with configurable expiration
-- **Password Security:** bcrypt hashing with salt
-- **API Security:** Input validation, rate limiting, CORS
-- **Transport Security:** HTTPS enforcement in production
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Handler
+    participant Usecase
+    participant Repository
+    participant Database
+    
+    Client->>Handler: HTTP Request
+    Handler->>Handler: Validate Request
+    Handler->>Usecase: Call Business Logic
+    Usecase->>Repository: Data Operations
+    Repository->>Database: SQL Queries
+    Database-->>Repository: Data Results
+    Repository-->>Usecase: Domain Entities
+    Usecase->>Usecase: Apply Business Rules
+    Usecase-->>Handler: Use Case Results
+    Handler->>Handler: Format Response
+    Handler-->>Client: HTTP Response
+```
 
-### **Testing Architecture**
+## **Dependency Injection**
 
-#### **Testing Strategy**
-- **Unit Testing:** Mock-based isolation with go.uber.org/mock
-- **Integration Testing:** Database-backed testing
-- **API Testing:** HTTP endpoint testing
-- **Coverage Target:** 90%+ for business logic
+The project uses **Samber's do** for type-safe dependency injection:
 
-#### **Mock Generation**
-- **Tool:** go.uber.org/mock/mockgen
-- **Annotations:** //go:generate on all interfaces
-- **Scope:** Repository and usecase interfaces
+```go
+// Container setup
+container := do.New()
 
-### **Development Architecture**
+// Register dependencies
+do.Provide(container, NewConfig)
+do.Provide(container, NewDatabase)
+do.Provide(container, NewUserRepository)
+do.Provide(container, NewUserUsecase)
+do.Provide(container, NewUserHandler)
+```
 
-#### **Developer Experience**
-- **Hot Reloading:** Air for development feedback
-- **Code Quality:** golangci-lint with comprehensive rules
-- **Documentation:** Auto-generated Swagger docs
-- **Containerization:** Docker Compose for local development
+## **Database Architecture**
 
-#### **Build and Deployment**
-- **Build Tool:** Go standard toolchain
-- **Container:** Multi-stage Docker builds
-- **Configuration:** Environment-based config management
-- **Health Checks:** Built-in health check endpoints
+### **Database Components**
 
-## **Current Implementation Status: 75% Complete**
+1. **Migrations**: Version-controlled schema changes using `golang-migrate`
+2. **Queries**: Type-safe SQL queries using `sqlc`
+3. **Repositories**: Data access layer with interface abstraction
+4. **Connection Pooling**: Optimized database connection management
 
-### **✅ Fully Implemented (Phase 1 & 2)**
-- ✅ Memory Bank structure and documentation
-- ✅ Project brief and requirements definition
-- ✅ Go module with all dependencies (github.com/zercle/gofiber-skeleton)
-- ✅ Complete Clean Architecture directory structure
-- ✅ Configuration management with Viper
-- ✅ Database infrastructure (PostgreSQL, migrations, sqlc)
-- ✅ Middleware stack (CORS, security, logging, rate limiting, recovery)
-- ✅ Response and validation utilities
-- ✅ User/Auth domain (complete reference implementation)
-  - ✅ Entity layer with domain logic
-  - ✅ Repository layer with PostgreSQL + sqlc
-  - ✅ Usecase layer with JWT + bcrypt
-  - ✅ Handler layer with Swagger annotations
-  - ✅ JWT authentication middleware
-  - ✅ Comprehensive test suite (100% coverage)
-- ✅ Main application with dependency injection
-- ✅ Development tooling (Makefile, Docker Compose, Air, golangci-lint)
-- ✅ Production Dockerfile with multi-stage builds
-- ✅ Health check endpoints (health, ready, live)
+### **Database Flow**
 
-### **⚠️ Partially Complete**
-- ⚠️ API Documentation (Swagger annotations added, need generation)
-- ⚠️ Testing framework (unit tests complete, integration tests pending)
+```mermaid
+graph LR
+    A[SQL Files] --> B[sqlc Generator]
+    B --> C[Go Query Code]
+    C --> D[Repository Implementation]
+    D --> E[Use Case Layer]
+    E --> F[Handler Layer]
+```
 
-### **❌ Remaining Components**
-- ❌ TEMPLATE_SETUP.md guide
-- ❌ ADDING_NEW_DOMAIN.md guide
-- ❌ Generated Swagger documentation
-- ❌ Mock generation with mockgen
-- ❌ Integration tests
+## **Security Architecture**
 
-## **Implementation Achievements**
+### **Authentication & Authorization**
 
-### **Phase 1: Foundation Infrastructure ✅**
-All infrastructure components built and tested:
-- Configuration, database, middleware, utilities, tooling
+1. **JWT Authentication**: Stateless token-based authentication
+2. **Password Hashing**: bcrypt for secure password storage
+3. **Middleware Protection**: Route-level authentication checks
+4. **Input Validation**: Request validation and sanitization
 
-### **Phase 2: Reference Domain ✅**
-Complete User/Auth domain demonstrating:
-- Clean Architecture patterns
-- JWT authentication with bcrypt
-- Type-safe SQL with sqlc
-- 100% test coverage (21/21 tests passing)
-- RESTful API endpoints with rate limiting
+### **Security Middleware Stack**
 
-### **Phase 3: Documentation & Testing (In Progress)**
-Next steps:
-1. Generate Swagger documentation
-2. Create setup and domain guides
-3. Implement integration tests
+```mermaid
+graph TB
+    A[CORS] --> B[Rate Limiting]
+    B --> C[Request ID]
+    C --> D[Logging]
+    D --> E[Authentication]
+    E --> F[Authorization]
+    F --> G[Business Logic]
+```
 
-## **Technical Constraints and Considerations**
+## **Testing Architecture**
 
-### **Performance Requirements**
-- **Framework:** Fiber v2 for high-performance HTTP handling
-- **Database:** PostgreSQL for ACID compliance and reliability
-- **Caching:** Valkey for session management and query caching
-- **Connection Pooling:** Optimized database connection management
+### **Testing Strategy**
 
-### **Scalability Considerations**
-- **Horizontal Scaling:** Stateless design with JWT authentication
-- **Database Scaling:** Connection pooling and query optimization
-- **Caching Strategy:** Multi-level caching for performance
-- **Monitoring:** Built-in health checks and metrics endpoints
+1. **Unit Tests**: Isolated business logic testing with mocks
+2. **Integration Tests**: Database and external service testing
+3. **End-to-End Tests**: Full request/response cycle testing
+4. **Mock Generation**: Automated mock generation with `go.uber.org/mock`
 
-### **Security Requirements**
-- **Authentication:** Industry-standard JWT implementation
-- **Authorization:** Role-based access control (RBAC) ready
-- **Data Protection:** Input validation and SQL injection prevention
-- **Transport Security:** HTTPS enforcement and secure headers
+### **Test Structure**
+
+```
+tests/
+├── unit/              # Unit tests with mocks
+├── integration/       # Integration tests
+├── e2e/              # End-to-end tests
+└── fixtures/         # Test data fixtures
+```
+
+## **Configuration Architecture**
+
+### **Configuration Management**
+
+1. **Environment-Based**: Environment variables for production
+2. **File-Based**: `.env` files for local development
+3. **Type Safety**: Structured configuration with validation
+4. **Precedence Rules**: Clear configuration override order
+
+```mermaid
+graph TB
+    A[Environment Variables] --> D[Final Config]
+    B[.env File] --> D
+    C[Default Values] --> D
+```
+
+## **API Architecture**
+
+### **RESTful API Design**
+
+1. **Resource-Based URLs**: Clear resource naming conventions
+2. **HTTP Methods**: Proper use of HTTP verbs
+3. **Status Codes**: Consistent HTTP status code usage
+4. **Response Format**: Structured JSON responses with JSend format
+
+### **API Documentation**
+
+1. **Swagger Generation**: Automatic API documentation from code comments
+2. **Interactive Docs**: Browser-based API exploration
+3. **Schema Definitions**: Clear request/response schemas
+
+## **Deployment Architecture**
+
+### **Containerization**
+
+1. **Multi-stage Docker**: Optimized container builds
+2. **Docker Compose**: Local development environment
+3. **Health Checks**: Application health monitoring
+4. **Configuration Injection**: Environment-based configuration
+
+### **CI/CD Pipeline**
+
+```mermaid
+graph TB
+    A[Code Push] --> B[CI Pipeline]
+    B --> C[Tests]
+    C --> D[Linting]
+    D --> E[Security Scan]
+    E --> F[Build Image]
+    F --> G[Deploy Staging]
+    G --> H[Deploy Production]
+```
+
+## **Performance Architecture**
+
+### **Performance Optimizations**
+
+1. **Connection Pooling**: Database connection management
+2. **Caching Layer**: Redis/Valkey integration for caching
+3. **Efficient Queries**: Optimized SQL with proper indexing
+4. **Memory Management**: Proper resource cleanup and garbage collection
+
+### **Monitoring & Observability**
+
+1. **Structured Logging**: Consistent log formats
+2. **Request Tracing**: Request ID propagation
+3. **Error Tracking**: Comprehensive error handling
+4. **Metrics Collection**: Performance monitoring capabilities
+
+## **Scalability Architecture**
+
+### **Scaling Considerations**
+
+1. **Horizontal Scaling**: Stateless application design
+2. **Database Scaling**: Connection pooling and query optimization
+3. **Cache Strategy**: Distributed caching for performance
+4. **Load Balancing**: Ready for load balancer deployment
+
+### **Domain Scalability**
+
+1. **Domain Isolation**: Independent domain development
+2. **Microservice Ready**: Easy extraction to microservices
+3. **Shared Infrastructure**: Common utilities and patterns
+4. **Standardized Patterns**: Consistent development approach

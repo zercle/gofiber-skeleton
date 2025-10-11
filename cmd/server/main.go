@@ -1,36 +1,45 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/swagger"
 	"github.com/zercle/gofiber-skeleton/internal/config"
-	"github.com/zercle/gofiber-skeleton/internal/database"
-	"github.com/zercle/gofiber-skeleton/internal/domains/user/handler"
-	"github.com/zercle/gofiber-skeleton/internal/domains/user/repository"
-	"github.com/zercle/gofiber-skeleton/internal/domains/user/usecase"
+	userDelivery "github.com/zercle/gofiber-skeleton/internal/domains/user/delivery"
+	userRepo "github.com/zercle/gofiber-skeleton/internal/domains/user/repository"
+	userUsecase "github.com/zercle/gofiber-skeleton/internal/domains/user/usecase"
 	"github.com/zercle/gofiber-skeleton/internal/middleware"
+	"github.com/zercle/gofiber-skeleton/pkg/auth"
+	"github.com/zercle/gofiber-skeleton/pkg/cache"
+	"github.com/zercle/gofiber-skeleton/pkg/database"
+	"github.com/zercle/gofiber-skeleton/pkg/response"
+	"github.com/zercle/gofiber-skeleton/pkg/validator"
+
+	_ "github.com/zercle/gofiber-skeleton/docs" // Import generated docs
 )
 
 // @title Go Fiber Skeleton API
 // @version 1.0
-// @description Production-ready Go Fiber template with Clean Architecture
+// @description Production-ready Go Fiber backend template with Clean Architecture
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+// @contact.url http://www.example.com/support
+// @contact.email support@example.com
 
-// @license.name MIT
-// @license.url https://opensource.org/licenses/MIT
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host localhost:3000
 // @BasePath /api/v1
-// @schemes http https
 
 // @securityDefinitions.apikey BearerAuth
 // @in header
@@ -45,137 +54,161 @@ func main() {
 	}
 
 	// Initialize database
-	db, err := database.NewPostgresDB(&cfg.Database)
+	db, err := database.NewPostgres(cfg)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	// Run migrations
-	if err := database.RunMigrations(db.DB, "db/migrations"); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
+	log.Println("✓ Database connected successfully")
+
+	// Initialize cache
+	cacheClient, err := cache.NewValkey(cfg)
+	if err != nil {
+		log.Printf("Warning: Failed to connect to cache: %v", err)
+		log.Println("Continuing without cache...")
+	} else {
+		defer cacheClient.Close()
+		log.Println("✓ Cache connected successfully")
 	}
+
+	// Initialize utilities
+	jwtManager := auth.NewJWTManager(cfg)
+	validatorInstance := validator.New()
+	logger := middleware.NewCustomLogger(cfg)
+
+	// Initialize repositories
+	userRepository := userRepo.NewPostgresUserRepository(db.Pool)
+
+	// Initialize use cases
+	userUsecaseInstance := userUsecase.NewUserUsecase(
+		userRepository,
+		jwtManager,
+		validatorInstance,
+		cfg,
+	)
+
+	// Initialize handlers
+	userHandler := userDelivery.NewUserHandler(userUsecaseInstance)
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
-		AppName:      cfg.App.Name,
-		ServerHeader: "Fiber",
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
-		IdleTimeout:  cfg.Server.IdleTimeout,
-		ErrorHandler: customErrorHandler,
+		AppName:               "Go Fiber Skeleton",
+		ServerHeader:          "Go Fiber Skeleton",
+		ReadTimeout:           cfg.Server.ReadTimeout,
+		WriteTimeout:          cfg.Server.WriteTimeout,
+		ErrorHandler:          errorHandler,
+		DisableStartupMessage: false,
 	})
 
 	// Setup middleware
-	app.Use(middleware.Recovery())
-	app.Use(middleware.RequestID())
-	app.Use(middleware.CORS())
+	app.Use(middleware.Recover())
 	app.Use(middleware.Security())
-	if cfg.App.IsDevelopment() {
-		app.Use(middleware.DetailedLogger())
-	} else {
-		app.Use(middleware.ProductionLogger())
+	app.Use(middleware.RequestID())
+	app.Use(middleware.Logger(cfg))
+	app.Use(middleware.CORS(cfg))
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
+
+	// Apply rate limiting to API routes
+	apiGroup := app.Group("/api", middleware.RateLimit(cfg))
+
+	// Health check endpoint (no rate limit)
+	app.Get("/health", func(c *fiber.Ctx) error {
+		health := fiber.Map{
+			"status":  "healthy",
+			"service": "go-fiber-skeleton",
+			"time":    time.Now().UTC(),
+		}
+
+		// Check database health
+		if err := db.Health(c.Context()); err != nil {
+			health["database"] = "unhealthy"
+			health["status"] = "degraded"
+		} else {
+			health["database"] = "healthy"
+		}
+
+		// Check cache health
+		if cacheClient != nil {
+			if err := cacheClient.Health(c.Context()); err != nil {
+				health["cache"] = "unhealthy"
+			} else {
+				health["cache"] = "healthy"
+			}
+		}
+
+		return c.JSON(health)
+	})
+
+	// Swagger documentation
+	if cfg.Swagger.Enabled {
+		app.Get("/swagger/*", swagger.HandlerDefault)
+		log.Println("✓ Swagger documentation available at /swagger/")
 	}
 
-	// Health check endpoints
-	app.Get("/health", healthCheck(db))
-	app.Get("/health/ready", readinessCheck(db))
-	app.Get("/health/live", livenessCheck())
+	// API v1 routes
+	v1 := apiGroup.Group("/v1")
 
-	// Initialize repositories
-	userRepo := repository.NewPostgresUserRepository(db.DB)
+	// Register domain routes
+	userDelivery.RegisterRoutes(v1, userHandler, cfg)
 
-	// Initialize usecases
-	authUsecase := usecase.NewAuthUsecase(userRepo, cfg)
+	// 404 handler
+	app.Use(func(c *fiber.Ctx) error {
+		return response.NotFound(c)
+	})
 
-	// API routes
-	api := app.Group("/api/v1")
-	api.Use(middleware.APIRateLimit())
-
-	// Setup domain routes
-	handler.SetupUserRoutes(api, authUsecase)
+	// Start server
+	logger.Info("Starting server", map[string]interface{}{
+		"address": cfg.GetServerAddress(),
+		"env":     cfg.Server.Env,
+	})
 
 	// Graceful shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-
 	go func() {
-		<-quit
-		log.Println("Shutting down server...")
-		if err := app.Shutdown(); err != nil {
-			log.Printf("Error during shutdown: %v", err)
+		if err := app.Listen(cfg.GetServerAddress()); err != nil {
+			logger.Error("Server failed to start", map[string]interface{}{
+				"error": err.Error(),
+			})
 		}
 	}()
 
-	// Start server
-	addr := fmt.Sprintf(":%s", cfg.Server.Port)
-	log.Printf("Server starting on %s (environment: %s)", addr, cfg.App.Environment)
-	if err := app.Listen(addr); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	// Wait for interrupt signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Info("Shutting down server...")
+
+	// Shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := app.ShutdownWithContext(ctx); err != nil {
+		logger.Error("Server forced to shutdown", map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
+
+	logger.Info("Server exited")
 }
 
-// customErrorHandler handles Fiber errors
-func customErrorHandler(c *fiber.Ctx, err error) error {
+// errorHandler handles errors globally
+func errorHandler(c *fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
-	message := "Internal Server Error"
+	message := "Internal server error"
 
 	if e, ok := err.(*fiber.Error); ok {
 		code = e.Code
 		message = e.Message
 	}
 
-	return c.Status(code).JSON(fiber.Map{
-		"status":  "error",
-		"message": message,
-		"code":    code,
+	return c.Status(code).JSON(response.Response{
+		Status: "error",
+		Error: &response.Error{
+			Code:    fmt.Sprintf("ERROR_%d", code),
+			Message: message,
+		},
 	})
-}
-
-// healthCheck returns overall health status
-func healthCheck(db *database.PostgresDB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		// Check database
-		if err := db.HealthCheck(); err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-				"status":   "unhealthy",
-				"database": "down",
-				"error":    err.Error(),
-			})
-		}
-
-		stats := db.GetStats()
-		return c.JSON(fiber.Map{
-			"status": "healthy",
-			"database": fiber.Map{
-				"status":          "up",
-				"open_connections": stats.OpenConnections,
-				"in_use":          stats.InUse,
-				"idle":            stats.Idle,
-			},
-		})
-	}
-}
-
-// readinessCheck returns readiness status for Kubernetes
-func readinessCheck(db *database.PostgresDB) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		if err := db.HealthCheck(); err != nil {
-			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-				"ready": false,
-			})
-		}
-		return c.JSON(fiber.Map{
-			"ready": true,
-		})
-	}
-}
-
-// livenessCheck returns liveness status for Kubernetes
-func livenessCheck() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"alive": true,
-		})
-	}
 }
