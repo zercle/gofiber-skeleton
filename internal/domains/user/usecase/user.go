@@ -245,7 +245,7 @@ func (u *userUsecase) verifyPassword(hashedPassword, password string) bool {
 
 // JWT generation method
 
-func (u *userUsecase) generateJWT(user *entity.User) (string, error) {
+func (u *userUsecase) generateJWT(user *entity.DomainUser) (string, error) {
 	// Parse JWT expiry duration
 	expiry, err := time.ParseDuration(u.config.JWT.Expiry)
 	if err != nil {

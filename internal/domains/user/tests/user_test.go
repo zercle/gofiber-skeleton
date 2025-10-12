@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/zercle/gofiber-skeleton/internal/config"
 	"github.com/zercle/gofiber-skeleton/internal/domains/user/entity"
 	"github.com/zercle/gofiber-skeleton/internal/domains/user/mocks"
 	"github.com/zercle/gofiber-skeleton/internal/domains/user/usecase"
-	"github.com/zercle/gofiber-skeleton/internal/config"
 )
 
 func TestUserUsecase_Register(t *testing.T) {
@@ -31,11 +31,11 @@ func TestUserUsecase_Register(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		request  *entity.CreateUserRequest
-		setup    func()
-		wantErr  bool
-		errType  error
+		name    string
+		request *entity.CreateUserRequest
+		setup   func()
+		wantErr bool
+		errType error
 	}{
 		{
 			name: "successful registration",
@@ -70,9 +70,9 @@ func TestUserUsecase_Register(t *testing.T) {
 				Password: "password123",
 				FullName: "Test User",
 			},
-			setup:    func() {},
-			wantErr:  true,
-			errType:  entity.ErrInvalidEmail,
+			setup:   func() {},
+			wantErr: true,
+			errType: entity.ErrInvalidEmail,
 		},
 	}
 
@@ -121,7 +121,7 @@ func TestUserUsecase_Login(t *testing.T) {
 	}
 
 	// Create a test user
-	testUser := &entity.User{
+	testUser := &entity.DomainUser{
 		ID:           uuid.New(),
 		Email:        "test@example.com",
 		PasswordHash: "$argon2id$v=19$m=65536,t=1,p=4$c29tZXNhbHQ$testhash",
@@ -132,11 +132,11 @@ func TestUserUsecase_Login(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		request  *entity.LoginRequest
-		setup    func()
-		wantErr  bool
-		errType  error
+		name    string
+		request *entity.LoginRequest
+		setup   func()
+		wantErr bool
+		errType error
 	}{
 		{
 			name: "successful login",
@@ -167,9 +167,9 @@ func TestUserUsecase_Login(t *testing.T) {
 				Email:    "invalid-email",
 				Password: "password123",
 			},
-			setup:    func() {},
-			wantErr:  true,
-			errType:  entity.ErrInvalidEmail,
+			setup:   func() {},
+			wantErr: true,
+			errType: entity.ErrInvalidEmail,
 		},
 	}
 
@@ -218,7 +218,7 @@ func TestUserUsecase_GetProfile(t *testing.T) {
 	}
 
 	// Create a test user
-	testUser := &entity.User{
+	testUser := &entity.DomainUser{
 		ID:           uuid.New(),
 		Email:        "test@example.com",
 		PasswordHash: "$argon2id$v=19$m=65536,t=1,p=4$c29tZXNhbHQ$testhash",
@@ -229,11 +229,11 @@ func TestUserUsecase_GetProfile(t *testing.T) {
 	}
 
 	tests := []struct {
-		name     string
-		userID   uuid.UUID
-		setup    func()
-		wantErr  bool
-		errType  error
+		name    string
+		userID  uuid.UUID
+		setup   func()
+		wantErr bool
+		errType error
 	}{
 		{
 			name:   "successful profile retrieval",

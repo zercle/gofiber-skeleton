@@ -59,6 +59,28 @@ test-unit: ## Run unit tests only
 test-integration: ## Run integration tests
 	$(GOTEST) -v -tags=integration ./...
 
+test-unit-user: ## Run user domain unit tests
+	$(GOTEST) -v ./internal/domains/user/tests/...
+
+test-unit-post: ## Run post domain unit tests
+	$(GOTEST) -v ./internal/domains/post/tests/...
+
+test-unit-all: ## Run all unit tests for domains
+	$(GOTEST) -v ./internal/domains/*/tests/...
+
+test-integration-db: ## Run database integration tests
+	INTEGRATION_TESTS=1 $(GOTEST) -v -tags=integration ./tests/integration/ -run TestDatabaseIntegrationSuite
+
+test-integration-api: ## Run API integration tests
+	INTEGRATION_TESTS=1 $(GOTEST) -v -tags=integration ./tests/integration/ -run TestAPIIntegrationSuite
+
+test-integration-all: ## Run all integration tests
+	INTEGRATION_TESTS=1 $(GOTEST) -v -tags=integration ./tests/integration/...
+
+test-mocks: ## Test mock generation
+	$(MAKE) mocks
+	$(GOTEST) -v ./internal/domains/*/tests/ -run "Mock"
+
 # Quality targets
 lint: ## Run linter
 	@if command -v golangci-lint >/dev/null 2>&1; then \
@@ -117,13 +139,31 @@ migrate-create: ## Create new migration (usage: make migrate-create NAME=migrati
 	fi
 
 # SQLC targets
-sqlc: ## Generate SQLC code
+sqlc: ## Generate SQLC code for all domains
 	@if command -v sqlc >/dev/null 2>&1; then \
 		sqlc generate; \
 	else \
 		echo "sqlc not found. Installing..."; \
 		$(GOGET) -u github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
 		sqlc generate; \
+	fi
+
+sqlc-user: ## Generate SQLC code for user domain only
+	@if command -v sqlc >/dev/null 2>&1; then \
+		sqlc generate -f sqlc.yaml; \
+	else \
+		echo "sqlc not found. Installing..."; \
+		$(GOGET) -u github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
+		sqlc generate -f sqlc.yaml; \
+	fi
+
+sqlc-post: ## Generate SQLC code for post domain only
+	@if command -v sqlc >/dev/null 2>&1; then \
+		sqlc generate -f sqlc.yaml; \
+	else \
+		echo "sqlc not found. Installing..."; \
+		$(GOGET) -u github.com/sqlc-dev/sqlc/cmd/sqlc@latest; \
+		sqlc generate -f sqlc.yaml; \
 	fi
 
 sqlc-verify: ## Verify SQLC generated code is up to date
@@ -153,7 +193,7 @@ mocks: ## Generate mocks
 		done; \
 	else \
 		echo "mockgen not found. Installing..."; \
-		$(GOGET) -u github.com/golang/mock/mockgen@latest; \
+		$(GOGET) -u go.uber.org/mock@latest; \
 		find . -name "*.go" -type f -exec grep -l "//go:generate" {} \; | xargs -n 1 dirname | sort -u | while read dir; do \
 			cd "$$dir" && go generate ./...; cd -; \
 		done; \
@@ -172,6 +212,44 @@ docker-logs: ## Show Docker logs
 docker-build: ## Build Docker image
 	docker build -t $(APP_NAME) .
 
+# Testing Docker targets
+docker-test-up: ## Start test Docker containers
+	docker-compose -f docker-compose.test.yml up -d
+
+docker-test-down: ## Stop test Docker containers
+	docker-compose -f docker-compose.test.yml down
+
+docker-test-logs: ## Show test Docker logs
+	docker-compose -f docker-compose.test.yml logs -f
+
+docker-test-clean: ## Clean test Docker volumes
+	docker-compose -f docker-compose.test.yml down -v
+	docker volume rm gofiber-skeleton_postgres_test_data gofiber-skeleton_redis_test_data 2>/dev/null || true
+
+# Test database commands
+test-db-reset: ## Reset test database
+	$(MAKE) docker-test-down
+	$(MAKE) docker-test-up
+	sleep 5
+	docker-compose -f docker-compose.test.yml exec -T postgres-test psql -U postgres -d gofiber_skeleton_test -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+test-db-migrate: ## Run migrations on test database
+	$(MAKE) docker-test-up
+	sleep 5
+	docker-compose -f docker-compose.test.yml exec -T postgres-test psql -U postgres -d gofiber_skeleton_test -f /docker-entrypoint-initdb.d/001_create_schema.sql
+
+# Integration testing with Docker
+test-integration-docker: ## Run integration tests with Docker
+	$(MAKE) docker-test-up
+	sleep 10
+	INTEGRATION_TESTS=1 DB_HOST=localhost DB_PORT=5433 REDIS_HOST=localhost REDIS_PORT=6380 $(MAKE) test-integration-all
+	$(MAKE) docker-test-down
+
+test-integration-docker-keep: ## Run integration tests with Docker (keep containers)
+	$(MAKE) docker-test-up
+	sleep 10
+	INTEGRATION_TESTS=1 DB_HOST=localhost DB_PORT=5433 REDIS_HOST=localhost REDIS_PORT=6380 $(MAKE) test-integration-all
+
 # Setup targets
 setup: ## Setup development environment
 	@echo "Setting up development environment..."
@@ -181,7 +259,7 @@ setup: ## Setup development environment
 	$(GOGET) -u github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 	$(GOGET) -u github.com/swaggo/swag/cmd/swag@latest
 	$(GOGET) -u github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	$(GOGET) -u github.com/golang/mock/mockgen@latest
+	$(GOGET) -u go.uber.org/mock@latest
 	cp .env.example .env
 	@echo "Development environment setup complete!"
 	@echo "Please update the .env file with your configuration."
@@ -223,8 +301,22 @@ quick-start: ## Quick start development (setup + docker-up + migrate-up)
 	make mocks
 	@echo "Quick start complete! Run 'make dev' to start the development server."
 
+# Quality assurance
+qa: fmt vet lint test-coverage ## Run complete quality assurance pipeline
+
 # CI pipeline
 ci: lint test-coverage ## Run CI pipeline
+
+# Development workflow
+dev-test: fmt vet test-unit-all ## Quick development test cycle
+
+dev-test-full: fmt vet test-unit-all mocks ## Full development test cycle with mocks
+
+# Test reporting
+test-report: ## Generate test coverage report
+	$(GOTEST) -v -race -coverprofile=coverage.out ./...
+	$(GOCMD) tool cover -func=coverage.out > coverage.txt
+	@echo "Coverage report generated: coverage.txt"
 
 # Production build
 release: clean fmt lint test-coverage build-all ## Build for production

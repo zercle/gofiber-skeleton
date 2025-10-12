@@ -1,20 +1,23 @@
 package entity
 
 import (
+	"errors"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/zercle/gofiber-skeleton/pkg/uuid"
+	uuidv7 "github.com/google/uuid"
 )
 
-// User represents a user entity in the domain
-type User struct {
-	ID           uuid.UUID  `json:"id" db:"id"`
-	Email        string     `json:"email" db:"email"`
-	PasswordHash string     `json:"-" db:"password_hash"` // Hidden in JSON
-	FullName     string     `json:"full_name" db:"full_name"`
-	IsActive     bool       `json:"is_active" db:"is_active"`
-	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at" db:"updated_at"`
+// DomainUser represents a user entity in the domain
+type DomainUser struct {
+	ID           uuidv7.UUID `json:"id" db:"id"`
+	Email        string      `json:"email" db:"email"`
+	PasswordHash string      `json:"-" db:"password_hash"` // Hidden in JSON
+	FullName     string      `json:"full_name" db:"full_name"`
+	IsActive     bool        `json:"is_active" db:"is_active"`
+	CreatedAt    time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 // CreateUserRequest represents the request to create a new user
@@ -32,7 +35,7 @@ type LoginRequest struct {
 
 // LoginResponse represents the login response
 type LoginResponse struct {
-	Token string       `json:"token"`
+	Token string        `json:"token"`
 	User  *UserResponse `json:"user"`
 }
 
@@ -50,18 +53,18 @@ type ChangePasswordRequest struct {
 
 // UserResponse represents the user response (without sensitive data)
 type UserResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	FullName  string    `json:"full_name"`
-	IsActive  bool      `json:"is_active"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuidv7.UUID `json:"id"`
+	Email     string      `json:"email"`
+	FullName  string      `json:"full_name"`
+	IsActive  bool        `json:"is_active"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
 }
 
 // NewUser creates a new user entity
-func NewUser(email, passwordHash, fullName string) *User {
-	return &User{
-		ID:           uuid.New(),
+func NewUser(email, passwordHash, fullName string) *DomainUser {
+	return &DomainUser{
+		ID:           uuid.NewV7(),
 		Email:        email,
 		PasswordHash: passwordHash,
 		FullName:     fullName,
@@ -71,8 +74,36 @@ func NewUser(email, passwordHash, fullName string) *User {
 	}
 }
 
-// ToResponse converts User to UserResponse (hides sensitive data)
-func (u *User) ToResponse() *UserResponse {
+// Convert between User (sqlc generated) and DomainUser
+func UserToDomainUser(sqlcUser User) *DomainUser {
+	return &DomainUser{
+		ID:           uuidv7.UUID(sqlcUser.ID.Bytes),
+		Email:        sqlcUser.Email,
+		PasswordHash: sqlcUser.PasswordHash,
+		FullName:     sqlcUser.FullName,
+		IsActive:     sqlcUser.IsActive.Bool,
+		CreatedAt:    sqlcUser.CreatedAt.Time,
+		UpdatedAt:    sqlcUser.UpdatedAt.Time,
+	}
+}
+
+// DomainUserToUser converts DomainUser to User (sqlc type)
+func DomainUserToUser(u *DomainUser) User {
+	var userUUID [16]byte
+	copy(userUUID[:], u.ID[:])
+	return User{
+		ID:           pgtype.UUID{Bytes: userUUID, Valid: true},
+		Email:        u.Email,
+		PasswordHash: u.PasswordHash,
+		FullName:     u.FullName,
+		IsActive:     pgtype.Bool{Bool: u.IsActive, Valid: true},
+		CreatedAt:    pgtype.Timestamptz{Time: u.CreatedAt, Valid: true},
+		UpdatedAt:    pgtype.Timestamptz{Time: u.UpdatedAt, Valid: true},
+	}
+}
+
+// ToResponse converts DomainUser to UserResponse (hides sensitive data)
+func (u *DomainUser) ToResponse() *UserResponse {
 	return &UserResponse{
 		ID:        u.ID,
 		Email:     u.Email,
@@ -112,15 +143,15 @@ func (r *LoginRequest) ValidateLoginRequest() error {
 
 // Error definitions
 var (
-	ErrEmailRequired    = NewDomainError("EMAIL_REQUIRED", "Email is required")
-	ErrPasswordRequired = NewDomainError("PASSWORD_REQUIRED", "Password is required")
-	ErrFullNameRequired = NewDomainError("FULL_NAME_REQUIRED", "Full name is required")
-	ErrInvalidEmail     = NewDomainError("INVALID_EMAIL", "Invalid email format")
-	ErrUserNotFound     = NewDomainError("USER_NOT_FOUND", "User not found")
-	ErrUserInactive     = NewDomainError("USER_INACTIVE", "User account is inactive")
-	ErrInvalidPassword  = NewDomainError("INVALID_PASSWORD", "Invalid password")
-	ErrEmailExists      = NewDomainError("EMAIL_EXISTS", "Email already exists")
-	ErrWeakPassword     = NewDomainError("WEAK_PASSWORD", "Password is too weak")
+	ErrEmailRequired    = errors.New("email is required")
+	ErrPasswordRequired = errors.New("password is required")
+	ErrFullNameRequired = errors.New("full name is required")
+	ErrInvalidEmail     = errors.New("invalid email format")
+	ErrUserNotFound     = errors.New("user not found")
+	ErrUserInactive     = errors.New("user account is inactive")
+	ErrInvalidPassword  = errors.New("invalid password")
+	ErrEmailExists      = errors.New("email already exists")
+	ErrWeakPassword     = errors.New("password is too weak")
 )
 
 // DomainError represents a domain-specific error

@@ -30,7 +30,7 @@ func Recovery() fiber.Handler {
 				)
 				fmt.Println(errorMessage)
 
-				c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
+				_ = c.Status(fiber.StatusInternalServerError).JSON(ErrorResponse{
 					Error:   "Internal Server Error",
 					Message: "An unexpected error occurred",
 					Code:    "INTERNAL_ERROR",

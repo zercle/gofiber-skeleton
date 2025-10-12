@@ -7,9 +7,15 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
+	fiberSwagger "github.com/swaggo/fiber-swagger"
+	"github.com/samber/do/v2"
 
 	"github.com/zercle/gofiber-skeleton/internal/config"
+	"github.com/zercle/gofiber-skeleton/internal/container"
+	postdelivery "github.com/zercle/gofiber-skeleton/internal/domains/post/delivery"
+	userdelivery "github.com/zercle/gofiber-skeleton/internal/domains/user/delivery"
 	"github.com/zercle/gofiber-skeleton/internal/middleware"
+	"github.com/zercle/gofiber-skeleton/pkg/utils"
 )
 
 // @title Go Fiber Skeleton API
@@ -39,7 +45,8 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Note: Container setup would go here in full implementation
+	// Setup dependency injection container
+	diContainer := container.NewContainer(cfg)
 
 	// Create Fiber app
 	app := fiber.New()
@@ -47,8 +54,8 @@ func main() {
 	// Setup middleware
 	setupMiddleware(app, cfg)
 
-	// Setup routes
-	setupRoutes(app, cfg)
+	// Setup routes with DI
+	setupRoutes(app, cfg, diContainer)
 
 	// Start server
 	go func() {
@@ -84,7 +91,7 @@ func setupMiddleware(app *fiber.App, cfg *config.Config) {
 	app.Use(middleware.ErrorHandler())
 }
 
-func setupRoutes(app *fiber.App, cfg *config.Config) {
+func setupRoutes(app *fiber.App, cfg *config.Config, diContainer do.Injector) {
 	// Health check endpoint
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -93,12 +100,31 @@ func setupRoutes(app *fiber.App, cfg *config.Config) {
 		})
 	})
 
-	// Note: For now, we'll create handlers without DI
-	// In a real implementation, you would set up proper DI
-	// userHandler := delivery.NewUserHandler(/* dependencies */)
+	// Swagger documentation
+	app.Get("/swagger/*", fiberSwagger.WrapHandler)
 
-	// API routes
+	// Get handlers from DI container
+	userHandler := do.MustInvoke[*userdelivery.UserHandler](diContainer)
+	postHandler := do.MustInvoke[*postdelivery.PostHandler](diContainer)
+
+	// Register user routes
 	api := app.Group("/api/v1")
+
+	// Auth routes
+	auth := api.Group("/auth")
+	auth.Post("/register", userHandler.Register)
+	auth.Post("/login", userHandler.Login)
+
+	// User routes (protected)
+	users := api.Group("/users")
+	users.Get("/profile", utils.AuthMiddleware(), userHandler.GetProfile)
+	users.Put("/profile", utils.AuthMiddleware(), userHandler.UpdateProfile)
+	users.Post("/change-password", utils.AuthMiddleware(), userHandler.ChangePassword)
+	users.Get("/", utils.AuthMiddleware(), userHandler.ListUsers) // Admin only
+	users.Delete("/:id", utils.AuthMiddleware(), userHandler.DeactivateUser) // Admin only
+
+	// Register post routes
+	postHandler.RegisterRoutes(app)
 
 	// Simple test endpoint for now
 	api.Get("/test", func(c *fiber.Ctx) error {

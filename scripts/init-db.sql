@@ -1,10 +1,9 @@
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- PostgreSQL 18 has native UUIDv7 support, no extensions needed
+-- This script is kept for backwards compatibility but UUIDv7 is used directly in migrations
 
--- Create custom function for UUID generation (PostgreSQL 18+ uses gen_random_uuid)
--- This is for backwards compatibility with older versions
+-- Create custom function for UUID generation (PostgreSQL 18+ uses uuidv7())
 CREATE OR REPLACE FUNCTION generate_uuid() RETURNS UUID AS $$
 BEGIN
-    RETURN gen_random_uuid();
+    RETURN uuidv7();
 END;
 $$ LANGUAGE plpgsql;

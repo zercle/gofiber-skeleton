@@ -8,12 +8,12 @@ import (
 
 // Response represents a standardized API response
 type Response struct {
-	Success   bool        `json:"success"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data,omitempty"`
-	Error     *ErrorInfo  `json:"error,omitempty"`
-	Timestamp time.Time   `json:"timestamp"`
-	RequestID string      `json:"request_id,omitempty"`
+	Success   bool       `json:"success"`
+	Message   string     `json:"message"`
+	Data      any        `json:"data,omitempty"`
+	Error     *ErrorInfo `json:"error,omitempty"`
+	Timestamp time.Time  `json:"timestamp"`
+	RequestID string     `json:"request_id,omitempty"`
 }
 
 // ErrorInfo represents error information in responses
@@ -24,12 +24,12 @@ type ErrorInfo struct {
 
 // PaginatedResponse represents a paginated API response
 type PaginatedResponse struct {
-	Success   bool        `json:"success"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data,omitempty"`
-	Error     *ErrorInfo  `json:"error,omitempty"`
-	Timestamp time.Time   `json:"timestamp"`
-	RequestID string      `json:"request_id,omitempty"`
+	Success    bool            `json:"success"`
+	Message    string          `json:"message"`
+	Data       any             `json:"data,omitempty"`
+	Error      *ErrorInfo      `json:"error,omitempty"`
+	Timestamp  time.Time       `json:"timestamp"`
+	RequestID  string          `json:"request_id,omitempty"`
 	Pagination *PaginationInfo `json:"pagination,omitempty"`
 }
 
@@ -44,7 +44,7 @@ type PaginationInfo struct {
 }
 
 // Success creates a successful response
-func Success(c *fiber.Ctx, statusCode int, message string, data interface{}) error {
+func Success(c *fiber.Ctx, statusCode int, message string, data any) error {
 	response := Response{
 		Success:   true,
 		Message:   message,
@@ -73,7 +73,7 @@ func Error(c *fiber.Ctx, statusCode int, code, message string) error {
 }
 
 // ErrorWithData creates an error response with additional data
-func ErrorWithData(c *fiber.Ctx, statusCode int, code, message string, data interface{}) error {
+func ErrorWithData(c *fiber.Ctx, statusCode int, code, message string, data any) error {
 	response := Response{
 		Success: false,
 		Message: message,
@@ -90,7 +90,7 @@ func ErrorWithData(c *fiber.Ctx, statusCode int, code, message string, data inte
 }
 
 // Paginated creates a paginated response
-func Paginated(c *fiber.Ctx, statusCode int, message string, data interface{}, pagination *PaginationInfo) error {
+func Paginated(c *fiber.Ctx, statusCode int, message string, data any, pagination *PaginationInfo) error {
 	response := PaginatedResponse{
 		Success:    true,
 		Message:    message,
