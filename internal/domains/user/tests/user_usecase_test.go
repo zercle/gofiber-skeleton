@@ -32,10 +32,13 @@ func TestUserUsecase_Register_EmailExists(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	req := &entity.CreateUserRequest{
@@ -70,10 +73,13 @@ func TestUserUsecase_Login_Success(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Create test user with hashed password
 	user := &entity.DomainUser{
@@ -121,10 +127,13 @@ func TestUserUsecase_Login_UserNotFound(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	req := &entity.LoginRequest{
@@ -158,10 +167,13 @@ func TestUserUsecase_GetProfile_Success(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -203,10 +215,13 @@ func TestUserUsecase_GetProfile_UserNotFound(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -237,10 +252,13 @@ func TestUserUsecase_UpdateProfile_Success(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -287,10 +305,13 @@ func TestUserUsecase_UpdateProfile_EmailExists(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -334,10 +355,13 @@ func TestUserUsecase_ListUsers(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	users := []*entity.DomainUser{
@@ -386,10 +410,13 @@ func TestUserUsecase_DeactivateUser_Success(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -418,10 +445,13 @@ func TestUserUsecase_DeactivateUser_Error(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()

@@ -16,7 +16,6 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/domains/post/entity"
-	"github.com/zercle/gofiber-skeleton/internal/domains/post/mocks"
 	"github.com/zercle/gofiber-skeleton/internal/domains/post/repository"
 	"github.com/zercle/gofiber-skeleton/pkg/database"
 )

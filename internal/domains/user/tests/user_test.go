@@ -6,8 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/zercle/gofiber-skeleton/internal/config"
 	"github.com/zercle/gofiber-skeleton/internal/domains/user/entity"
@@ -17,7 +20,9 @@ import (
 
 func TestUserUsecase_Register(t *testing.T) {
 	// Setup
-	mockRepo := new(mocks.UserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockUserRepository(ctrl)
 	cfg := &config.Config{
 		JWT: config.JWTConfig{
 			Secret: "test-secret",
@@ -25,10 +30,13 @@ func TestUserUsecase_Register(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name    string
@@ -107,7 +115,9 @@ func TestUserUsecase_Register(t *testing.T) {
 
 func TestUserUsecase_Login(t *testing.T) {
 	// Setup
-	mockRepo := new(mocks.UserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockUserRepository(ctrl)
 	cfg := &config.Config{
 		JWT: config.JWTConfig{
 			Secret: "test-secret",
@@ -115,10 +125,13 @@ func TestUserUsecase_Login(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Create a test user
 	testUser := &entity.DomainUser{
@@ -204,7 +217,9 @@ func TestUserUsecase_Login(t *testing.T) {
 
 func TestUserUsecase_GetProfile(t *testing.T) {
 	// Setup
-	mockRepo := new(mocks.UserRepository)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mocks.NewMockUserRepository(ctrl)
 	cfg := &config.Config{
 		JWT: config.JWTConfig{
 			Secret: "test-secret",
@@ -212,10 +227,13 @@ func TestUserUsecase_GetProfile(t *testing.T) {
 		},
 	}
 
-	userUsecase := &userUsecase{
-		userRepo: mockRepo,
-		config:   cfg,
-	}
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+	do.ProvideValue(injector, cfg)
+
+	userUsecase, err := usecase.NewUserUsecase(injector)
+	require.NoError(t, err)
 
 	// Create a test user
 	testUser := &entity.DomainUser{

@@ -226,8 +226,6 @@ func TestUserRepository_Update_Success(t *testing.T) {
 	defer db.Close()
 
 	userID := uuid.New()
-	rows := sqlmock.NewRows([]string{"id", "email", "password_hash", "full_name", "is_active", "created_at", "updated_at"}).
-		AddRow(userID.String(), "updated@example.com", "hashed_password", "Updated User", true, time.Now(), time.Now())
 
 	// Mock database expectations
 	mock.ExpectExec(`UPDATE users`).

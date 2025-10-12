@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -21,9 +22,13 @@ func TestPostUsecase_CreatePost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{ // Assuming there's an implementation struct
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -54,9 +59,13 @@ func TestPostUsecase_CreatePost_MissingTitle(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -81,9 +90,13 @@ func TestPostUsecase_CreatePost_MissingContent(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -108,9 +121,13 @@ func TestPostUsecase_CreatePost_InvalidStatus(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -135,18 +152,23 @@ func TestPostUsecase_GetPost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
-	expectedPost := &entity.Post{
+	userID := uuid.New()
+	expectedPost := &entity.DomainPost{
 		ID:        postID,
 		Title:     "Test Post",
 		Content:   "This is a test post content",
 		Status:    entity.PostStatusPublished,
-		UserID:    uuid.New(),
+		UserID:    userID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -171,9 +193,13 @@ func TestPostUsecase_GetPost_NotFound(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
@@ -196,14 +222,18 @@ func TestPostUsecase_UpdatePost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
 	userID := uuid.New()
-	existingPost := &entity.Post{
+	existingPost := &entity.DomainPost{
 		ID:        postID,
 		Title:     "Original Title",
 		Content:   "Original content",
@@ -241,9 +271,13 @@ func TestPostUsecase_UpdatePost_NotOwner(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
@@ -271,9 +305,13 @@ func TestPostUsecase_DeletePost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
@@ -284,7 +322,7 @@ func TestPostUsecase_DeletePost_Success(t *testing.T) {
 	mockRepo.EXPECT().Delete(gomock.Any(), postID).Return(nil)
 
 	// Execute
-	err := uc.DeletePost(context.Background(), postID, userID)
+	err = uc.DeletePost(context.Background(), postID, userID)
 
 	// Assert
 	require.NoError(t, err)
@@ -296,9 +334,13 @@ func TestPostUsecase_DeletePost_NotOwner(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
@@ -308,7 +350,7 @@ func TestPostUsecase_DeletePost_NotOwner(t *testing.T) {
 	mockRepo.EXPECT().IsOwner(gomock.Any(), postID, userID).Return(false, nil)
 
 	// Execute
-	err := uc.DeletePost(context.Background(), postID, userID)
+	err = uc.DeletePost(context.Background(), postID, userID)
 
 	// Assert
 	require.Error(t, err)
@@ -321,14 +363,18 @@ func TestPostUsecase_GetUserPosts_WithStatus(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
 	status := entity.PostStatusPublished
-	expectedPosts := []*entity.Post{
+	expectedPosts := []*entity.DomainPost{
 		{
 			ID:        uuid.New(),
 			Title:     "Published Post 1",
@@ -368,13 +414,17 @@ func TestPostUsecase_GetUserPosts_AllPosts(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
-	expectedPosts := []*entity.Post{
+	expectedPosts := []*entity.DomainPost{
 		{
 			ID:        uuid.New(),
 			Title:     "Post 1",
@@ -404,9 +454,13 @@ func TestPostUsecase_GetUserPostStats_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	userID := uuid.New()
@@ -437,9 +491,13 @@ func TestPostUsecase_GetAllPosts_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	expectedPosts := []*entity.PostWithAuthor{
@@ -475,9 +533,13 @@ func TestPostUsecase_SearchPosts_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	searchQuery := "test"
@@ -513,9 +575,13 @@ func TestPostUsecase_SearchPosts_EmptyQuery(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Execute
 	result, err := uc.SearchPosts(context.Background(), "", 10, 0)
@@ -532,14 +598,18 @@ func TestPostUsecase_PublishPost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
 	userID := uuid.New()
-	existingPost := &entity.Post{
+	existingPost := &entity.DomainPost{
 		ID:        postID,
 		Title:     "Test Post",
 		Content:   "Test content",
@@ -555,7 +625,7 @@ func TestPostUsecase_PublishPost_Success(t *testing.T) {
 	mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Execute
-	err := uc.PublishPost(context.Background(), postID, userID)
+	err = uc.PublishPost(context.Background(), postID, userID)
 
 	// Assert
 	require.NoError(t, err)
@@ -567,14 +637,18 @@ func TestPostUsecase_ArchivePost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
 	userID := uuid.New()
-	existingPost := &entity.Post{
+	existingPost := &entity.DomainPost{
 		ID:        postID,
 		Title:     "Test Post",
 		Content:   "Test content",
@@ -590,7 +664,7 @@ func TestPostUsecase_ArchivePost_Success(t *testing.T) {
 	mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Execute
-	err := uc.ArchivePost(context.Background(), postID, userID)
+	err = uc.ArchivePost(context.Background(), postID, userID)
 
 	// Assert
 	require.NoError(t, err)
@@ -602,14 +676,18 @@ func TestPostUsecase_UnpublishPost_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPostRepository(ctrl)
-	uc := &usecase.PostUsecaseImpl{
-		PostRepo: mockRepo,
-	}
+
+	// Create a test usecase instance using dependency injection pattern
+	injector := do.New()
+	do.ProvideValue(injector, mockRepo)
+
+	uc, err := usecase.NewPostUsecase(injector)
+	require.NoError(t, err)
 
 	// Test data
 	postID := uuid.New()
 	userID := uuid.New()
-	existingPost := &entity.Post{
+	existingPost := &entity.DomainPost{
 		ID:        postID,
 		Title:     "Test Post",
 		Content:   "Test content",
@@ -625,7 +703,7 @@ func TestPostUsecase_UnpublishPost_Success(t *testing.T) {
 	mockRepo.EXPECT().Update(gomock.Any(), gomock.Any()).Return(nil)
 
 	// Execute
-	err := uc.UnpublishPost(context.Background(), postID, userID)
+	err = uc.UnpublishPost(context.Background(), postID, userID)
 
 	// Assert
 	require.NoError(t, err)
