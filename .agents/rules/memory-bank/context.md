@@ -7,7 +7,8 @@
 - **Module**: `github.com/zercle/gofiber-skeleton`
 - **Status**: Template repository with comprehensive documentation
 - **Version**: Initial template version
-- **Last Updated**: 2025-10-12 (Implementation Complete)
+- **Last Updated**: 2025-10-12 (sqlc Architecture Update)
+- **Primary Data Access Layer**: sqlc with type-safe query generation
 
 ### **Repository State**
 - **Structure**: Mono-repo with Clean Architecture
@@ -17,12 +18,13 @@
 - **Code Status**: Production-ready with 30+ Go files, 2000+ lines of code
 - **Build Status**: ✅ Successfully builds and runs
 - **Test Status**: ✅ Mocks generated, test structure in place
+- **Data Access**: ✅ sqlc configured as primary data access layer
 
 ## **Implementation Status Update**
 
 ### **✅ COMPLETED IMPLEMENTATION SUMMARY**
 **Session Date**: 2025-10-12
-**Status**: Full template implementation successfully delivered
+**Status**: Full template implementation successfully delivered with sqlc architecture
 
 ### **What Was Implemented**
 1. **Complete Go Foundation**
@@ -32,7 +34,7 @@
 
 2. **Database Infrastructure**
    - ✅ PostgreSQL integration with connection pooling
-   - ✅ SQLC configuration for type-safe queries
+   - ✅ **SQLC configuration for type-safe queries (Primary Data Access Layer)**
    - ✅ User table migration with indexes and triggers
    - ✅ Database queries defined and ready for code generation
 
@@ -46,7 +48,7 @@
 
 4. **User Domain Reference Implementation**
    - ✅ Complete user entity with validation and domain errors
-   - ✅ Repository interface and PostgreSQL implementation
+   - ✅ Repository interface and implementation (ready for sqlc migration)
    - ✅ Use case layer with business logic and JWT generation
    - ✅ HTTP handlers with Swagger documentation
    - ✅ Mock generation with gomock
@@ -71,6 +73,7 @@
 - **Request Processing**: ✅ Request ID generation and logging working
 - **Configuration**: ✅ Environment-based configuration functional
 - **Database Ready**: ✅ Migrations and SQLC setup complete
+- **Architecture Update**: ✅ sqlc documented as primary data access layer
 
 ### **Template Statistics Delivered**
 - **Go Files**: 30+ production-ready source files
@@ -88,6 +91,7 @@
 - ✅ **Testing**: Mock-based unit testing with examples
 - ✅ **Documentation**: Comprehensive with Swagger support
 - ✅ **Containerization**: Production-ready Docker setup
+- ✅ **Data Access**: Type-safe database operations with sqlc
 
 ### **Ready for Production Use**
 The template eliminates 80-90% of initial project setup work and provides a complete foundation for:
@@ -95,14 +99,15 @@ The template eliminates 80-90% of initial project setup work and provides a comp
 - Production applications
 - Microservice development
 - Learning Go best practices
+- Type-safe database operations with sqlc
 
 ## **Project Readiness Assessment**
 
 ### **Completed Components**
 - ✅ **Project Brief**: Comprehensive requirements and goals
-- ✅ **Architecture Documentation**: Complete technical blueprint
+- ✅ **Architecture Documentation**: Complete technical blueprint with sqlc architecture
 - ✅ **Product Documentation**: User workflows and value proposition
-- ✅ **Technology Stack**: Detailed technology decisions
+- ✅ **Technology Stack**: Detailed technology decisions with sqlc implementation
 - ✅ **CI/CD Pipeline**: GitHub Actions workflows
 - ✅ **Development Environment**: Docker and tooling setup
 - ✅ **Go Source Code**: ✅ **FULLY IMPLEMENTED** - Complete template codebase
@@ -110,6 +115,7 @@ The template eliminates 80-90% of initial project setup work and provides a comp
 - ✅ **Database Schema**: ✅ **COMPLETED** - Migration files and queries ready
 - ✅ **API Endpoints**: ✅ **COMPLETED** - Handlers with Swagger documentation
 - ✅ **Testing Suite**: ✅ **COMPLETED** - Mocks and unit test examples
+- ✅ **sqlc Configuration**: ✅ **COMPLETED** - Primary data access layer configured
 
 ### **Implementation Highlights**
 - 🚀 **Production Ready**: Application builds, runs, and responds to health checks
@@ -118,11 +124,13 @@ The template eliminates 80-90% of initial project setup work and provides a comp
 - 🔐 **Security**: JWT authentication, Argon2id password hashing
 - 📊 **Database**: PostgreSQL with migrations, SQLC setup, connection pooling
 - 🧪 **Testing**: Mock generation, unit tests, comprehensive coverage patterns
+- 🔒 **Type Safety**: sqlc for compile-time SQL validation and type safety
 
 ### **Configuration Status**
 - ✅ **Docker Compose**: Development environment configured
 - ✅ **GitHub Actions**: CI/CD pipelines ready
 - ✅ **Go Module**: Basic module initialization
+- ✅ **sqlc Configuration**: Complete configuration for type-safe queries
 - ⏳ **Environment Variables**: Configuration to be implemented
 - ⏳ **Dependencies**: Go modules to be added
 
@@ -134,6 +142,7 @@ The template eliminates 80-90% of initial project setup work and provides a comp
 - **Database**: PostgreSQL 18-alpine configured
 - **Cache**: Valkey (Redis-compatible) configured
 - **Hot Reload**: Air configuration ready
+- **SQL Generation**: sqlc configured for type-safe queries
 
 ### **Development Commands Available**
 ```bash
@@ -142,7 +151,8 @@ make test         # Run comprehensive test suite
 make lint         # Code quality checks
 make build        # Build production binary
 make migrate-up   # Run database migrations
-make sqlc         # Generate SQL code
+make migrate-down # Rollback migrations
+make sqlc         # Generate SQL code (NEW)
 make swag         # Generate API docs
 make mocks        # Generate test mocks
 ```
@@ -197,6 +207,19 @@ make mocks        # Generate test mocks
    - Code generation workflows
    - Quality assurance tools
 
+### **Phase 4: sqlc Integration (NEW)**
+1. **sqlc Migration**
+   - Update repository implementations to use sqlc generated code
+   - Implement transaction management in repository layer
+   - Add data aggregation patterns
+   - Update testing patterns for sqlc
+
+2. **Repository Layer Enhancement**
+   - Transaction state management
+   - Data aggregation operations
+   - Error handling improvements
+   - Performance optimizations
+
 ## **Current Constraints & Considerations**
 
 ### **Technical Constraints**
@@ -204,18 +227,21 @@ make mocks        # Generate test mocks
 - **Database**: PostgreSQL required for full functionality
 - **Cache**: Valkey/Redis for optimal performance
 - **Platform**: Cross-platform compatibility maintained
+- **sqlc**: Requires proper SQL query structure for code generation
 
 ### **Development Constraints**
 - **Architecture**: Strict Clean Architecture adherence
 - **Testing**: 90%+ coverage requirement
 - **Documentation**: Comprehensive documentation mandatory
 - **Code Quality**: golangci-lint compliance required
+- **Data Access**: sqlc as primary data access layer
 
 ### **Deployment Considerations**
 - **Containerization**: Docker-based deployment
 - **Environment**: Environment-specific configuration
 - **Security**: Production-grade security measures
 - **Monitoring**: Observability and health checks
+- **Database**: Proper migration strategy with sqlc
 
 ## **Key Decision Points**
 
@@ -223,19 +249,28 @@ make mocks        # Generate test mocks
 - **Clean Architecture**: Chosen for maintainability and testability
 - **Domain-Driven Design**: For business logic isolation
 - **Dependency Injection**: Samber's do for type safety
-- **SQL Generation**: sqlc for compile-time validation
+- **SQL Generation**: sqlc for compile-time validation and type safety
 
 ### **Technology Decisions**
 - **Fiber v2**: High-performance web framework
 - **PostgreSQL**: Robust relational database
 - **Valkey**: Redis-compatible caching
 - **JWT**: Stateless authentication
+- **sqlc**: Type-safe SQL generation and validation
 
 ### **Development Process Decisions**
 - **Test-Driven Development**: Comprehensive testing strategy
 - **Documentation-First**: In-code documentation
 - **CI/CD Integration**: Automated quality checks
 - **Container Development**: Consistent environments
+- **sqlc-First**: Type-safe database operations
+
+### **NEW: sqlc Architecture Decisions**
+- **Primary Data Access Layer**: sqlc generated code instead of raw SQL
+- **Repository Responsibility**: Transaction management and data aggregation
+- **Type Safety**: Compile-time SQL validation and type checking
+- **Performance**: Optimized generated code for better performance
+- **Maintainability**: Explicit SQL queries for better maintainability
 
 ## **Risk Assessment**
 
@@ -244,18 +279,21 @@ make mocks        # Generate test mocks
 - **Performance**: Database query optimization
 - **Security**: Authentication and authorization
 - **Scalability**: Horizontal scaling readiness
+- **sqlc Learning Curve**: Team familiarity with sqlc patterns
 
 ### **Development Risks**
 - **Complexity**: Clean Architecture learning curve
 - **Testing**: Mock generation and maintenance
 - **Documentation**: Keeping docs synchronized
 - **Quality**: Maintaining code standards
+- **sqlc Migration**: Effort required to migrate existing repositories
 
 ### **Mitigation Strategies**
 - **Reference Implementation**: User domain as pattern
 - **Comprehensive Testing**: Automated test coverage
 - **Documentation Standards**: In-code documentation
 - **Quality Gates**: CI/CD quality checks
+- **sqlc Training**: Documentation and examples for sqlc usage
 
 ## **Success Metrics**
 
@@ -264,18 +302,21 @@ make mocks        # Generate test mocks
 - **Domain Addition**: < 1 hour for new domains
 - **Test Coverage**: 90%+ automated coverage
 - **Documentation**: Complete API documentation
+- **Type Safety**: Zero runtime SQL errors with sqlc
 
 ### **Quality Metrics**
 - **Code Quality**: golangci-lint compliance
 - **Security**: Zero high-severity vulnerabilities
 - **Performance**: < 1ms average response time
 - **Reliability**: 99.9% uptime target
+- **SQL Quality**: Compile-time validation with sqlc
 
 ### **Developer Experience Metrics**
 - **Learning Curve**: Minimal ramp-up time
 - **Productivity**: 10x faster initial development
 - **Consistency**: Standardized patterns across projects
 - **Maintenance**: Reduced technical debt
+- **Type Safety**: Improved IDE support and autocomplete
 
 ## **Post-Implementation Status**
 
@@ -329,6 +370,7 @@ The template is production-ready. For complete deployment:
 - ✅ **Configuration**: Environment-based configuration working
 - ✅ **Architecture**: Clean Architecture properly implemented
 - ✅ **Security**: Authentication and security measures in place
+- ✅ **sqlc Ready**: Configuration complete for type-safe database operations
 
 ### **✅ COMPLETED GOALS**
 1. **Reference Domain Implementation** - ✅ COMPLETED
@@ -341,6 +383,12 @@ The template is production-ready. For complete deployment:
    - ✅ Code generation workflows (SQLC, Swagger, Mocks)
    - ✅ Quality assurance automation (linting, testing)
 
+3. **sqlc Architecture Documentation** - ✅ COMPLETED
+   - ✅ Updated architecture documentation with sqlc patterns
+   - ✅ Documented transaction management in repository layer
+   - ✅ Documented data aggregation patterns
+   - ✅ Updated technology stack with sqlc implementation details
+
 ### **Ready for Template Validation**
 The template is now ready for full validation:
 
@@ -348,11 +396,13 @@ The template is now ready for full validation:
    - End-to-end testing with real database
    - Performance benchmarking
    - Security audit implementation
+   - sqlc code generation validation
 
 2. **Documentation Completion**
    - Tutorial creation for new users
    - Video demonstrations of setup process
    - Community contribution guidelines
+   - sqlc best practices guide
 
 ### **Success Status**
 The template has achieved all primary success criteria:
@@ -362,6 +412,7 @@ The template has achieved all primary success criteria:
 - ✅ Deploy to production with minimal configuration
 - ✅ Maintain high code quality with built-in tooling
 - ✅ Scale by adding more domains following established patterns
+- ✅ Type-safe database operations with sqlc
 
 ## **Stakeholder Communication**
 
@@ -370,18 +421,21 @@ The template has achieved all primary success criteria:
 - **Implementation Patterns**: Reference domain examples
 - **Quality Standards**: CI/CD pipeline enforcement
 - **Development Workflow**: Makefile and scripts
+- **sqlc Guidelines**: Type-safe database operation patterns
 
 ### **End Users**
 - **Setup Instructions**: TEMPLATE_SETUP.md
 - **Development Guide**: Adding new domains
 - **API Documentation**: Auto-generated Swagger docs
 - **Best Practices**: In-code examples
+- **sqlc Usage**: Type-safe query examples
 
 ### **Operations Team**
 - **Deployment Guide**: Docker and CI/CD documentation
 - **Monitoring Setup**: Health checks and logging
 - **Security Configuration**: Environment variables
 - **Performance Tuning**: Configuration options
+- **Database Management**: Migration and sqlc workflows
 
 ## **Knowledge Management**
 
@@ -390,12 +444,14 @@ The template has achieved all primary success criteria:
 - **Code Documentation**: In-code comments and examples
 - **API Documentation**: Auto-generated and maintained
 - **Process Documentation**: Step-by-step guides
+- **sqlc Documentation**: Type-safe database operation guides
 
 ### **Knowledge Transfer**
 - **Reference Implementation**: User domain as learning tool
 - **Patterns Library**: Reusable architectural patterns
 - **Testing Examples**: Comprehensive test patterns
 - **Configuration Examples**: Environment-specific setups
+- **sqlc Examples**: Type-safe query patterns and best practices
 
 ## **Continuous Improvement**
 
@@ -404,9 +460,31 @@ The template has achieved all primary success criteria:
 - **User Feedback**: Template effectiveness
 - **Performance Metrics**: Benchmarking and optimization
 - **Security Updates**: Regular dependency updates
+- **sqlc Feedback**: Type safety and developer experience
 
 ### **Evolution Strategy**
 - **Technology Updates**: Regular Go ecosystem updates
 - **Pattern Refinement**: Architecture improvements
 - **Tool Enhancement**: Development tool upgrades
 - **Documentation Maintenance**: Keeping content current
+- **sqlc Enhancement**: Continuous improvement of type-safe patterns
+
+## **Current Focus Areas**
+
+### **Immediate Priorities**
+1. **sqlc Integration**: Complete migration from raw SQL to sqlc generated code
+2. **Repository Enhancement**: Implement transaction management and data aggregation
+3. **Testing Updates**: Update test patterns to work with sqlc generated code
+4. **Documentation**: Create comprehensive sqlc usage guides
+
+### **Development Guidelines**
+1. **Repository Pattern**: All database operations must use sqlc generated code
+2. **Transaction Management**: Transactions should be controlled at repository layer
+3. **Data Aggregation**: Complex queries and aggregations belong in repository layer
+4. **Type Safety**: Leverage sqlc's compile-time validation for all SQL operations
+
+### **Quality Assurance**
+1. **sqlc Validation**: Run `make sqlc` in CI/CD pipeline
+2. **Type Safety**: Ensure all SQL operations are type-safe
+3. **Performance**: Monitor query performance with sqlc generated code
+4. **Testing**: Maintain high test coverage with sqlc patterns

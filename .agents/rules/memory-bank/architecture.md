@@ -50,7 +50,7 @@ graph TB
 │   ├── middleware/       # HTTP middleware
 │   └── config/          # Configuration management
 ├── pkg/                  # Shared library code
-│   ├── database/        # Database utilities
+│   ├── database/        # Database utilities and sqlc generated code
 │   ├── cache/           # Cache utilities
 │   └── response/        # Response formatting
 ├── db/                  # Database-related files
@@ -81,7 +81,7 @@ domains/[domain]/
 ### **Domain Components**
 
 1. **Entity Layer**: Pure business objects with no external dependencies
-2. **Repository Layer**: Data access interfaces for persistence
+2. **Repository Layer**: Data access interfaces with transaction management and aggregation
 3. **Usecase Layer**: Application business logic and workflows
 4. **Delivery Layer**: HTTP handlers and request/response processing
 
@@ -99,7 +99,9 @@ sequenceDiagram
     Handler->>Handler: Validate Request
     Handler->>Usecase: Call Business Logic
     Usecase->>Repository: Data Operations
-    Repository->>Database: SQL Queries
+    Repository->>Repository: Transaction Management
+    Repository->>Repository: Data Aggregation
+    Repository->>Database: sqlc Generated Queries
     Database-->>Repository: Data Results
     Repository-->>Usecase: Domain Entities
     Usecase->>Usecase: Apply Business Rules
@@ -130,18 +132,109 @@ do.Provide(container, NewUserHandler)
 
 1. **Migrations**: Version-controlled schema changes using `golang-migrate`
 2. **Queries**: Type-safe SQL queries using `sqlc`
-3. **Repositories**: Data access layer with interface abstraction
-4. **Connection Pooling**: Optimized database connection management
+3. **Generated Code**: sqlc-generated Go code in `pkg/database` package
+4. **Repositories**: Data access layer with transaction management and aggregation
+5. **Connection Pooling**: Optimized database connection management with pgx/v5
 
 ### **Database Flow**
 
 ```mermaid
 graph LR
     A[SQL Files] --> B[sqlc Generator]
-    B --> C[Go Query Code]
+    B --> C[Generated Go Code]
     C --> D[Repository Implementation]
-    D --> E[Use Case Layer]
-    E --> F[Handler Layer]
+    D --> E[Transaction Management]
+    E --> F[Data Aggregation]
+    F --> G[Use Case Layer]
+    G --> H[Handler Layer]
+```
+
+### **sqlc Data Access Layer Architecture**
+
+The project uses **sqlc** as the primary data access layer, providing type-safe SQL operations with compile-time validation:
+
+```mermaid
+graph TB
+    subgraph "sqlc Architecture"
+        A[db/queries/*.sql] --> B[sqlc Generator]
+        B --> C[pkg/database/db.go]
+        B --> D[pkg/database/models.go]
+        B --> E[pkg/database/queries.sql.go]
+    end
+    
+    subgraph "Repository Layer"
+        F[Repository Interface] --> G[Repository Implementation]
+        G --> C
+        G --> D
+        G --> E
+        G --> H[Transaction Management]
+        G --> I[Data Aggregation]
+    end
+    
+    subgraph "Business Logic"
+        J[Use Cases] --> F
+    end
+```
+
+### **Repository Layer Responsibilities**
+
+The repository layer is responsible for:
+
+1. **Data Access**: Using sqlc-generated code for type-safe database operations
+2. **Transaction Management**: Controlling transaction state and boundaries
+3. **Data Aggregation**: Performing data aggregation and complex queries
+4. **Error Handling**: Translating database errors to domain errors
+5. **Mapping**: Converting between database models and domain entities
+
+### **Transaction State Management**
+
+Transaction management is handled at the repository layer:
+
+```mermaid
+graph TB
+    A[Use Case] --> B[Repository Method]
+    B --> C{Transaction Needed?}
+    C -->|Yes| D[Begin Transaction]
+    C -->|No| E[Direct Query]
+    D --> F[Execute Operations]
+    F --> G{Success?}
+    G -->|Yes| H[Commit Transaction]
+    G -->|No| I[Rollback Transaction]
+    E --> J[Return Result]
+    H --> J
+    I --> K[Return Error]
+```
+
+### **Data Aggregation Patterns**
+
+Data aggregation is performed in the repository layer:
+
+1. **Simple Aggregation**: COUNT, SUM, AVG operations
+2. **Complex Queries**: JOIN operations with multiple tables
+3. **Pagination**: LIMIT/OFFSET with total count queries
+4. **Filtering**: Dynamic WHERE clause construction
+5. **Sorting**: Multi-column sorting with direction control
+
+### **Repository Implementation Pattern**
+
+```go
+type UserRepository interface {
+    // Single operations
+    GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+    Create(ctx context.Context, user *entity.User) error
+    
+    // Transactional operations
+    CreateWithProfile(ctx context.Context, user *entity.User, profile *entity.Profile) error
+    
+    // Aggregation operations
+    GetUsersWithStats(ctx context.Context, filter UserFilter) ([]*entity.UserWithStats, error)
+    CountByStatus(ctx context.Context) (map[string]int, error)
+}
+
+type userRepository struct {
+    db      *database.DB
+    queries *database.Queries // sqlc generated
+}
 ```
 
 ## **Security Architecture**

@@ -40,7 +40,7 @@
   - JSON support
   - Full-text search
   - Connection pooling
-- **Connection**: `pgx` driver for Go
+- **Connection**: `pgx/v5` driver for Go
 
 ### **Database Migration: golang-migrate**
 - **Package**: `github.com/golang-migrate/migrate`
@@ -51,15 +51,84 @@
   - CLI tool integration
 - **Migration Files**: `db/migrations/`
 
-### **SQL Generation: sqlc**
+### **SQL Generation: sqlc (Primary Data Access Layer)**
 - **Package**: `github.com/sqlc-dev/sqlc`
+- **Role**: Primary data access layer for the application
 - **Features**:
   - Compile-time SQL validation
   - Type-safe query generation
   - Auto-generated Go code
   - IDE support with autocomplete
+  - Interface generation for mocking
+- **Configuration**: `sqlc.yaml`
 - **Query Files**: `db/queries/`
-- **Generated Code**: `internal/domains/*/repository/`
+- **Generated Code**: `pkg/database/`
+- **SQL Package**: `pgx/v5`
+- **Generated Components**:
+  - Database models (`models.go`)
+  - Query interfaces (`db.go`)
+  - Query implementations (`queries.sql.go`)
+
+### **sqlc Implementation Details**
+
+#### **Configuration Structure**
+```yaml
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "db/queries/"
+    schema: "db/migrations/"
+    gen:
+      go:
+        package: "db"
+        out: "pkg/database"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: false
+        emit_interface: true
+        emit_exact_table_names: false
+```
+
+#### **Repository Integration Pattern**
+```go
+type userRepository struct {
+    db      *database.DB
+    queries *database.Queries // sqlc generated
+}
+
+// Using sqlc generated queries
+func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+    dbUser, err := r.queries.GetUserByID(ctx, id)
+    if err != nil {
+        return nil, r.handleError(err)
+    }
+    return r.toDomainEntity(dbUser), nil
+}
+```
+
+#### **Transaction Management with sqlc**
+```go
+func (r *userRepository) CreateWithProfile(ctx context.Context, user *entity.User, profile *entity.Profile) error {
+    tx, err := r.db.BeginTx()
+    if err != nil {
+        return err
+    }
+    defer tx.Rollback()
+    
+    qtx := r.queries.WithTx(tx)
+    
+    // Execute operations within transaction
+    if err := qtx.CreateUser(ctx, toDBUser(user)); err != nil {
+        return err
+    }
+    
+    if err := qtx.CreateProfile(ctx, toDBProfile(profile)); err != nil {
+        return err
+    }
+    
+    return tx.Commit()
+}
+```
 
 ## **Caching Technology**
 
@@ -152,6 +221,31 @@
   - Transaction simulation
   - Database-independent testing
   - Primary tool for database layer testing
+
+### **sqlc Testing Strategy**
+```go
+func TestUserRepository(t *testing.T) {
+    // Use sqlc generated test utilities
+    db := sqltest.NewDB(t, sqltest.WithMigrations(migrations))
+    queries := database.New(db)
+    repo := NewUserRepository(db, queries)
+    
+    // Test with real database but isolated transactions
+    ctx := context.Background()
+    
+    user := &entity.User{
+        Email:    "test@example.com",
+        FullName: "Test User",
+    }
+    
+    err := repo.Create(ctx, user)
+    require.NoError(t, err)
+    
+    retrieved, err := repo.GetByID(ctx, user.ID)
+    require.NoError(t, err)
+    assert.Equal(t, user.Email, retrieved.Email)
+}
+```
 
 ## **Containerization**
 
@@ -322,6 +416,7 @@ SERVER_ENV=development
 - `docker-compose.yml`: Container orchestration
 - `.air.toml`: Hot reload configuration
 - `.golangci.yml`: Linting rules
+- `sqlc.yaml`: SQL code generation configuration
 
 ## **Security Considerations**
 
@@ -376,6 +471,15 @@ SERVER_ENV=development
 - Framework independence
 - Long-term sustainability
 
+### **Why sqlc?**
+- Type safety at compile time
+- No runtime SQL errors
+- Auto-generated code reduces boilerplate
+- Better IDE support and autocomplete
+- Easier testing with generated interfaces
+- Performance optimization through efficient code generation
+- Migration-friendly with explicit SQL
+
 ## **Future Technology Considerations**
 
 ### **Potential Enhancements**
@@ -392,3 +496,23 @@ SERVER_ENV=development
 - Performance monitoring and optimization
 - Security audit scheduling
 - Code review processes
+
+## **sqlc Best Practices**
+
+### **Query Organization**
+- Organize queries by domain in separate files
+- Use descriptive names for query operations
+- Include proper comments for complex queries
+- Follow consistent naming conventions
+
+### **Transaction Management**
+- Keep transactions short and focused
+- Handle rollbacks properly
+- Use context for timeout and cancellation
+- Implement retry logic for transient failures
+
+### **Performance Optimization**
+- Use appropriate indexes for queried columns
+- Avoid N+1 query problems
+- Implement proper pagination
+- Use prepared statements for repeated queries
