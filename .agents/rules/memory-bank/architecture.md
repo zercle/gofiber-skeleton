@@ -46,16 +46,30 @@ graph TB
 ├── internal/              # Private application code
 │   ├── domains/          # Business domains
 │   │   ├── user/         # User/auth domain
+│   │   │   ├── entity/   # Domain entities and sqlc generated code
+│   │   │   ├── repository/ # Repository interfaces
+│   │   │   ├── usecase/  # Business logic use cases
+│   │   │   ├── delivery/ # HTTP handlers/transport
+│   │   │   ├── tests/    # Domain-specific tests
+│   │   │   └── mocks/    # Generated mocks
+│   │   ├── post/         # Post domain
+│   │   │   ├── entity/   # Domain entities and sqlc generated code
+│   │   │   ├── repository/ # Repository interfaces
+│   │   │   ├── usecase/  # Business logic use cases
+│   │   │   ├── delivery/ # HTTP handlers/transport
+│   │   │   ├── tests/    # Domain-specific tests
+│   │   │   └── mocks/    # Generated mocks
 │   │   └── [domain]/     # Additional domains
 │   ├── middleware/       # HTTP middleware
 │   └── config/          # Configuration management
 ├── pkg/                  # Shared library code
-│   ├── database/        # Database utilities and sqlc generated code
 │   ├── cache/           # Cache utilities
 │   └── response/        # Response formatting
 ├── db/                  # Database-related files
 │   ├── migrations/      # SQL migration files
-│   ├── queries/         # SQLC query files
+│   ├── queries/         # SQLC query files (per domain)
+│   │   ├── user.sql     # User domain queries
+│   │   └── post.sql     # Post domain queries
 │   └── seeds/           # Database seeds
 ├── docs/                # Generated documentation
 ├── configs/             # Configuration files
@@ -70,7 +84,7 @@ Each domain follows the same architectural pattern:
 
 ```
 domains/[domain]/
-├── entity/           # Domain entities and models
+├── entity/           # Domain entities and sqlc generated code
 ├── repository/       # Repository interfaces
 ├── usecase/          # Business logic use cases
 ├── delivery/         # HTTP handlers/transport
@@ -80,7 +94,7 @@ domains/[domain]/
 
 ### **Domain Components**
 
-1. **Entity Layer**: Pure business objects with no external dependencies
+1. **Entity Layer**: Pure business objects with no external dependencies and sqlc generated code
 2. **Repository Layer**: Data access interfaces with transaction management and aggregation
 3. **Usecase Layer**: Application business logic and workflows
 4. **Delivery Layer**: HTTP handlers and request/response processing
@@ -122,8 +136,11 @@ container := do.New()
 do.Provide(container, NewConfig)
 do.Provide(container, NewDatabase)
 do.Provide(container, NewUserRepository)
+do.Provide(container, NewPostRepository)
 do.Provide(container, NewUserUsecase)
+do.Provide(container, NewPostUsecase)
 do.Provide(container, NewUserHandler)
+do.Provide(container, NewPostHandler)
 ```
 
 ## **Database Architecture**
@@ -132,7 +149,7 @@ do.Provide(container, NewUserHandler)
 
 1. **Migrations**: Version-controlled schema changes using `golang-migrate`
 2. **Queries**: Type-safe SQL queries using `sqlc`
-3. **Generated Code**: sqlc-generated Go code in `pkg/database` package
+3. **Generated Code**: sqlc-generated Go code in `internal/domains/*/entity/` packages
 4. **Repositories**: Data access layer with transaction management and aggregation
 5. **Connection Pooling**: Optimized database connection management with pgx/v5
 
@@ -141,7 +158,7 @@ do.Provide(container, NewUserHandler)
 ```mermaid
 graph LR
     A[SQL Files] --> B[sqlc Generator]
-    B --> C[Generated Go Code]
+    B --> C[Domain Entity Code]
     C --> D[Repository Implementation]
     D --> E[Transaction Management]
     E --> F[Data Aggregation]
@@ -156,23 +173,34 @@ The project uses **sqlc** as the primary data access layer, providing type-safe 
 ```mermaid
 graph TB
     subgraph "sqlc Architecture"
-        A[db/queries/*.sql] --> B[sqlc Generator]
-        B --> C[pkg/database/db.go]
-        B --> D[pkg/database/models.go]
-        B --> E[pkg/database/queries.sql.go]
+        A[db/queries/user.sql] --> B[sqlc Generator]
+        A2[db/queries/post.sql] --> B
+        B --> C[internal/domains/user/entity/db.go]
+        B --> D[internal/domains/user/entity/models.go]
+        B --> E[internal/domains/user/entity/queries.sql.go]
+        B --> F[internal/domains/post/entity/db.go]
+        B --> G[internal/domains/post/entity/models.go]
+        B --> H[internal/domains/post/entity/queries.sql.go]
     end
     
     subgraph "Repository Layer"
-        F[Repository Interface] --> G[Repository Implementation]
-        G --> C
-        G --> D
-        G --> E
-        G --> H[Transaction Management]
-        G --> I[Data Aggregation]
+        I[User Repository Interface] --> J[User Repository Implementation]
+        K[Post Repository Interface] --> L[Post Repository Implementation]
+        J --> C
+        J --> D
+        J --> E
+        L --> F
+        L --> G
+        L --> H
+        J --> M[Transaction Management]
+        L --> M
+        J --> N[Data Aggregation]
+        L --> N
     end
     
     subgraph "Business Logic"
-        J[Use Cases] --> F
+        O[User Use Cases] --> I
+        P[Post Use Cases] --> K
     end
 ```
 
@@ -233,9 +261,62 @@ type UserRepository interface {
 
 type userRepository struct {
     db      *database.DB
-    queries *database.Queries // sqlc generated
+    queries *entity.Queries // sqlc generated in entity package
+}
+
+type PostRepository interface {
+    // Single operations
+    GetByID(ctx context.Context, id uuid.UUID) (*entity.Post, error)
+    Create(ctx context.Context, post *entity.Post) error
+    
+    // User-related operations
+    GetByUserID(ctx context.Context, userID uuid.UUID) ([]*entity.Post, error)
+    
+    // Aggregation operations
+    GetPostsWithAuthor(ctx context.Context, limit, offset int) ([]*entity.PostWithAuthor, error)
+    GetUserPostStats(ctx context.Context, userID uuid.UUID) (*entity.PostStats, error)
+}
+
+type postRepository struct {
+    db      *database.DB
+    queries *entity.Queries // sqlc generated in entity package
 }
 ```
+
+## **Domain Relationships**
+
+### **User-Post Relationship**
+
+```mermaid
+graph TB
+    subgraph "User Domain"
+        A[User Entity] --> B[User Repository]
+        B --> C[User Use Cases]
+        C --> D[User Handlers]
+    end
+    
+    subgraph "Post Domain"
+        E[Post Entity] --> F[Post Repository]
+        F --> G[Post Use Cases]
+        G --> H[Post Handlers]
+    end
+    
+    subgraph "Database"
+        I[users table] --> J[posts table]
+        J --> I
+    end
+    
+    B --> I
+    F --> J
+    F --> I
+```
+
+### **Cross-Domain Interactions**
+
+1. **User-Post Relationship**: Posts belong to users
+2. **Shared Transactions**: Operations spanning multiple domains
+3. **Data Aggregation**: Posts with user information
+4. **Authorization**: User-based post access control
 
 ## **Security Architecture**
 
@@ -245,6 +326,7 @@ type userRepository struct {
 2. **Password Hashing**: Argon2id for secure password storage
 3. **Middleware Protection**: Route-level authentication checks
 4. **Input Validation**: Request validation and sanitization
+5. **Resource Authorization**: User can only access their own posts
 
 ### **Security Middleware Stack**
 
@@ -301,6 +383,22 @@ graph TB
 2. **HTTP Methods**: Proper use of HTTP verbs
 3. **Status Codes**: Consistent HTTP status code usage
 4. **Response Format**: Structured JSON responses with JSend format
+
+### **API Endpoints**
+
+#### **User Endpoints**
+- `GET /api/v1/users/profile` - Get user profile
+- `PUT /api/v1/users/profile` - Update user profile
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+
+#### **Post Endpoints**
+- `GET /api/v1/posts` - List posts (with pagination)
+- `GET /api/v1/posts/:id` - Get post by ID
+- `POST /api/v1/posts` - Create new post
+- `PUT /api/v1/posts/:id` - Update post
+- `DELETE /api/v1/posts/:id` - Delete post
+- `GET /api/v1/users/:id/posts` - Get user's posts
 
 ### **API Documentation**
 

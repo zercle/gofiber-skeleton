@@ -61,8 +61,8 @@
   - IDE support with autocomplete
   - Interface generation for mocking
 - **Configuration**: `sqlc.yaml`
-- **Query Files**: `db/queries/`
-- **Generated Code**: `pkg/database/`
+- **Query Files**: `db/queries/` (per domain)
+- **Generated Code**: `internal/domains/*/entity/` (domain-specific)
 - **SQL Package**: `pgx/v5`
 - **Generated Components**:
   - Database models (`models.go`)
@@ -71,7 +71,7 @@
 
 ### **sqlc Implementation Details**
 
-#### **Configuration Structure**
+#### **Configuration Structure (Updated)**
 ```yaml
 version: "2"
 sql:
@@ -80,8 +80,20 @@ sql:
     schema: "db/migrations/"
     gen:
       go:
-        package: "db"
-        out: "pkg/database"
+        package: "entity"
+        out: "internal/domains/user/entity"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: false
+        emit_interface: true
+        emit_exact_table_names: false
+  - engine: "postgresql"
+    queries: "db/queries/post.sql"
+    schema: "db/migrations/"
+    gen:
+      go:
+        package: "entity"
+        out: "internal/domains/post/entity"
         sql_package: "pgx/v5"
         emit_json_tags: true
         emit_prepared_queries: false
@@ -89,11 +101,16 @@ sql:
         emit_exact_table_names: false
 ```
 
-#### **Repository Integration Pattern**
+#### **Domain-Based Code Generation**
+- **User Domain**: Generated in `internal/domains/user/entity/`
+- **Post Domain**: Generated in `internal/domains/post/entity/`
+- **Additional Domains**: Each gets its own entity directory
+
+#### **Repository Integration Pattern (Updated)**
 ```go
 type userRepository struct {
     db      *database.DB
-    queries *database.Queries // sqlc generated
+    queries *entity.Queries // sqlc generated in same domain
 }
 
 // Using sqlc generated queries
@@ -104,9 +121,14 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Use
     }
     return r.toDomainEntity(dbUser), nil
 }
+
+type postRepository struct {
+    db      *database.DB
+    queries *entity.Queries // sqlc generated in same domain
+}
 ```
 
-#### **Transaction Management with sqlc**
+#### **Transaction Management with sqlc (Updated)**
 ```go
 func (r *userRepository) CreateWithProfile(ctx context.Context, user *entity.User, profile *entity.Profile) error {
     tx, err := r.db.BeginTx()
@@ -222,12 +244,12 @@ func (r *userRepository) CreateWithProfile(ctx context.Context, user *entity.Use
   - Database-independent testing
   - Primary tool for database layer testing
 
-### **sqlc Testing Strategy**
+### **sqlc Testing Strategy (Updated)**
 ```go
 func TestUserRepository(t *testing.T) {
     // Use sqlc generated test utilities
     db := sqltest.NewDB(t, sqltest.WithMigrations(migrations))
-    queries := database.New(db)
+    queries := entity.New(db) // Generated in domain entity package
     repo := NewUserRepository(db, queries)
     
     // Test with real database but isolated transactions
@@ -244,6 +266,29 @@ func TestUserRepository(t *testing.T) {
     retrieved, err := repo.GetByID(ctx, user.ID)
     require.NoError(t, err)
     assert.Equal(t, user.Email, retrieved.Email)
+}
+
+func TestPostRepository(t *testing.T) {
+    // Use sqlc generated test utilities for post domain
+    db := sqltest.NewDB(t, sqltest.WithMigrations(migrations))
+    queries := entity.New(db) // Generated in post domain entity package
+    repo := NewPostRepository(db, queries)
+    
+    // Test post operations
+    ctx := context.Background()
+    
+    post := &entity.Post{
+        UserID:  testUserID,
+        Title:   "Test Post",
+        Content: "Test content",
+    }
+    
+    err := repo.Create(ctx, post)
+    require.NoError(t, err)
+    
+    retrieved, err := repo.GetByID(ctx, post.ID)
+    require.NoError(t, err)
+    assert.Equal(t, post.Title, retrieved.Title)
 }
 ```
 
@@ -369,7 +414,7 @@ golangci-lint - code quality
 mockgen - mock generation
 ```
 
-### **Development Commands**
+### **Development Commands (Updated)**
 ```bash
 make dev          # Start development server
 make test         # Run test suite
@@ -377,7 +422,9 @@ make lint         # Code quality checks
 make build        # Build production binary
 make migrate-up   # Run database migrations
 make migrate-down # Rollback migrations
-make sqlc         # Generate SQL code
+make sqlc         # Generate SQL code for all domains
+make sqlc-user    # Generate SQL code for user domain only
+make sqlc-post    # Generate SQL code for post domain only
 make swag         # Generate API docs
 make mocks        # Generate test mocks
 ```
@@ -416,7 +463,7 @@ SERVER_ENV=development
 - `docker-compose.yml`: Container orchestration
 - `.air.toml`: Hot reload configuration
 - `.golangci.yml`: Linting rules
-- `sqlc.yaml`: SQL code generation configuration
+- `sqlc.yaml`: SQL code generation configuration (updated for domain-based generation)
 
 ## **Security Considerations**
 
@@ -480,6 +527,14 @@ SERVER_ENV=development
 - Performance optimization through efficient code generation
 - Migration-friendly with explicit SQL
 
+### **Why Domain-Based sqlc Generation?**
+- Better domain isolation and boundaries
+- Cleaner import paths and dependencies
+- Easier domain-specific testing
+- Reduced coupling between domains
+- Better scalability for microservices extraction
+- Clearer separation of concerns
+
 ## **Future Technology Considerations**
 
 ### **Potential Enhancements**
@@ -497,13 +552,19 @@ SERVER_ENV=development
 - Security audit scheduling
 - Code review processes
 
-## **sqlc Best Practices**
+## **sqlc Best Practices (Updated)**
 
 ### **Query Organization**
-- Organize queries by domain in separate files
+- Organize queries by domain in separate files (`user.sql`, `post.sql`, etc.)
 - Use descriptive names for query operations
 - Include proper comments for complex queries
 - Follow consistent naming conventions
+
+### **Domain-Based Generation**
+- Each domain gets its own sqlc configuration
+- Generated code stays within domain boundaries
+- Use domain-specific package names in entity directories
+- Maintain clear separation between domains
 
 ### **Transaction Management**
 - Keep transactions short and focused
@@ -516,3 +577,9 @@ SERVER_ENV=development
 - Avoid N+1 query problems
 - Implement proper pagination
 - Use prepared statements for repeated queries
+
+### **Cross-Domain Queries**
+- Keep complex queries in the appropriate domain
+- Use joins sparingly across domain boundaries
+- Consider aggregation patterns for cross-domain data
+- Maintain clear ownership of data access
