@@ -6,11 +6,38 @@ on:
   pull_request:
     branches: [ main ]
 
-jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+permissions:
+  contents: read
+
+jobs:
+  # Fast linting for quick feedback
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2
+          args: --timeout=5m
+
+  # Quick unit tests without full infrastructure
+  test-quick:
+    name: Quick Tests
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:18-alpine
@@ -36,32 +63,25 @@ jobs:
           go-version: 'stable'
           cache: true
 
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+      - name: Run quick tests
+        run: go test -v -race -short -coverprofile=coverage.out ./...
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage.out
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
-        with:
-          go-version: 'stable'
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-
+  # Security scanning
   security:
-    name: Security
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Run Gosec
         uses: securego/gosec@master
+
       - name: Run Trivy
         uses: aquasecurity/trivy-action@master
         with:

@@ -1,0 +1,112 @@
+name: Integration Tests
+
+# Run comprehensive integration tests with full infrastructure
+# Only runs on main branch or when manually triggered
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Database configuration
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_NAME: gofiber_skeleton
+  DB_SCHEMA: public
+  DB_SSLMODE: disable
+  # Valkey configuration
+  VALKEY_HOST: localhost
+  VALKEY_PORT: 6379
+  VALKEY_PASSWORD: ""
+  VALKEY_DB: 0
+  # Test configuration
+  JWT_SECRET: test-secret-key-for-integration-tests
+  JWT_EXPIRES_IN: 1h
+
+jobs:
+  integration-test:
+    name: Full Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Install code generation tools
+        run: |
+          go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+          go install github.com/swaggo/swag/cmd/swag@latest
+          go install go.uber.org/mock/mockgen@latest
+
+      - name: Run code generation
+        run: |
+          go mod tidy
+          sqlc generate
+          swag init -g cmd/server/main.go --output ./docs
+          go generate ./...
+
+      - name: Start infrastructure services
+        run: docker-compose up -d postgres valkey
+
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in $(seq 1 30); do
+            if docker exec gofiber_postgres pg_isready -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Attempt $i/30: PostgreSQL not ready, waiting..."
+            sleep 2
+          done
+
+      - name: Wait for Valkey
+        run: |
+          echo "Waiting for Valkey to be ready..."
+          for i in $(seq 1 30); do
+            if docker exec gofiber_valkey valkey-cli ping | grep -q PONG; then
+              echo "Valkey is ready!"
+              break
+            fi
+            echo "Attempt $i/30: Valkey not ready, waiting..."
+            sleep 2
+          done
+
+      - name: Run database migrations
+        run: |
+          export MIGRATE_URL="postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE"
+          go run cmd/migrate/main.go up
+
+      - name: Run integration tests
+        env:
+          DB_URL: postgres://localhost:5432/gofiber_skeleton?sslmode=disable
+          VALKEY_URL: redis://localhost:6379
+        run: go test -v -race -coverprofile=coverage-integration.out ./...
+
+      - name: Build application
+        run: go build -o bin/server cmd/server/main.go
+
+      - name: Upload integration coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage-integration.out
+          flags: integration
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
