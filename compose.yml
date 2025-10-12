@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:18-alpine
+    container_name: gofiber-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-gofiber_skeleton}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gofiber-network
+
+  # Valkey (Redis-compatible cache)
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: gofiber-valkey
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gofiber-network
+
+  # Application (for development)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gofiber-app
+    environment:
+      - APP_ENV=development
+      - DB_HOST=postgres
+      - REDIS_HOST=valkey
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/tmp # Exclude tmp directory from volume mount to avoid conflicts
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    networks:
+      - gofiber-network
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  valkey_data:
+    driver: local
+
+networks:
+  gofiber-network:
+    driver: bridge
