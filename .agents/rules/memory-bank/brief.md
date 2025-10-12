@@ -20,10 +20,10 @@ The goal is to provide a robust, production-ready starting point that significan
 * **Authentication:** golang-jwt - A standard library for creating and verifying JSON Web Tokens for secure, stateless authentication.  
 * **API Documentation:** swaggo/swag - To automatically generate interactive API documentation from comments in the Go source code.  
 * **Development:** Hot-reloading with Air - To improve the development feedback loop by automatically rebuilding and restarting the server on file changes.  
-* **Testing & Mocking:**  
-  * go.uber.org/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.
+* **Testing & Mocking:**
+  * uber-go/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.
   * DATA-DOG/go-sqlmock: For mocking SQL driver in testing.
-  * Complete test coverage examples in the reference domain.
+  * Complete test coverage examples in the reference domain with comprehensive mocking strategies.
 
 ### **Template Features:**
 
@@ -73,7 +73,7 @@ The template includes a **complete, production-ready user/auth domain** serving 
 * **Handler Layer:** HTTP endpoints with Swagger documentation
 * **Middleware:** JWT authentication middleware
 * **Testing:** 90%+ test coverage with mocks and isolation
-* **Security:** Password hashing with bcrypt, JWT token generation
+* **Security:** Password hashing with Argon2id, JWT token generation
 * **Validation:** Input validation and error handling patterns
 
 Developers can use this domain as a template for their own domains, following the same patterns and structure.

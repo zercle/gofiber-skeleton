@@ -82,12 +82,13 @@
   - Claims customization
   - Middleware integration
 
-### **Password Hashing: bcrypt**
-- **Package**: `golang.org/x/crypto/bcrypt`
+### **Password Hashing: Argon2id**
+- **Package**: `golang.org/x/crypto/argon2`
 - **Features**:
-  - Adaptive hash function
-  - Salt generation
-  - Configurable cost factor
+  - Memory-hard hashing function
+  - Resistance to GPU/ASIC attacks
+  - Configurable time, memory, and parallelism
+  - Recommended by OWASP for password hashing
   - Built-in Go library
 
 ## **Configuration Management**
@@ -134,13 +135,14 @@
 
 ## **Testing Framework**
 
-### **Mock Generation: go.uber.org/mock**
+### **Mock Generation: uber-go/mock**
 - **Package**: `go.uber.org/mock/mockgen`
 - **Features**:
   - Interface-based mock generation
   - `//go:generate` integration
   - Customizable mock behavior
   - Test isolation support
+  - Comprehensive mocking for unit tests
 
 ### **SQL Mocking: go-sqlmock**
 - **Package**: `github.com/DATA-DOG/go-sqlmock`
@@ -149,6 +151,7 @@
   - Query expectation matching
   - Transaction simulation
   - Database-independent testing
+  - Primary tool for database layer testing
 
 ## **Containerization**
 

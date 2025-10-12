@@ -149,7 +149,7 @@ graph LR
 ### **Authentication & Authorization**
 
 1. **JWT Authentication**: Stateless token-based authentication
-2. **Password Hashing**: bcrypt for secure password storage
+2. **Password Hashing**: Argon2id for secure password storage
 3. **Middleware Protection**: Route-level authentication checks
 4. **Input Validation**: Request validation and sanitization
 
@@ -172,7 +172,7 @@ graph TB
 1. **Unit Tests**: Isolated business logic testing with mocks
 2. **Integration Tests**: Database and external service testing
 3. **End-to-End Tests**: Full request/response cycle testing
-4. **Mock Generation**: Automated mock generation with `go.uber.org/mock`
+4. **Mock Generation**: Automated mock generation with `uber-go/mock` and `DATA-DOG/go-sqlmock`
 
 ### **Test Structure**
 
