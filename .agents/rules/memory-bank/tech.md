@@ -2,249 +2,196 @@
 
 ## **1. Core Technologies**
 
-### **Programming Language and Runtime**
+### **Go 1.25.0+**
+* **Role:** Primary programming language
+* **Benefits:** Performance, concurrency, static compilation
+* **Features:** Generics, efficient garbage collection, goroutines
 
-* **Go 1.25.0:** Latest stable Go version with modern language features
-* **Garbage Collection:** Go's concurrent garbage collector for efficient memory management
-* **Concurrency:** Goroutines and channels for high-performance concurrent processing
-* **Static Compilation:** Single binary deployment with no runtime dependencies
+### **Fiber v2**
+* **Role:** Web framework and HTTP router
+* **Benefits:** Express.js-inspired, high performance, low memory
+* **Features:** Middleware ecosystem, WebSocket support, static file serving
 
-### **Web Framework**
+## **2. Architecture & Patterns**
 
-* **Fiber v2:** High-performance, Express.js-inspired web framework
-  * **Performance:** Optimized for speed and low memory usage
-  * **Middleware:** Rich middleware ecosystem for common functionality
-  * **Routing:** Fast and flexible routing with parameter support
-  * **WebSocket:** Built-in WebSocket support for real-time applications
-  * **Static Files:** Efficient static file serving with caching
+### **Clean Architecture**
+* **Role:** Architectural pattern for maintainable code
+* **Benefits:** Domain isolation, testability, independence
+* **Implementation:** Domain → Application → Infrastructure layers
 
-## **2. Database and Data Management**
+### **Domain-Driven Design (DDD)**
+* **Role:** Business logic organization
+* **Benefits:** Business focus, clear boundaries, shared language
+* **Implementation:** Isolated domains with entities, repositories, use cases
 
-### **Primary Database**
+### **Dependency Injection**
+* **Samber's do:** Type-safe DI framework
+* **Benefits:** Loose coupling, testability, lifecycle management
+* **Features:** Go 1.18+ generics, compile-time validation
 
-* **PostgreSQL:** Primary relational database
-  * **ACID Compliance:** Full transactional support
-  * **JSON Support:** Native JSON and JSONB data types
-  * **Performance:** Advanced query optimization and indexing
-  * **Scalability:** Proven scalability for production workloads
-  * **Extensions:** Rich ecosystem of extensions
+## **3. Database & Data Management**
 
-### **Database Tools**
+### **PostgreSQL**
+* **Role:** Primary relational database
+* **Benefits:** ACID compliance, JSON support, scalability
+* **Features:** Advanced indexing, query optimization, extensions
 
-* **pgx:** PostgreSQL driver for Go
-  * **Performance:** High-performance driver with connection pooling
-  * **Features:** Full PostgreSQL feature support including arrays and hstore
-  * **Context:** Go context support for cancellation and timeouts
-  * **Binary Protocol:** Binary protocol support for optimal performance
+### **pgx Driver**
+* **Role:** PostgreSQL driver for Go
+* **Benefits:** High performance, connection pooling
+* **Features:** Binary protocol, context support, full PostgreSQL features
 
-* **golang-migrate/migrate:** Database migration tool
-  * **Version Control:** Database schema versioning and rollback
-  * **Drivers:** Support for multiple database drivers
-  * **CLI:** Command-line interface for migration management
-  * **Integration:** Seamless integration with Go applications
+### **golang-migrate**
+* **Role:** Database migration tool
+* **Benefits:** Version control, rollback support
+* **Features:** Multiple drivers, CLI interface, Go integration
 
-* **sqlc:** SQL code generation
-  * **Type Safety:** Compile-time SQL validation
-  * **Performance:** Generated code optimized for performance
-  * **IDE Support:** Full IDE support with autocomplete
-  - **Maintainability:** SQL queries maintained separately from Go code
+### **sqlc**
+* **Role:** SQL code generation
+* **Benefits:** Type safety, compile-time validation
+* **Features:** Auto-generated Go code, IDE support, performance optimization
 
-### **Caching Layer**
+## **4. Authentication & Security**
 
-* **Valkey:** Redis-compatible in-memory data store
-  * **Performance:** Sub-millisecond response times
-  * **Data Structures:** Rich set of data structures
-  * **Persistence:** Optional data persistence to disk
-  * **Clustering:** Built-in clustering support for scalability
+### **golang-jwt**
+* **Role:** JWT authentication
+* **Benefits:** Stateless authentication, security
+* **Features:** Multiple algorithms, claims validation, expiration handling
 
-## **3. Authentication and Security**
+### **Argon2id**
+* **Role:** Password hashing
+* **Benefits:** Memory-hard, GPU/ASIC resistant
+* **Features:** OWASP recommended, configurable parameters
 
-### **Authentication**
+### **Security Middleware**
+* **Role:** HTTP security headers
+* **Benefits:** Protection against common attacks
+* **Features:** CORS, CSP, HSTS, XSS protection
 
-* **golang-jwt:** JWT implementation for Go
-  * **Stateless Authentication:** No server-side session storage
-  * **Security:** Strong cryptographic signing algorithms
-  * **Claims:** Flexible claims system for user information
-  * **Expiration:** Configurable token expiration and refresh
+## **5. Configuration Management**
 
-### **Password Security**
-
-* **Argon2id:** Password hashing algorithm
-  * **Memory-Hard:** Resistant to GPU/ASIC attacks
-  * **Configurable:** Adjustable memory and time parameters
-  * **Standardization:** Recommended by OWASP for password hashing
-
-### **Security Headers**
-
-* **Fiber Security Middleware:** Comprehensive security header implementation
-  * **CORS:** Cross-Origin Resource Sharing configuration
-  * **CSP:** Content Security Policy headers
-  * **HSTS:** HTTP Strict Transport Security
-  * **X-Frame-Options:** Clickjacking protection
-
-## **4. Configuration Management**
-
-### **Configuration Library**
-
-* **Viper:** Configuration management for Go
-  * **Multiple Sources:** Support for environment variables, files, and flags
-  * **Formats:** JSON, YAML, TOML, and other configuration formats
-  * **Watch:** Automatic configuration reloading
-  * **Environment:** Environment variable binding and overriding
+### **Viper**
+* **Role:** Configuration management
+* **Benefits:** Multiple sources, environment awareness
+* **Features:** Environment variables, files, watch/reload
 
 ### **Configuration Hierarchy**
-
-1. **Environment Variables:** Production configuration
-2. **.env File:** Local development configuration
-3. **Default Values:** Built-in fallback configuration
-
-## **5. Dependency Injection**
-
-### **DI Framework**
-
-* **Samber's do:** Modern dependency injection framework
-  * **Generics:** Go 1.18+ generic-based implementation
-  * **Type Safety:** Compile-time dependency validation
-  * **Lifecycle:** Automatic dependency lifecycle management
-  - **Performance:** Minimal runtime overhead
+1. Environment Variables (production)
+2. .env File (development)
+3. Default Values (fallback)
 
 ## **6. Development Tools**
 
-### **Code Quality**
+### **golangci-lint**
+* **Role:** Code quality and linting
+* **Benefits:** Comprehensive analysis, consistency
+* **Features:** 40+ linters, customization, CI/CD integration
 
-* **golangci-lint:** Go linter aggregator
-  * **Comprehensive:** 40+ linters for comprehensive code analysis
-  * **Configuration:** Customizable rule sets and exclusions
-  * **Performance:** Fast execution with caching
-  * **Integration:** CI/CD integration support
+### **Air**
+* **Role:** Hot reloading for development
+* **Benefits:** Fast development feedback loop
+* **Features:** Efficient file watching, automatic rebuild
 
-### **Hot Reloading**
-
-* **Air:** Live reload for Go applications
-  * **Fast:** Efficient file watching and rebuilding
-  * **Configuration:** Flexible configuration options
-  - **Integration:** Seamless development experience
-
-### **API Documentation**
-
-* **swaggo/swag:** Swagger/OpenAPI documentation generation
-  * **Automatic:** Documentation generated from code comments
-  * **Interactive:** Interactive API documentation UI
-  - **Validation:** API specification validation
-  - **Export:** Multiple output formats (JSON, YAML)
+### **swaggo/swag**
+* **Role:** API documentation generation
+* **Benefits:** Automatic docs, interactive UI
+* **Features:** OpenAPI specification, validation, multiple formats
 
 ## **7. Testing Framework**
 
-### **Unit Testing**
+### **Go Testing**
+* **Role:** Built-in testing framework
+* **Benefits:** Comprehensive, integrated
+* **Features:** Table-driven tests, benchmarking, coverage
 
-* **Go Testing:** Built-in Go testing framework
-  - **Table-Driven Tests:** Support for test tables and parameterized tests
-  - **Benchmarking:** Built-in benchmarking support
-  - **Coverage:** Code coverage analysis
-  - **Parallel:** Parallel test execution
+### **uber-go/mock**
+* **Role:** Mock generation for testing
+* **Benefits:** Interface-based mocking, isolation
+* **Features:** go:generate integration, customizable behavior
 
-### **Mock Generation**
+### **go-sqlmock**
+* **Role:** Database driver mocking
+* **Benefits:** Database-independent testing
+* **Features:** Query verification, transaction testing
 
-* **uber-go/mock:** Go mocking framework
-  - **Interface-Based:** Generate mocks from interfaces
-  - **Go Generate:** Integration with go:generate directives
-  - **Customizable:** Configurable mock behavior
-  - **Performance:** Efficient mock implementations
+## **8. Build & Deployment**
 
-### **Database Testing**
+### **Docker**
+* **Role:** Application containerization
+* **Benefits:** Consistency, portability, isolation
+* **Features:** Multi-stage builds, layer caching, security scanning
 
-* **go-sqlmock:** SQL driver mocking
-  - **Isolation:** Database-independent testing
-  - **Verification:** Query execution verification
-  - **Transactions:** Transaction testing support
-  - **Performance:** Fast test execution without database
+### **Docker Compose**
+* **Role:** Development environment orchestration
+* **Benefits:** Multi-service coordination, simplicity
+* **Features:** Service networking, volumes, environment configs
 
-## **8. Build and Deployment**
+### **Make**
+* **Role:** Build automation
+* **Benefits:** Standardized commands, cross-platform
+* **Features:** CI/CD integration, self-documenting targets
 
-### **Containerization**
+## **9. Caching & Performance**
 
-* **Docker:** Application containerization
-  - **Multi-stage:** Optimized multi-stage builds
-  - **Base Images:** Secure and minimal base images
-  - **Layer Caching:** Efficient layer caching for faster builds
-  - **Security:** Security scanning integration
+### **Valkey**
+* **Role:** In-memory data store (Redis-compatible)
+* **Benefits:** Performance, sub-millisecond responses
+* **Features:** Rich data structures, clustering, persistence
 
-* **Docker Compose:** Development environment orchestration
-  - **Services:** Multi-service application orchestration
-  - **Networks:** Service networking and communication
-  - **Volumes:** Data persistence and sharing
-  - **Environment:** Environment-specific configurations
+### **Connection Pooling**
+* **Role:** Database connection optimization
+* **Benefits:** Performance, resource management
+* **Implementation:** pgx built-in pooling
 
-### **Build System**
+## **10. Monitoring & Observability**
 
-* **Make:** Build automation
-  - **Standardized:** Consistent build commands across environments
-  - **Cross-platform:** Cross-platform build support
-  - **Integration:** CI/CD pipeline integration
-  - **Documentation:** Self-documenting build targets
-
-## **9. Monitoring and Observability**
-
-### **Logging**
-
-* **Structured Logging:** JSON-formatted structured logging
-  - **Contextual:** Request tracing and correlation
-  - **Levels:** Configurable log levels
-  - **Output:** Multiple output destinations
-  - **Performance:** Low-overhead logging
+### **Structured Logging**
+* **Role:** Application logging
+* **Benefits:** Searchability, analysis
+* **Features:** JSON format, contextual information, multiple outputs
 
 ### **Health Checks**
+* **Role:** Application monitoring
+* **Benefits:** Deployment readiness, monitoring
+* **Features:** Liveness/readiness probes, dependency checks
 
-* **Health Endpoints:** Application health monitoring
-  - **Liveness:** Application liveness probes
-  - **Readiness:** Application readiness probes
-  - **Dependencies:** External dependency health checks
-  - **Metrics:** Basic application metrics
-
-## **10. Performance Considerations**
-
-### **Database Optimization**
-
-* **Connection Pooling:** Database connection pooling with pgx
-* **Query Optimization:** Efficient SQL queries with proper indexing
-* **Transaction Management:** Proper transaction handling and rollback
-* **Batch Operations:** Batch processing for bulk operations
-
-### **Application Performance**
-
-* **Memory Management:** Efficient memory usage patterns
-* **Concurrency:** Proper goroutine management and synchronization
-* **Caching:** Multi-level caching strategy
-* **Compression:** Response compression for API endpoints
-
-## **11. Security Considerations**
-
-### **Application Security**
-
-* **Input Validation:** Comprehensive input validation and sanitization
-* **SQL Injection Prevention:** Parameterized queries with sqlc
-* **XSS Protection:** Output encoding and CSP headers
-* **CSRF Protection:** CSRF token implementation
-
-### **Infrastructure Security**
-
-* **Container Security:** Minimal container images and security scanning
-* **Network Security:** Proper network segmentation and firewall rules
-* **Secrets Management:** Environment-based secret management
-* **Dependencies:** Regular dependency updates and vulnerability scanning
-
-## **12. Development Environment Setup**
-
-### **Local Development**
-
-* **Go Installation:** Go 1.25.0+ installation required
-* **Docker:** Docker and Docker Compose for local services
-* **IDE Support:** Go extension support for VS Code and other IDEs
-* **Git Hooks:** Pre-commit hooks for code quality
+## **11. Development Environment**
 
 ### **Prerequisites**
+* **Go 1.25.0+**: Language runtime
+* **Docker**: Container platform
+* **Docker Compose**: Multi-container orchestration
+* **Git**: Version control
 
-* **System Requirements:** Linux/macOS/Windows with Go support
-* **Memory:** Minimum 4GB RAM recommended
-* **Storage:** Minimum 2GB free disk space
-* **Network:** Internet connection for dependency downloads
+### **IDE Support**
+* **VS Code**: Go extension, debugging, IntelliSense
+* **GoLand**: JetBrains Go IDE
+* **Vim/Neovim**: Go plugins available
+
+## **12. Performance Considerations**
+
+### **Database Optimization**
+* **Query Efficiency**: Optimized SQL with proper indexing
+* **Connection Management**: Efficient pooling with pgx
+* **Transaction Handling**: Proper transaction management
+* **Batch Operations**: Bulk processing for efficiency
+
+### **Application Performance**
+* **Memory Management**: Efficient Go patterns
+* **Concurrency**: Proper goroutine management
+* **Caching Strategy**: Multi-level caching
+* **Response Compression**: Gzip compression for APIs
+
+## **13. Security Considerations**
+
+### **Application Security**
+* **Input Validation**: Comprehensive validation and sanitization
+* **SQL Injection Prevention**: Parameterized queries with sqlc
+* **XSS Protection**: Output encoding and CSP headers
+* **Authentication Security**: JWT + Argon2id best practices
+
+### **Infrastructure Security**
+* **Container Security**: Minimal images, security scanning
+* **Network Security**: Proper segmentation, firewall rules
+* **Secrets Management**: Environment-based approach
+* **Dependency Security**: Regular updates and vulnerability scanning
