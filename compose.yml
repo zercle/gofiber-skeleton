@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: gofiber-postgres
+    environment:
+      TZ: Asia/Bangkok
+      LANG: C.UTF-8
+      POSTGRES_DB: gofiber_skeleton
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - gofiber-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: gofiber-valkey
+    environment:
+      TZ: Asia/Bangkok
+      LANG: C.UTF-8
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - gofiber-network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  adminer:
+    image: adminer:latest
+    container_name: gofiber-adminer
+    environment:
+      TZ: Asia/Bangkok
+      LANG: C.UTF-8
+    ports:
+      - "8081:8080"
+    networks:
+      - gofiber-network
+    depends_on:
+      - postgres
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      TZ: Asia/Bangkok
+      LANG: C.UTF-8
+    networks:
+      - gofiber-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
+  valkey_data:
+    driver: local
+
+networks:
+  gofiber-network:
+    driver: bridge

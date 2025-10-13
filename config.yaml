@@ -1,0 +1,25 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 15
+  write_timeout: 15
+  idle_timeout: 60
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  dbname: "gofiber_skeleton"
+  sslmode: "disable"
+  max_open_conns: 100
+  max_idle_conns: 10
+
+jwt:
+  secret: "your-super-secret-jwt-key-change-this-in-production"
+  expiration_time: 24
+
+logger:
+  level: "info"
+  format: "json"
+  output: "stdout"

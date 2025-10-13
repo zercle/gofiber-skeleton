@@ -67,7 +67,7 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL to be ready..."
           for i in $(seq 1 30); do
-            if docker exec gofiber_postgres pg_isready -U postgres; then
+            if docker exec gofiber-postgres pg_isready -U postgres; then
               echo "PostgreSQL is ready!"
               break
             fi
@@ -79,7 +79,7 @@ jobs:
         run: |
           echo "Waiting for Valkey to be ready..."
           for i in $(seq 1 30); do
-            if docker exec gofiber_valkey valkey-cli ping | grep -q PONG; then
+            if docker exec gofiber-valkey valkey-cli ping | grep -q PONG; then
               echo "Valkey is ready!"
               break
             fi
@@ -90,7 +90,7 @@ jobs:
       - name: Run database migrations
         run: |
           export MIGRATE_URL="postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE"
-          go run cmd/migrate/main.go up
+          go run cmd/migrate/main.go -action up
 
       - name: Run integration tests
         env:

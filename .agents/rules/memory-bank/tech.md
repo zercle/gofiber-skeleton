@@ -24,10 +24,36 @@
 * **Benefits:** Business focus, clear boundaries, shared language
 * **Implementation:** Isolated domains with entities, repositories, use cases
 
-### **Dependency Injection**
-* **Samber's do:** Type-safe DI framework
-* **Benefits:** Loose coupling, testability, lifecycle management
-* **Features:** Go 1.18+ generics, compile-time validation
+### **Dependency Injection - Samber/do**
+* **Framework:** Samber's do - type-safe dependency injection container
+* **Core Architecture:**
+  - Generic-based DI container with compile-time type safety
+  - Service lifecycle management (singleton, transient, scoped)
+  - Automatic dependency resolution and injection
+  - Interface-based loose coupling
+* **Key Features:**
+  - Compile-time dependency validation
+  - Automatic service discovery and registration
+  - Support for constructor injection
+  - Graceful shutdown handling
+* **Integration Benefits:**
+  - Domain services automatically wired with dependencies
+  - Route handlers receive use cases through DI
+  - Easy testing with mock implementations
+  - Clean separation of concerns across layers
+
+### **Domain-Based Routing**
+* **Architecture:** Self-registering domain routers
+* **Pattern:**
+  - Each domain defines its own routes in `internal/domains/{domain}/router/`
+  - Routes automatically discovered and registered at startup
+  - DI integration for handler dependency injection
+  - Middleware composition per domain or globally
+* **Benefits:**
+  - Modular route organization by domain
+  - Automatic dependency resolution for handlers
+  - Clear separation of routing concerns
+  - Easy testing with mocked dependencies
 
 ## **3. Database & Data Management**
 

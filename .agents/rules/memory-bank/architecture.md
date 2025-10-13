@@ -19,16 +19,27 @@ gofiber-skeleton/
 ├── cmd/server/                 # Application entry point
 ├── internal/
 │   ├── domains/               # Business domains (DDD)
-│   │   └── user/              # Reference domain
-│   │       ├── entity/        # Domain models
-│   │       ├── repository/    # Repository interfaces
-│   │       ├── usecase/       # Business logic
-│   │       └── handler/       # HTTP handlers
+│   │   ├── user/              # Reference domain
+│   │   │   ├── entity/        # Domain models
+│   │   │   ├── repository/    # Repository interfaces
+│   │   │   ├── usecase/       # Business logic
+│   │   │   ├── handler/       # HTTP handlers
+│   │   │   └── router/        # Domain-specific routes
+│   │   └── post/              # Example domain
+│   │       ├── entity/
+│   │       ├── repository/
+│   │       ├── usecase/
+│   │       ├── handler/
+│   │       └── router/
 │   ├── infrastructure/        # External implementations
+│   │   ├── config/           # Configuration
 │   │   ├── database/         # Database setup
-│   │   ├── middleware/       # HTTP middleware
-│   │   └── config/           # Configuration
+│   │   └── di/               # Dependency injection container
 │   └── shared/               # Shared utilities
+│       ├── middleware/       # HTTP middleware
+│       ├── response/         # Response utilities
+│       ├── validator/        # Input validation
+│       └── router/           # Router interfaces
 ├── db/
 │   ├── migrations/           # Schema migrations
 │   └── queries/              # SQL queries for sqlc
@@ -44,16 +55,19 @@ gofiber-skeleton/
 ```mermaid
 graph TD
     A[HTTP Request] --> B[Middleware Chain]
-    B --> C[Handler Layer]
-    C --> D[Usecase Layer]
-    D --> E[Repository Interface]
-    E --> F[Repository Implementation]
-    F --> G[Database/External Service]
-    G --> H[HTTP Response]
+    B --> C[Domain Router]
+    C --> D[Handler Layer]
+    D --> E[Usecase Layer]
+    E --> F[Repository Interface]
+    F --> G[Repository Implementation]
+    G --> H[Database/External Service]
+    H --> I[HTTP Response]
     
-    I[DI Container] --> C
-    I --> D
-    I --> F
+    J[DI Container] --> C
+    J --> D
+    J --> E
+    J --> F
+    J --> G
 ```
 
 ## **4. Layer Dependencies**
@@ -72,6 +86,7 @@ Each domain follows this consistent structure:
 2. **Repository:** Interface definitions for data access
 3. **Usecase:** Business logic with dependency injection
 4. **Handler:** HTTP endpoints with Swagger documentation
+5. **Router:** Domain-specific route registration
 
 ## **6. Technology Integration**
 
@@ -87,20 +102,48 @@ Each domain follows this consistent structure:
 * **Authentication:** JWT-based stateless auth
 * **Documentation:** Auto-generated Swagger/OpenAPI
 
-### **Development Tools**
-* **Dependency Injection:** Samber's do framework
+### **Dependency Injection with Samber/do**
+* **Framework:** Samber's do - type-safe DI container with generics
+* **Core Benefits:**
+  - Compile-time dependency validation
+  - Automatic service lifecycle management
+  - Type-safe dependency resolution
+  - Singleton and scoped service management
+* **Integration Pattern:**
+  - All services registered in DI container at startup
+  - Dependencies injected through constructor parameters
+  - Domain services automatically resolved and wired
+  - Clean separation of concerns with interface-based design
+
+### **Domain-Based Routing Architecture**
+* **Self-Registering Routes:** Each domain registers its own routes with main router
+* **DI Integration:** Route handlers receive dependencies through DI container
+* **Pattern Implementation:**
+  - `internal/domains/{domain}/router/` - Domain-specific route definitions
+  - Routes automatically discovered and registered at application startup
+  - Middleware applied per domain or globally
+  - Clean separation of routing concerns by domain
+* **Benefits:**
+  - Modular route management
+  - Automatic dependency injection for handlers
+  - Domain isolation and independence
+  - Easy testing with mocked dependencies
+
+### **Additional Development Tools**
 * **Configuration:** Viper with environment hierarchy
 * **Testing:** uber-go/mock for interface mocking
 * **Hot Reloading:** Air for development efficiency
 
 ## **7. Reference Implementation**
 
-The **user domain** demonstrates all architectural patterns:
+The **user and post domains** demonstrate all architectural patterns:
 
-* **Entity:** User model with password hashing
+* **Entity:** User and Post models with proper validation
 * **Repository:** PostgreSQL integration with sqlc
-* **Usecase:** Registration/login business logic
+* **Usecase:** Business logic with DI-driven dependencies
 * **Handler:** HTTP endpoints with comprehensive tests
+* **Router:** Self-registering domain routes with middleware
+* **DI Container:** Automatic service resolution and lifecycle management
 * **Testing:** 90%+ coverage with proper mocking
 
 ## **8. Configuration Management**

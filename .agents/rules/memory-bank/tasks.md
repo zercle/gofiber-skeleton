@@ -47,28 +47,32 @@
 
 ### **Task: Add New Business Domain**
 
-**Description:** Create new domain following established patterns.
+**Description:** Create new domain following established patterns with DI and routing.
 
 **Files to Create:**
 - `internal/domains/{domain}/` (domain structure)
+- `internal/domains/{domain}/router/` (domain routing)
 - `db/migrations/` (domain migrations)
 - `db/queries/` (domain queries)
 
 **Steps:**
-1. Create domain directory structure
+1. Create domain directory structure with router subdirectory
 2. Implement entity layer with models
 3. Create repository interface and SQL queries
 4. Implement repository with sqlc code
 5. Create usecase layer with business logic
 6. Implement handler layer with HTTP endpoints
-7. Add domain routes to router
-8. Write comprehensive tests
-9. Update API documentation
+7. Create domain router implementing `shared/router.Router` interface
+8. Register domain services in DI container
+9. Add domain router to shared router list in DI container
+10. Write comprehensive tests
+11. Update API documentation
 
 **Critical Requirements:**
-- Follow user domain patterns exactly
+- Follow user/post domain patterns exactly
 - Maintain 90%+ test coverage
-- Use proper dependency injection
+- Use DI container for all dependencies
+- Implement self-registering domain router
 - Include Swagger documentation
 
 ---
