@@ -126,7 +126,7 @@ DROP INDEX IF EXISTS idx_products_name;
 DROP TABLE IF EXISTS products;
 ```
 
-Update `db/schema.sql` to include the products table.
+Update `db/migrations` to include the products table.
 
 Run: `make sqlc`
 

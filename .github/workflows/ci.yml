@@ -28,6 +28,12 @@ jobs:
           go-version: 'stable'
           cache: true
 
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Run sqlc
+        run: sqlc generate
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
@@ -62,6 +68,12 @@ jobs:
         with:
           go-version: 'stable'
           cache: true
+
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Run sqlc
+        run: sqlc generate
 
       - name: Run quick tests
         run: go test -v -race -short -coverprofile=coverage.out ./...

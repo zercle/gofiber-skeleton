@@ -48,10 +48,6 @@ lint-fix: ## Run linter with fixes
 sqlc: ## Generate Go code from SQL queries
 	sqlc generate
 
-schema: ## Generate schema.sql from migration files
-	@echo "Generating schema from migrations..."
-	./scripts/generate-schema.sh
-
 mocks: ## Generate mocks
 	go generate ./...
 
@@ -87,4 +83,4 @@ docker-build: ## Build Docker image
 docker-run: ## Run Docker container
 	docker run -p 8080:8080 --env-file .env gofiber-skeleton
 
-all: setup schema sqlc mocks swagger build test lint ## Run all setup and build tasks
+all: setup sqlc mocks swagger build test lint ## Run all setup and build tasks
