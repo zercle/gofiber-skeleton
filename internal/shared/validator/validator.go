@@ -6,7 +6,7 @@ import (
 
 var validate = validator.New()
 
-func Validate(s interface{}) error {
+func Validate(s any) error {
 	return validate.Struct(s)
 }
 

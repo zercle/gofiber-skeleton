@@ -7,11 +7,11 @@ import (
 )
 
 type Response struct {
-	Success   bool        `json:"success"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data,omitempty"`
-	Error     interface{} `json:"error,omitempty"`
-	Timestamp time.Time   `json:"timestamp"`
+	Success   bool      `json:"success"`
+	Message   string    `json:"message"`
+	Data      any       `json:"data,omitempty"`
+	Error     any       `json:"error,omitempty"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 type ValidationErrorDetail struct {
@@ -19,7 +19,7 @@ type ValidationErrorDetail struct {
 	Message string `json:"message"`
 }
 
-func OK(c *fiber.Ctx, message string, data interface{}) error {
+func OK(c *fiber.Ctx, message string, data any) error {
 	return c.Status(fiber.StatusOK).JSON(Response{
 		Success:   true,
 		Message:   message,
@@ -28,7 +28,7 @@ func OK(c *fiber.Ctx, message string, data interface{}) error {
 	})
 }
 
-func Created(c *fiber.Ctx, message string, data interface{}) error {
+func Created(c *fiber.Ctx, message string, data any) error {
 	return c.Status(fiber.StatusCreated).JSON(Response{
 		Success:   true,
 		Message:   message,
@@ -45,7 +45,7 @@ func NoContent(c *fiber.Ctx, message string) error {
 	})
 }
 
-func BadRequest(c *fiber.Ctx, message string, details interface{}) error {
+func BadRequest(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusBadRequest).JSON(Response{
 		Success:   false,
 		Message:   message,
@@ -54,7 +54,7 @@ func BadRequest(c *fiber.Ctx, message string, details interface{}) error {
 	})
 }
 
-func ValidationError(c *fiber.Ctx, details interface{}) error {
+func ValidationError(c *fiber.Ctx, details any) error {
 	return c.Status(fiber.StatusUnprocessableEntity).JSON(Response{
 		Success:   false,
 		Message:   "Validation error",
@@ -63,7 +63,7 @@ func ValidationError(c *fiber.Ctx, details interface{}) error {
 	})
 }
 
-func Unauthorized(c *fiber.Ctx, message string, details interface{}) error {
+func Unauthorized(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusUnauthorized).JSON(Response{
 		Success:   false,
 		Message:   message,
@@ -72,7 +72,7 @@ func Unauthorized(c *fiber.Ctx, message string, details interface{}) error {
 	})
 }
 
-func Forbidden(c *fiber.Ctx, message string, details interface{}) error {
+func Forbidden(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusForbidden).JSON(Response{
 		Success:   false,
 		Message:   message,
@@ -81,7 +81,7 @@ func Forbidden(c *fiber.Ctx, message string, details interface{}) error {
 	})
 }
 
-func NotFound(c *fiber.Ctx, message string, details interface{}) error {
+func NotFound(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusNotFound).JSON(Response{
 		Success:   false,
 		Message:   message,
@@ -90,7 +90,7 @@ func NotFound(c *fiber.Ctx, message string, details interface{}) error {
 	})
 }
 
-func Conflict(c *fiber.Ctx, message string, details interface{}) error {
+func Conflict(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusConflict).JSON(Response{
 		Success:   false,
 		Message:   message,
@@ -99,7 +99,7 @@ func Conflict(c *fiber.Ctx, message string, details interface{}) error {
 	})
 }
 
-func InternalServerError(c *fiber.Ctx, message string, details interface{}) error {
+func InternalServerError(c *fiber.Ctx, message string, details any) error {
 	return c.Status(fiber.StatusInternalServerError).JSON(Response{
 		Success:   false,
 		Message:   message,

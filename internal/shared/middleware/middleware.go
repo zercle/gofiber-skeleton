@@ -17,7 +17,7 @@ import (
 func NewRecovery() fiber.Handler {
 	return recover.New(recover.Config{
 		EnableStackTrace: true,
-		StackTraceHandler: func(c *fiber.Ctx, e interface{}) {
+		StackTraceHandler: func(c *fiber.Ctx, e any) {
 			fmt.Printf("panic recovered: %v\n%s", e, string(c.Request().Header.RawHeaders()))
 		},
 	})
@@ -25,10 +25,10 @@ func NewRecovery() fiber.Handler {
 
 func NewLogger() fiber.Handler {
 	return logger.New(logger.Config{
-		Format:       "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
-		TimeFormat:   "2006-01-02 15:04:05",
-		TimeZone:     "UTC",
-		Output:       os.Stdout,
+		Format:        "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
+		TimeFormat:    "2006-01-02 15:04:05",
+		TimeZone:      "UTC",
+		Output:        os.Stdout,
 		DisableColors: false,
 	})
 }
