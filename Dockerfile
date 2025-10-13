@@ -1,32 +1,54 @@
-# Build Stage
+# Build stage
 FROM golang:alpine AS builder
 
+ENV TZ=Asia/Bangkok
+ENV LANG=C.UTF-8
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata build-base
+
+# Set working directory
 WORKDIR /app
 
+# Copy go mod files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-RUN go build -ldflags="-s -w -extldflags '-static'" -o /app/bin/server ./cmd/server
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server cmd/server/main.go
 
-# Run Stage
-FROM alpine
+# Final stage
+FROM alpine:latest
 
+ENV TZ=Asia/Bangkok
+ENV LANG=C.UTF-8
+
+# Install ca-certificates for HTTPS
+RUN apk --no-cache add ca-certificates tzdata tini
+
+# Set working directory
 WORKDIR /app
 
-# Create a non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+# Copy the binary from builder stage
+COPY --from=builder /app/server .
 
-COPY --from=builder /app/bin/server /app/bin/server
-COPY --from=builder /app/.env.example /app/.env.example
+# Copy configuration files
+COPY --from=builder /app/config.yaml .
 
-# Expose the port the app runs on
+# Expose port
 EXPOSE 8080
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["/app/bin/server", "health"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Command to run the executable
-CMD ["/app/bin/server"]
+# Execute the init command
+ENTRYPOINT [ "/sbin/tini", "--" ]
+
+# Run the application
+CMD [ "./server" ]

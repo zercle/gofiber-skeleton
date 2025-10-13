@@ -1,482 +1,593 @@
-# Adding a New Domain to Go Fiber Skeleton
+# Adding New Domains
 
-This guide walks you through adding a new business domain to the Go Fiber Skeleton template. Following this guide ensures your new domain adheres to the Clean Architecture pattern and integrates seamlessly with the existing codebase.
+This guide shows how to add a new domain to the Go Fiber Skeleton template following the Clean Architecture pattern.
 
-## Overview
+## 🎯 Example: Adding a Product Domain
 
-Each domain in this template follows a 4-layer architecture:
-1. **Entity Layer** - Domain models (pure Go structs)
-2. **Repository Layer** - Data access (interfaces + implementations)
-3. **Usecase Layer** - Business logic (interfaces + implementations)
-4. **Handler Layer** - HTTP handlers and route registration
+Let's add a `product` domain with CRUD operations.
 
-## Prerequisites
-
-- Basic understanding of Clean Architecture
-- Familiarity with Go and Fiber framework
-- Project dependencies installed (`make install-tools`)
-
-## Step-by-Step Guide
-
-Let's create a new domain called `product` as an example.
-
-### Step 1: Create Directory Structure
+## 📁 Step 1: Create Domain Structure
 
 ```bash
-mkdir -p internal/product/entity
-mkdir -p internal/product/repository/mocks
-mkdir -p internal/product/usecase/mocks
-mkdir -p internal/product/handler
-mkdir -p internal/product/tests
+mkdir -p internal/domains/product/{entity,repository,usecase,handler}
 ```
 
-### Step 2: Define the Entity
+## 📝 Step 2: Define Entity
 
-Create `internal/product/entity/product.go`:
+Create `internal/domains/product/entity/product.go`:
 
 ```go
 package entity
 
 import (
-	"time"
-
-	"github.com/google/uuid"
+    "time"
+    "github.com/google/uuid"
 )
 
 type Product struct {
-	ID          uuid.UUID
-	Name        string
-	Description string
-	Price       float64
-	UserID      uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+    ID          uuid.UUID `json:"id" db:"id"`
+    Name        string    `json:"name" db:"name"`
+    Description string    `json:"description" db:"description"`
+    Price       float64   `json:"price" db:"price"`
+    Stock       int       `json:"stock" db:"stock"`
+    CreatedAt   time.Time `json:"created_at" db:"created_at"`
+    UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type CreateProductRequest struct {
+    Name        string  `json:"name" validate:"required,min=3,max=255"`
+    Description string  `json:"description" validate:"max=1000"`
+    Price       float64 `json:"price" validate:"required,gt=0"`
+    Stock       int     `json:"stock" validate:"required,gte=0"`
+}
+
+type UpdateProductRequest struct {
+    Name        *string  `json:"name,omitempty" validate:"omitempty,min=3,max=255"`
+    Description *string  `json:"description,omitempty" validate:"omitempty,max=1000"`
+    Price       *float64 `json:"price,omitempty" validate:"omitempty,gt=0"`
+    Stock       *int     `json:"stock,omitempty" validate:"omitempty,gte=0"`
+}
+
+func NewProduct(name, description string, price float64, stock int) *Product {
+    now := time.Now()
+    return &Product{
+        ID:          uuid.New(),
+        Name:        name,
+        Description: description,
+        Price:       price,
+        Stock:       stock,
+        CreatedAt:   now,
+        UpdatedAt:   now,
+    }
+}
+
+func (p *Product) Update(name, description string, price float64, stock int) {
+    p.Name = name
+    p.Description = description
+    p.Price = price
+    p.Stock = stock
+    p.UpdatedAt = time.Now()
 }
 ```
 
-### Step 3: Create Database Migration
+## 🗄️ Step 3: Add Database Queries
 
-Create migration file:
-```bash
-make migrate-create name=create_products
-```
-
-Edit the generated file `db/migrations/000X_create_products.up.sql`:
-
-```sql
-CREATE TABLE IF NOT EXISTS products (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_products_user_id ON products(user_id);
-CREATE INDEX idx_products_created_at ON products(created_at DESC);
-```
-
-Create the down migration `db/migrations/000X_create_products.down.sql`:
-
-```sql
-DROP INDEX IF EXISTS idx_products_created_at;
-DROP INDEX IF EXISTS idx_products_user_id;
-DROP TABLE IF EXISTS products;
-```
-
-### Step 4: Define SQL Queries
-
-Create `db/queries/products.sql`:
+Add to `db/query.sql`:
 
 ```sql
 -- name: CreateProduct :one
-INSERT INTO products (name, description, price, user_id)
-VALUES ($1, $2, $3, $4)
-RETURNING id, name, description, price, user_id, created_at, updated_at;
+INSERT INTO products (id, name, description, price, stock, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, name, description, price, stock, created_at, updated_at;
 
 -- name: GetProductByID :one
-SELECT id, name, description, price, user_id, created_at, updated_at
+SELECT id, name, description, price, stock, created_at, updated_at
 FROM products
 WHERE id = $1;
 
--- name: ListProductsByUser :many
-SELECT id, name, description, price, user_id, created_at, updated_at
+-- name: ListProducts :many
+SELECT id, name, description, price, stock, created_at, updated_at
 FROM products
-WHERE user_id = $1
-ORDER BY created_at DESC;
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
 
 -- name: UpdateProduct :one
 UPDATE products
-SET name = $2, description = $3, price = $4, updated_at = NOW()
+SET name = $2, description = $3, price = $4, stock = $5, updated_at = $6
 WHERE id = $1
-RETURNING id, name, description, price, user_id, created_at, updated_at;
+RETURNING id, name, description, price, stock, created_at, updated_at;
 
 -- name: DeleteProduct :exec
 DELETE FROM products WHERE id = $1;
 ```
 
-### Step 5: Generate Type-Safe Code
+Add migration `db/migrations/002_create_products_table.up.sql`:
 
-```bash
-make sqlc
+```sql
+CREATE TABLE IF NOT EXISTS products (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_products_name ON products(name);
+CREATE INDEX idx_products_created_at ON products(created_at);
 ```
 
-This generates type-safe Go code in `internal/db/products.sql.go`.
+Add down migration `db/migrations/002_create_products_table.down.sql`:
 
-### Step 6: Implement Repository
+```sql
+DROP INDEX IF EXISTS idx_products_created_at;
+DROP INDEX IF EXISTS idx_products_name;
+DROP TABLE IF EXISTS products;
+```
 
-Create `internal/product/repository/postgres.go`:
+Update `db/migrations` to include the products table.
+
+Run: `make sqlc`
+
+## 🔌 Step 4: Create Repository
+
+Create `internal/domains/product/repository/product_repository.go`:
 
 ```go
 package repository
 
-//go:generate mockgen -source=postgres.go -destination=mocks/repository.go -package=mocks
-
 import (
-	"context"
-
-	"github.com/google/uuid"
-	"github.com/zercle/gofiber-skeleton/internal/db"
-	"github.com/zercle/gofiber-skeleton/internal/product/entity"
+    "context"
+    "github.com/google/uuid"
+    "github.com/zercle/gofiber-skeleton/internal/domains/product/entity"
+    "github.com/zercle/gofiber-skeleton/internal/infrastructure/database/sqlc"
 )
 
 type ProductRepository interface {
-	Create(ctx context.Context, name, description string, price float64, userID uuid.UUID) (*entity.Product, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error)
-	ListByUser(ctx context.Context, userID uuid.UUID) ([]*entity.Product, error)
-	Update(ctx context.Context, id uuid.UUID, name, description string, price float64) (*entity.Product, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+    Create(ctx context.Context, product *entity.Product) error
+    GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error)
+    List(ctx context.Context, limit, offset int) ([]*entity.Product, error)
+    Update(ctx context.Context, product *entity.Product) error
+    Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type productRepository struct {
-	queries *db.Queries
+    queries *sqlc.Queries
 }
 
-func NewProductRepository(queries *db.Queries) ProductRepository {
-	return &productRepository{queries: queries}
+func NewProductRepository(queries *sqlc.Queries) ProductRepository {
+    return &productRepository{
+        queries: queries,
+    }
 }
 
-func (r *productRepository) Create(ctx context.Context, name, description string, price float64, userID uuid.UUID) (*entity.Product, error) {
-	product, err := r.queries.CreateProduct(ctx, db.CreateProductParams{
-		Name:        name,
-		Description: description,
-		Price:       price,
-		UserID:      userID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &entity.Product{
-		ID:          product.ID,
-		Name:        product.Name,
-		Description: product.Description,
-		Price:       product.Price,
-		UserID:      product.UserID,
-		CreatedAt:   product.CreatedAt,
-		UpdatedAt:   product.UpdatedAt,
-	}, nil
+func (r *productRepository) Create(ctx context.Context, product *entity.Product) error {
+    params := sqlc.CreateProductParams{
+        ID:          product.ID,
+        Name:        product.Name,
+        Description: sql.NullString{String: product.Description, Valid: product.Description != ""},
+        Price:       product.Price,
+        Stock:       int32(product.Stock),
+        CreatedAt:   product.CreatedAt,
+        UpdatedAt:   product.UpdatedAt,
+    }
+    _, err := r.queries.CreateProduct(ctx, params)
+    return err
 }
 
-// Implement other methods similarly...
+func (r *productRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+    dbProduct, err := r.queries.GetProductByID(ctx, id)
+    if err != nil {
+        return nil, err
+    }
+    return r.dbProductToEntity(&dbProduct), nil
+}
+
+func (r *productRepository) List(ctx context.Context, limit, offset int) ([]*entity.Product, error) {
+    dbProducts, err := r.queries.ListProducts(ctx, int32(limit), int32(offset))
+    if err != nil {
+        return nil, err
+    }
+
+    products := make([]*entity.Product, len(dbProducts))
+    for i, dbProduct := range dbProducts {
+        products[i] = r.dbProductToEntity(&dbProduct)
+    }
+    return products, nil
+}
+
+func (r *productRepository) Update(ctx context.Context, product *entity.Product) error {
+    params := sqlc.UpdateProductParams{
+        ID:          product.ID,
+        Name:        product.Name,
+        Description: sql.NullString{String: product.Description, Valid: product.Description != ""},
+        Price:       product.Price,
+        Stock:       int32(product.Stock),
+        UpdatedAt:   product.UpdatedAt,
+    }
+    _, err := r.queries.UpdateProduct(ctx, params)
+    return err
+}
+
+func (r *productRepository) Delete(ctx context.Context, id uuid.UUID) error {
+    return r.queries.DeleteProduct(ctx, id)
+}
+
+func (r *productRepository) dbProductToEntity(dbProduct *sqlc.Product) *entity.Product {
+    description := ""
+    if dbProduct.Description.Valid {
+        description = dbProduct.Description.String
+    }
+
+    return &entity.Product{
+        ID:          dbProduct.ID,
+        Name:        dbProduct.Name,
+        Description: description,
+        Price:       dbProduct.Price,
+        Stock:       int(dbProduct.Stock),
+        CreatedAt:   dbProduct.CreatedAt,
+        UpdatedAt:   dbProduct.UpdatedAt,
+    }
+}
 ```
 
-### Step 7: Implement Usecase
+## 🎯 Step 5: Create Usecase
 
-Create `internal/product/usecase/product.go`:
+Create `internal/domains/product/usecase/product_usecase.go`:
 
 ```go
 package usecase
 
-//go:generate mockgen -source=product.go -destination=mocks/usecase.go -package=mocks
-
 import (
-	"context"
-	"fmt"
+    "context"
+    "errors"
+    "fmt"
+    "github.com/google/uuid"
+    "github.com/zercle/gofiber-skeleton/internal/domains/product/entity"
+    "github.com/zercle/gofiber-skeleton/internal/domains/product/repository"
+)
 
-	"github.com/google/uuid"
-	"github.com/zercle/gofiber-skeleton/internal/product/entity"
-	"github.com/zercle/gofiber-skeleton/internal/product/repository"
+var (
+    ErrProductNotFound = errors.New("product not found")
 )
 
 type ProductUsecase interface {
-	CreateProduct(ctx context.Context, name, description string, price float64, userID uuid.UUID) (*entity.Product, error)
-	GetProductByID(ctx context.Context, id uuid.UUID) (*entity.Product, error)
-	ListProductsByUser(ctx context.Context, userID uuid.UUID) ([]*entity.Product, error)
-	UpdateProduct(ctx context.Context, id uuid.UUID, userID uuid.UUID, name, description string, price float64) (*entity.Product, error)
-	DeleteProduct(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
+    Create(ctx context.Context, req *entity.CreateProductRequest) (*entity.Product, error)
+    GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error)
+    List(ctx context.Context, limit, offset int) ([]*entity.Product, error)
+    Update(ctx context.Context, id uuid.UUID, req *entity.UpdateProductRequest) (*entity.Product, error)
+    Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type productUsecase struct {
-	repo repository.ProductRepository
+    productRepo repository.ProductRepository
 }
 
-func NewProductUsecase(repo repository.ProductRepository) ProductUsecase {
-	return &productUsecase{repo: repo}
+func NewProductUsecase(productRepo repository.ProductRepository) ProductUsecase {
+    return &productUsecase{
+        productRepo: productRepo,
+    }
 }
 
-func (u *productUsecase) CreateProduct(ctx context.Context, name, description string, price float64, userID uuid.UUID) (*entity.Product, error) {
-	return u.repo.Create(ctx, name, description, price, userID)
+func (u *productUsecase) Create(ctx context.Context, req *entity.CreateProductRequest) (*entity.Product, error) {
+    product := entity.NewProduct(req.Name, req.Description, req.Price, req.Stock)
+
+    if err := u.productRepo.Create(ctx, product); err != nil {
+        return nil, fmt.Errorf("failed to create product: %w", err)
+    }
+
+    return product, nil
 }
 
-func (u *productUsecase) UpdateProduct(ctx context.Context, id uuid.UUID, userID uuid.UUID, name, description string, price float64) (*entity.Product, error) {
-	// Verify ownership
-	existing, err := u.repo.GetByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if existing.UserID != userID {
-		return nil, fmt.Errorf("unauthorized: user does not own this product")
-	}
-
-	return u.repo.Update(ctx, id, name, description, price)
+func (u *productUsecase) GetByID(ctx context.Context, id uuid.UUID) (*entity.Product, error) {
+    product, err := u.productRepo.GetByID(ctx, id)
+    if err != nil {
+        return nil, ErrProductNotFound
+    }
+    return product, nil
 }
 
-// Implement other methods...
+func (u *productUsecase) List(ctx context.Context, limit, offset int) ([]*entity.Product, error) {
+    products, err := u.productRepo.List(ctx, limit, offset)
+    if err != nil {
+        return nil, fmt.Errorf("failed to list products: %w", err)
+    }
+    return products, nil
+}
+
+func (u *productUsecase) Update(ctx context.Context, id uuid.UUID, req *entity.UpdateProductRequest) (*entity.Product, error) {
+    product, err := u.productRepo.GetByID(ctx, id)
+    if err != nil {
+        return nil, ErrProductNotFound
+    }
+
+    if req.Name != nil {
+        product.Name = *req.Name
+    }
+    if req.Description != nil {
+        product.Description = *req.Description
+    }
+    if req.Price != nil {
+        product.Price = *req.Price
+    }
+    if req.Stock != nil {
+        product.Stock = *req.Stock
+    }
+
+    product.UpdatedAt = time.Now()
+
+    if err := u.productRepo.Update(ctx, product); err != nil {
+        return nil, fmt.Errorf("failed to update product: %w", err)
+    }
+
+    return product, nil
+}
+
+func (u *productUsecase) Delete(ctx context.Context, id uuid.UUID) error {
+    if err := u.productRepo.Delete(ctx, id); err != nil {
+        return fmt.Errorf("failed to delete product: %w", err)
+    }
+    return nil
+}
 ```
 
-### Step 8: Generate Mocks
+## 🌐 Step 6: Create Handler
 
-```bash
-make generate-mocks
-```
-
-This creates mock implementations for testing in the `mocks/` directories.
-
-### Step 9: Implement HTTP Handlers
-
-Create `internal/product/handler/product_handler.go`:
+Create `internal/domains/product/handler/product_handler.go`:
 
 ```go
 package handler
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
-	"github.com/zercle/gofiber-skeleton/internal/product/usecase"
-	"github.com/zercle/gofiber-skeleton/internal/response"
-	"github.com/zercle/gofiber-skeleton/pkg/validator"
+    "strconv"
+    "github.com/gofiber/fiber/v2"
+    "github.com/google/uuid"
+    "github.com/zercle/gofiber-skeleton/internal/domains/product/entity"
+    "github.com/zercle/gofiber-skeleton/internal/domains/product/usecase"
+    "github.com/zercle/gofiber-skeleton/internal/shared/middleware"
+    "github.com/zercle/gofiber-skeleton/internal/shared/response"
+    "github.com/zercle/gofiber-skeleton/internal/shared/validator"
 )
 
 type ProductHandler struct {
-	usecase usecase.ProductUsecase
+    productUsecase usecase.ProductUsecase
 }
 
-func NewProductHandler(usecase usecase.ProductUsecase) *ProductHandler {
-	return &ProductHandler{usecase: usecase}
-}
-
-type CreateProductRequest struct {
-	Name        string  `json:"name" validate:"required,min=1,max=255"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price" validate:"required,gt=0"`
+func NewProductHandler(productUsecase usecase.ProductUsecase) *ProductHandler {
+    return &ProductHandler{
+        productUsecase: productUsecase,
+    }
 }
 
 // CreateProduct godoc
 // @Summary Create a new product
+// @Description Create a new product with the provided details
 // @Tags products
 // @Accept json
 // @Produce json
-// @Param request body CreateProductRequest true "Product data"
+// @Param request body entity.CreateProductRequest true "Product data"
 // @Security BearerAuth
-// @Success 201 {object} response.Response
+// @Success 201 {object} response.Response{data=entity.Product}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 500 {object} response.Response
 // @Router /api/v1/products [post]
 func (h *ProductHandler) CreateProduct(c *fiber.Ctx) error {
-	var req CreateProductRequest
-	if err := c.BodyParser(&req); err != nil {
-		return response.Fail(c, fiber.StatusBadRequest, fiber.Map{"error": "Invalid request body"})
-	}
+    var req entity.CreateProductRequest
+    if err := c.BodyParser(&req); err != nil {
+        return response.BadRequest(c, "Invalid request body", err.Error())
+    }
 
-	if err := validator.ValidateRequest(c, &req); err != nil {
-		return err
-	}
+    if err := validator.Validate(&req); err != nil {
+        return response.ValidationError(c, err.Error())
+    }
 
-	userID := c.Locals("user_id").(uuid.UUID)
+    product, err := h.productUsecase.Create(c.Context(), &req)
+    if err != nil {
+        return response.InternalServerError(c, "Failed to create product", err.Error())
+    }
 
-	product, err := h.usecase.CreateProduct(c.Context(), req.Name, req.Description, req.Price, userID)
-	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to create product", err)
-	}
-
-	return response.Success(c, fiber.StatusCreated, product)
+    return response.Created(c, "Product created successfully", product)
 }
 
-// Implement other handlers...
+// GetProduct godoc
+// @Summary Get product by ID
+// @Description Get a product by its ID
+// @Tags products
+// @Produce json
+// @Param id path string true "Product ID"
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=entity.Product}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/products/{id} [get]
+func (h *ProductHandler) GetProduct(c *fiber.Ctx) error {
+    productID, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return response.BadRequest(c, "Invalid product ID", err.Error())
+    }
 
-func RegisterProductRoutes(app fiber.Router, handler *ProductHandler, authMiddleware fiber.Handler) {
-	products := app.Group("/products")
+    product, err := h.productUsecase.GetByID(c.Context(), productID)
+    if err != nil {
+        if err == usecase.ErrProductNotFound {
+            return response.NotFound(c, "Product not found", err.Error())
+        }
+        return response.InternalServerError(c, "Failed to get product", err.Error())
+    }
 
-	products.Post("/", authMiddleware, handler.CreateProduct)
-	products.Get("/:id", handler.GetProductByID)
-	products.Get("/user/:user_id", handler.ListProductsByUser)
-	products.Put("/:id", authMiddleware, handler.UpdateProduct)
-	products.Delete("/:id", authMiddleware, handler.DeleteProduct)
+    return response.OK(c, "Product retrieved successfully", product)
+}
+
+// ListProducts godoc
+// @Summary List products
+// @Description Get a paginated list of products
+// @Tags products
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=[]entity.Product}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Router /api/v1/products [get]
+func (h *ProductHandler) ListProducts(c *fiber.Ctx) error {
+    page, err := strconv.Atoi(c.Query("page", "1"))
+    if err != nil || page < 1 {
+        page = 1
+    }
+
+    limit, err := strconv.Atoi(c.Query("limit", "10"))
+    if err != nil || limit < 1 || limit > 100 {
+        limit = 10
+    }
+
+    offset := (page - 1) * limit
+
+    products, err := h.productUsecase.List(c.Context(), limit, offset)
+    if err != nil {
+        return response.InternalServerError(c, "Failed to list products", err.Error())
+    }
+
+    return response.OK(c, "Products retrieved successfully", products)
+}
+
+// UpdateProduct godoc
+// @Summary Update product
+// @Description Update a product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path string true "Product ID"
+// @Param request body entity.UpdateProductRequest true "Product update data"
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=entity.Product}
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/products/{id} [put]
+func (h *ProductHandler) UpdateProduct(c *fiber.Ctx) error {
+    productID, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return response.BadRequest(c, "Invalid product ID", err.Error())
+    }
+
+    var req entity.UpdateProductRequest
+    if err := c.BodyParser(&req); err != nil {
+        return response.BadRequest(c, "Invalid request body", err.Error())
+    }
+
+    if err := validator.Validate(&req); err != nil {
+        return response.ValidationError(c, err.Error())
+    }
+
+    product, err := h.productUsecase.Update(c.Context(), productID, &req)
+    if err != nil {
+        if err == usecase.ErrProductNotFound {
+            return response.NotFound(c, "Product not found", err.Error())
+        }
+        return response.InternalServerError(c, "Failed to update product", err.Error())
+    }
+
+    return response.OK(c, "Product updated successfully", product)
+}
+
+// DeleteProduct godoc
+// @Summary Delete product
+// @Description Delete a product by its ID
+// @Tags products
+// @Produce json
+// @Param id path string true "Product ID"
+// @Security BearerAuth
+// @Success 204 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 404 {object} response.Response
+// @Router /api/v1/products/{id} [delete]
+func (h *ProductHandler) DeleteProduct(c *fiber.Ctx) error {
+    productID, err := uuid.Parse(c.Params("id"))
+    if err != nil {
+        return response.BadRequest(c, "Invalid product ID", err.Error())
+    }
+
+    if err := h.productUsecase.Delete(c.Context(), productID); err != nil {
+        if err == usecase.ErrProductNotFound {
+            return response.NotFound(c, "Product not found", err.Error())
+        }
+        return response.InternalServerError(c, "Failed to delete product", err.Error())
+    }
+
+    return response.NoContent(c, "Product deleted successfully")
 }
 ```
 
-### Step 10: Write Tests
+## 🔧 Step 7: Update Main Application
 
-Create `internal/product/tests/product_usecase_test.go`:
+Update `cmd/server/main.go`:
 
+1. Add DI container providers:
 ```go
-package tests
+do.Provide(di, func(i *do.Injector) repository.ProductRepository {
+    queries := do.MustInvoke[*sqlc.Queries](i)
+    return repository.NewProductRepository(queries)
+})
 
-import (
-	"context"
-	"testing"
+do.Provide(di, func(i *do.Injector) usecase.ProductUsecase {
+    productRepo := do.MustInvoke[repository.ProductRepository](i)
+    return usecase.NewProductUsecase(productRepo)
+})
 
-	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
-	"github.com/zercle/gofiber-skeleton/internal/product/entity"
-	mockRepo "github.com/zercle/gofiber-skeleton/internal/product/repository/mocks"
-	"github.com/zercle/gofiber-skeleton/internal/product/usecase"
-)
-
-func TestProductUsecase_CreateProduct(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockProductRepo := mockRepo.NewMockProductRepository(ctrl)
-	productUsecase := usecase.NewProductUsecase(mockProductRepo)
-
-	ctx := context.Background()
-	name := "Test Product"
-	description := "Test Description"
-	price := 99.99
-	userID := uuid.NewV7()
-
-	expectedProduct := &entity.Product{
-		ID:          uuid.NewV7(),
-		Name:        name,
-		Description: description,
-		Price:       price,
-		UserID:      userID,
-	}
-
-	mockProductRepo.EXPECT().
-		Create(ctx, name, description, price, userID).
-		Return(expectedProduct, nil).
-		Times(1)
-
-	result, err := productUsecase.CreateProduct(ctx, name, description, price, userID)
-
-	assert.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, name, result.Name)
-}
+do.Provide(di, func(i *do.Injector) *handler.ProductHandler {
+    productUsecase := do.MustInject[usecase.ProductUsecase](i)
+    return handler.NewProductHandler(productUsecase)
+})
 ```
 
-### Step 11: Register Routes in Router
-
-Edit `internal/server/router.go` to register your new domain:
-
+2. Add routes:
 ```go
-// Add to imports
-import (
-	productHandler "github.com/zercle/gofiber-skeleton/internal/product/handler"
-	productRepo "github.com/zercle/gofiber-skeleton/internal/product/repository"
-	productUsecase "github.com/zercle/gofiber-skeleton/internal/product/usecase"
-)
+productHandler := do.MustInvoke[*handler.ProductHandler](di)
 
-// In SetupRouter function, after existing domain setup:
-func SetupRouter(app *fiber.App, db *sql.DB, cfg *config.Config) {
-	// ... existing code ...
-
-	// Product domain
-	productRepository := productRepo.NewProductRepository(queries)
-	productUsecaseInstance := productUsecase.NewProductUsecase(productRepository)
-	productHandlerInstance := productHandler.NewProductHandler(productUsecaseInstance)
-	productHandler.RegisterProductRoutes(api, productHandlerInstance, authMiddleware.Authenticate)
-}
+products := api.Group("/products", authMiddleware.RequireAuth())
+products.Post("/", productHandler.CreateProduct)
+products.Get("/", productHandler.ListProducts)
+products.Get("/:id", productHandler.GetProduct)
+products.Put("/:id", productHandler.UpdateProduct)
+products.Delete("/:id", productHandler.DeleteProduct)
 ```
 
-### Step 12: Run Migrations and Test
+## 🧪 Step 8: Add Tests
+
+Create test files for each layer following the user domain pattern.
+
+## 🚀 Step 9: Run and Test
 
 ```bash
-# Run database migrations
+# Run migrations
 make migrate-up
 
-# Run tests
-make test
-
-# Generate updated documentation
-make generate-docs
-
-# Run the application
+# Start server
 make dev
+
+# Test your new endpoints
+curl -X POST http://localhost:8080/api/v1/products \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Product","price":29.99,"stock":100}'
 ```
 
-## Testing Your Domain
+## ✅ Checklist
 
-1. **Unit Tests**: Test usecases with mocked repositories
-2. **Repository Tests**: Test repositories with go-sqlmock
-3. **Integration Tests**: Test handlers with test database
+- [ ] Domain structure created
+- [ ] Entity with validation
+- [ ] Database queries added
+- [ ] Migration created and applied
+- [ ] Repository interface implemented
+- [ ] Usecase with business logic
+- [ ] Handler with Swagger docs
+- [ ] DI container updated
+- [ ] Routes registered
+- [ ] Tests written
+- [ ] Documentation updated
 
-Example test execution:
-```bash
-# Run all tests
-make test
-
-# Run with coverage
-make test-coverage
-
-# Run with race detector
-make test-race
-```
-
-## Best Practices
-
-1. **Always use interfaces** for repositories and usecases
-2. **Add validation** to all request DTOs
-3. **Implement ownership checks** in usecases where applicable
-4. **Use sqlc** for all database queries (no raw SQL in repositories)
-5. **Write tests** before considering the domain complete
-6. **Add Swagger annotations** to all handlers
-7. **Use JSend format** for all API responses
-8. **Follow naming conventions** (e.g., `CreateProduct`, not `AddProduct`)
-
-## Checklist
-
-- [ ] Entity defined in `entity/` directory
-- [ ] Database migration created (up and down)
-- [ ] SQL queries defined in `db/queries/`
-- [ ] sqlc code generated (`make sqlc`)
-- [ ] Repository interface and implementation created
-- [ ] Usecase interface and implementation created
-- [ ] HTTP handlers implemented
-- [ ] Routes registered in router
-- [ ] Mocks generated (`make generate-mocks`)
-- [ ] Unit tests written
-- [ ] Swagger documentation added
-- [ ] Integration tested with `make dev`
-
-## Common Pitfalls
-
-- **Forgetting to add foreign key constraints** in migrations
-- **Not checking ownership** before update/delete operations
-- **Missing validation tags** on request structs
-- **Forgetting to regenerate mocks** after interface changes
-- **Not handling database errors** properly in repositories
-- **Circular dependencies** between domains (avoid!)
-
-## Example Domains
-
-Refer to these existing domains for reference:
-- `internal/user` - Authentication and user management
-- `internal/post` - Posts with ownership validation
-
-## Need Help?
-
-- Check existing domains for patterns
-- Review the architecture documentation in `ARCHITECTURE.md`
-- Consult the Memory Bank in `.agents/rules/memory-bank/`
-
----
-
-**Time to Complete**: Approximately 15-20 minutes for a simple CRUD domain.
-
-**Next Steps**: After successfully adding a domain, consider adding additional features like pagination, search, or complex business logic.
+That's it! Your new domain follows the same Clean Architecture patterns as the user domain.

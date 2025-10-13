@@ -5,148 +5,182 @@ globs:
 alwaysApply: true
 ---
 
-# Agent Protocol: The Archivist Engineer
+# Memory Bank Protocol
 
-## Rule 0: Foundational State
-- Agent is stateless with no memory between sessions
-- Sole knowledge source: Memory Bank files in `.agents/rules/memory-bank/`
+I'm an AI agent with session-based memory. Between sessions, I rely on Memory Bank files in `.agents/rules/memory-bank/` to maintain project continuity.
 
-## Rule 1: Prime Directive
-- **Must** ingest entire Memory Bank as absolute first action before any processing
-- Failure to access = critical error, report immediately per Rule 2.2
+## Session Start Protocol
 
-## Rule 2: SOP - Response Header (Mandatory)
-**Every response must start with:**
+**ALWAYS check the actual file system first - never assume files are missing:**
 
-**Step 1: Memory Status** (one of):
-- Success: `[Memory Bank: Active]`
-- Failure: `[Memory Bank: Missing]` + warning:
-  > "Warning: Memory Bank missing/empty. No project context. Use `initialize memory bank` command."
-- If Missing: stop SOP, await user instruction
+### Step 1: File System Check
+- **FIRST**: Check if `.agents/rules/memory-bank/` directory exists
+- **THEN**: List actual files present in that directory
+- **NEVER** report "missing" without actually checking
 
-**Step 2: Synthesize** (if Active):
-- Single-sentence project state summary from Memory Bank
+### Step 2: Response Based on Actual State
 
-**Step 3: Plan** (if Active):
-- Concise checklist (3-5 bullets) for current request
+#### If Files Exist and Readable:
+- `[Memory Bank: Active - Loaded: {list actual files found}]`
+- Brief project summary from files
+- Proceed with loaded context
 
-## Rule 3: Commands
+#### If Directory Exists but No Files:
+- `[Memory Bank: Directory found, files empty - Initializing]`
+- Immediately offer: "I found the memory bank directory but it's empty. I'll analyze the project and create the core files now."
+- **Auto-proceed** with initialization unless user objects
 
-**`initialize memory bank`:**
-- Exhaustive project analysis (code, structure, docs)
-- Generate all core files (`brief.md`, `product.md`, etc.)
-- Summarize findings, request validation
+#### If Directory Missing:
+- `[Memory Bank: Creating structure]`
+- Create `.agents/rules/memory-bank/` directory
+- Immediately initialize with project analysis
+- Report completion
 
-**`update memory bank`:**
-- Full project re-analysis
-- Update all relevant files (focus: `context.md`, `architecture.md`)
+#### If Partial Files Exist:
+- `[Memory Bank: Partial - Found: {list actual files}]`
+- Load available files
+- Note which core files are missing: `Missing: {list}`
+- Offer: "Should I create the missing files to complete the memory bank?"
 
-**`add task: [Name]` or `store this as a task`:**
-- Create entry in `tasks.md`
-- Document: files, steps, considerations
+## Improved File Discovery
 
-## Rule 4: File Structure & Management
+### Before Reading Files:
+1. **Check directory existence**: `.agents/rules/memory-bank/`
+2. **List directory contents**: Show what's actually there
+3. **Attempt to read each file**: Handle read errors gracefully
+4. **Report actual status**: Based on what was found, not assumptions
 
-### Core Files (Priority Order)
+### Error Handling Hierarchy:
+1. **Directory missing** → Create and initialize
+2. **Files missing** → Create missing files
+3. **Files unreadable** → Report specific file issues
+4. **Permissions issues** → Provide specific guidance
 
-**1. `brief.md`** (User-maintained, source of truth)
-- **Access:** Read-only, never edit
-- **Contains:** Core requirements, project scope, constraints
-- **Role:** Authoritative source for conflict resolution
-- **Agent Action:** Suggest updates, don't modify directly
+## Core Files (Priority Order)
 
-**2. `architecture.md`** (High-impact context)
-- **Access:** Update during full refresh or when directly impacted
-- **Contains:**
-  - System design and component relationships
-  - Source file/directory paths
-  - Critical implementation details
-  - Design patterns and architectural decisions
-  - Module dependencies and data flow
-- **Role:** Technical blueprint for implementation decisions
-- **Update Triggers:** Structural changes, new components, pattern shifts
+### Essential Files
+1. **`brief.md`** - Project requirements and scope (user-maintained)
+2. **`architecture.md`** - System design and implementation details
+3. **`context.md`** - Current state and active work
+4. **`product.md`** - Purpose and user experience goals
+5. **`tech.md`** - Technology stack and dependencies
 
-**3. `context.md`** (Current state, frequently updated)
-- **Access:** Update after significant task completion
-- **Contains:**
-  - Active work focus and current session goals
-  - Recent changes and modifications
-  - Immediate next steps and blockers
-  - Pending decisions or questions
-- **Role:** Session-to-session continuity
-- **Update Triggers:** After each significant task, before session end
-- **Style:** Factual, not speculative; concrete, not vague
+### File Creation Strategy
+- **Always create directory first** if missing
+- **Populate immediately** with project analysis
+- **Verify creation** and report success
+- **Request user review** for accuracy
 
-**4. `product.md`** (Stable context)
-- **Access:** Update during full refresh or when product vision changes
-- **Contains:**
-  - Product purpose and problems solved
-  - User experience goals and workflows
-  - Target audience and use cases
-  - Success metrics and objectives
-- **Role:** Align technical decisions with product vision
-- **Update Triggers:** Feature pivots, UX changes, scope adjustments
+## Enhanced Workflows
 
-**5. `tech.md`** (Reference context)
-- **Access:** Update during full refresh or when stack changes
-- **Contains:**
-  - Technology stack and versions
-  - Dependencies and third-party integrations
-  - Development setup and environment
-  - Build/deployment configurations
-  - Technical constraints and limitations
-- **Role:** Technical reference and constraint awareness
-- **Update Triggers:** Dependency changes, tooling updates, new integrations
+### 1. Smart Auto-Initialization
 
-### Optional Files (Create When Beneficial)
+**Triggers:**
+- Directory missing
+- Directory empty
+- Core files missing
 
-**`tasks.md`:**
-- Reusable workflows and procedures
-- Task templates with steps and examples
-- Repetitive operation documentation
+**Process:**
+1. Create `.agents/rules/memory-bank/` if needed
+2. Analyze current project structure
+3. Identify project type, main files, and patterns
+4. Create all core files with discovered information
+5. Report: `[Memory Bank: Initialized - Created: {list files}]`
+6. Ask: "Please review the generated memory bank files for accuracy"
 
-**Additional Specialized Files:**
-- Feature specifications
-- API documentation
-- Testing strategies
-- Deployment procedures
-- Troubleshooting guides
+### 2. Intelligent File Recovery
 
-### File Management Rules
+**When some files exist:**
+1. Load and analyze existing files
+2. Identify missing core files
+3. Generate missing files based on:
+   - Existing file content
+   - Current project analysis
+   - Consistency with loaded context
+4. Maintain coherence across all files
 
-**Conflict Resolution:**
-- `brief.md` is authoritative
-- Report discrepancies to user
+### 3. Context-Aware Updates
 
-**Update Hierarchy:**
-- Explicit user command → Update all relevant files
-- Task completion → Update `context.md`
-- Structural change → Update `architecture.md`
-- Stack change → Update `tech.md`
-- Vision change → Update `product.md`
+**Smart update triggers:**
+- After implementing new features
+- When project structure changes
+- When dependencies are modified
+- When user requests updates
 
-**Information Density:**
-- Prioritize: `brief.md` > `architecture.md` > `context.md` > `product.md` > `tech.md`
-- Load files based on current task needs
-- Keep entries dense and precise (token efficiency)
+**Update process:**
+1. **Verify all files accessible**
+2. **Load current state** from all files
+3. **Compare with project reality**
+4. **Update incrementally** (don't rewrite everything)
+5. **Prioritize `context.md`** for recent changes
+6. **Preserve user-maintained content** in `brief.md`
 
-## Rule 5: Operating Principles
+## Robust Error Prevention
 
-**Proactive Maintenance:**
-- Detect significant unrecorded changes → Ask: *"Significant changes detected. Update memory bank?"*
+### File System Interaction Rules:
+- **Never assume** - always check actual file system
+- **Create missing structure** proactively
+- **Handle partial states** gracefully
+- **Provide specific error messages** with solutions
 
-**Task Referencing:**
-- User request matches `tasks.md` workflow → State intention to follow it
+### Common Issue Prevention:
 
-**Context Preservation:**
-- Context window nearing limit → Recommend Memory Bank update
+**"Memory bank missing" reports:**
+- **Root cause**: Not checking file system
+- **Solution**: Always verify directory and file existence first
+- **Response**: Create missing components immediately
 
-**Spec-Driven Approach:**
-- Memory Bank acts as executable specification
-- Clear, testable descriptions
-- Explicit system boundaries
-- Documented decision rationale
+**Permission/access issues:**
+- **Check**: File permissions and directory access
+- **Report**: Specific files and permission issues
+- **Suggest**: Concrete steps to resolve
+
+**Inconsistent file states:**
+- **Detect**: Files that don't match current project
+- **Update**: Outdated information automatically
+- **Preserve**: User-provided requirements and constraints
+
+## Performance Optimizations
+
+### Efficient Context Loading:
+1. **Load `context.md` first** - most relevant for current work
+2. **Load `architecture.md` second** - high-impact technical context
+3. **Load remaining files** based on immediate needs
+4. **Cache insights** to avoid re-reading during session
+
+### Smart Update Strategy:
+- **Incremental updates** rather than full rewrites
+- **Focus on changed areas** of the project
+- **Preserve stable information** across updates
+- **Version awareness** - note when major changes occur
+
+## User Experience Improvements
+
+### Clear Status Communication:
+- **Specific file states**: "Found 3 of 5 core files"
+- **Immediate actions**: "Creating missing architecture.md"
+- **Next steps**: "Ready to proceed with loaded context"
+
+### Proactive Problem Solving:
+- **Detect issues early** in session start
+- **Offer solutions immediately** - don't wait for user requests
+- **Auto-recover when possible** - minimize user intervention
+- **Explain what happened** - build user confidence
+
+### Reduced Friction:
+- **Auto-create missing structure** instead of reporting errors
+- **Initialize with intelligent defaults** based on project analysis
+- **Update incrementally** rather than requiring full rebuilds
+- **Maintain continuity** even when files are temporarily inaccessible
 
 ---
 
-**Core Truth:** Memory Bank = only continuity mechanism. Precision mandatory.
+## Key Behavioral Changes
+
+1. **File System First**: Always check actual files before reporting status
+2. **Proactive Creation**: Create missing components immediately
+3. **Intelligent Defaults**: Populate files with project analysis, not empty templates
+4. **Graceful Degradation**: Work effectively even with partial or missing files
+5. **User-Centric**: Minimize troubleshooting, maximize productivity
+
+**Remember**: The memory bank should be invisible infrastructure that "just works." When there are issues, solve them immediately rather than requiring user intervention.

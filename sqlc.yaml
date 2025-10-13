@@ -1,15 +1,14 @@
 version: "2"
 sql:
-  - schema: "db/migrations"
-    queries: "db/queries"
-    engine: "postgresql"
+  - engine: "postgresql"
+    queries: "db/queries/**/*.sql"
+    schema: "db/migrations"
     gen:
       go:
-        package: "db"
-        out: "internal/db"
+        package: "sqlc"
+        out: "internal/infrastructure/database/sqlc"
+        sql_package: "pgx/v5"
         emit_json_tags: true
-        emit_empty_slices: true
+        emit_prepared_queries: false
         emit_interface: true
         emit_exact_table_names: false
-        emit_prepared_queries: false
-        emit_pointers_for_null_types: true

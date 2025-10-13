@@ -2,43 +2,118 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  # Fast linting for quick feedback
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+      - name: Run sqlc
+        run: sqlc generate
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m
+
+  # Quick unit tests without full infrastructure
+  test-quick:
+    name: Quick Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gofiber_skeleton_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.20'
+          go-version: 'stable'
+          cache: true
 
-      - name: Install tools
-        run: |
-          go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          go install github.com/swaggo/swag/cmd/swag@latest
+      - name: Install sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
-      - name: Tidy modules
-        run: go mod tidy
-
-      - name: Generate SQL code
+      - name: Run sqlc
         run: sqlc generate
 
-      - name: Lint code
-        run: golangci-lint run
+      - name: Run quick tests
+        run: go test -v -race -short -coverprofile=coverage.out ./...
 
-      - name: Run tests
-        run: go test ./... -race
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.out
 
-      - name: Build binary
-        run: go build ./...
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: Generate API docs
-        run: swag init -g cmd/server/main.go --output ./docs
+      - name: Run Gosec
+        uses: securego/gosec@master
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+
+  generate-docs:
+    name: Generate Swagger Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+      
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger documentation
+        run: swag init --generalInfo ./cmd/server/main.go --parseDependency --parseInternal --parseFuncBody

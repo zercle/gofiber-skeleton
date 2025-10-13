@@ -24,9 +24,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/login": {
+        "/api/v1/auth/login": {
             "post": {
-                "description": "Authenticate user and return JWT token",
+                "description": "Authenticate a user and return a JWT token",
                 "consumes": [
                     "application/json"
                 ],
@@ -34,45 +34,63 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "authentication"
+                    "users"
                 ],
                 "summary": "User login",
                 "parameters": [
                     {
-                        "description": "Login credentials",
+                        "description": "User login data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.loginRequest"
+                            "$ref": "#/definitions/entity.LoginRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Login successful with JWT token",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
+                        "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
             }
         },
-        "/auth/register": {
+        "/api/v1/auth/register": {
             "post": {
-                "description": "Create a new user account with username, email, and password",
+                "description": "Create a new user account",
                 "consumes": [
                     "application/json"
                 ],
@@ -80,50 +98,134 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "authentication"
+                    "users"
                 ],
                 "summary": "Register a new user",
                 "parameters": [
                     {
-                        "description": "Registration details",
+                        "description": "User registration data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.registerRequest"
+                            "$ref": "#/definitions/entity.CreateUserRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "User registered successfully",
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
             }
         },
-        "/posts": {
+        "/api/v1/posts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of all posts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "List posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/entity.PostResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new post in a thread (requires authentication)",
+                "description": "Create a new post with the provided details",
                 "consumes": [
                     "application/json"
                 ],
@@ -136,57 +238,142 @@ const docTemplate = `{
                 "summary": "Create a new post",
                 "parameters": [
                     {
-                        "description": "Post details",
+                        "description": "Post data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.createPostRequest"
+                            "$ref": "#/definitions/entity.CreatePostRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Post created successfully",
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.PostResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
             }
         },
-        "/posts/{id}": {
+        "/api/v1/posts/my": {
             "get": {
-                "description": "Retrieve a single post by its ID",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of posts created by the current user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posts"
                 ],
-                "summary": "Get a post by ID",
+                "summary": "List current user's posts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/entity.PostResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/posts/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a post by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "Get post by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID (UUID)",
+                        "description": "Post ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -194,21 +381,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Post retrieved successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.PostResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid post ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "404": {
-                        "description": "Post not found",
+                        "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -219,7 +424,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update an existing post (requires authentication and ownership)",
+                "description": "Update a post by its ID (only author can update)",
                 "consumes": [
                     "application/json"
                 ],
@@ -229,48 +434,66 @@ const docTemplate = `{
                 "tags": [
                     "posts"
                 ],
-                "summary": "Update a post",
+                "summary": "Update post",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID (UUID)",
+                        "description": "Post ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Updated post content",
+                        "description": "Post update data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.updatePostRequest"
+                            "$ref": "#/definitions/entity.UpdatePostRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Post updated successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.PostResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -281,15 +504,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete an existing post (requires authentication and ownership)",
+                "description": "Delete a post by its ID (only author can delete)",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "posts"
                 ],
-                "summary": "Delete a post",
+                "summary": "Delete post",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Post ID (UUID)",
+                        "description": "Post ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -297,65 +523,349 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "description": "Post deleted successfully"
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
                     },
                     "400": {
-                        "description": "Invalid post ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
-                    "500": {
-                        "description": "Internal server error",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
             }
         },
-        "/users/{user_id}/posts": {
+        "/api/v1/users": {
             "get": {
-                "description": "Retrieve all posts created by a specific user",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of users",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "posts"
+                    "users"
                 ],
-                "summary": "List posts by user",
+                "summary": "List users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/entity.UserResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the current user's profile",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the current user's profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "User update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entity.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete the current user's account",
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user account",
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a user by their ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID (UUID)",
-                        "name": "user_id",
+                        "description": "User ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Posts retrieved successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/entity.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid user ID",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.JSendResponse"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -363,22 +873,55 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.createPostRequest": {
+        "entity.CreatePostRequest": {
             "type": "object",
             "required": [
                 "content",
-                "thread_id"
+                "status",
+                "title"
             ],
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 10
                 },
-                "thread_id": {
-                    "type": "string"
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "published"
+                    ]
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3
                 }
             }
         },
-        "handler.loginRequest": {
+        "entity.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "full_name",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
+        "entity.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -393,48 +936,133 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.registerRequest": {
+        "entity.LoginResponse": {
             "type": "object",
-            "required": [
-                "email",
-                "password",
-                "username"
-            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/entity.User"
+                }
+            }
+        },
+        "entity.PostResponse": {
+            "type": "object",
+            "properties": {
+                "author_id": {
+                    "type": "string"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.UpdatePostRequest": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "minLength": 10
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "published"
+                    ]
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3
+                }
+            }
+        },
+        "entity.UpdateUserRequest": {
+            "type": "object",
             "properties": {
                 "email": {
                     "type": "string"
                 },
+                "full_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 2
+                },
                 "password": {
                     "type": "string",
-                    "minLength": 6
+                    "minLength": 8
+                }
+            }
+        },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
                 },
-                "username": {
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "handler.updatePostRequest": {
+        "entity.UserResponse": {
             "type": "object",
-            "required": [
-                "content"
-            ],
             "properties": {
-                "content": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "response.JSendResponse": {
+        "response.Response": {
             "type": "object",
             "properties": {
-                "code": {
-                    "type": "integer"
-                },
                 "data": {},
+                "error": {},
                 "message": {
                     "type": "string"
                 },
-                "status": {
+                "success": {
+                    "type": "boolean"
+                },
+                "timestamp": {
                     "type": "string"
                 }
             }
@@ -455,9 +1083,9 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
-	Schemes:          []string{"http", "https"},
+	Schemes:          []string{},
 	Title:            "Go Fiber Skeleton API",
-	Description:      "Production-ready Go backend template using Fiber v2 framework with Clean Architecture",
+	Description:      "Production-ready Go Fiber backend template with Clean Architecture",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

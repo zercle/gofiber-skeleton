@@ -1,54 +1,136 @@
 basePath: /api/v1
 definitions:
-  handler.createPostRequest:
+  entity.CreatePostRequest:
     properties:
       content:
-        type: string
-      thread_id:
-        type: string
-    required:
-    - content
-    - thread_id
-    type: object
-  handler.loginRequest:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
-  handler.registerRequest:
-    properties:
-      email:
-        type: string
-      password:
-        minLength: 6
-        type: string
-      username:
-        type: string
-    required:
-    - email
-    - password
-    - username
-    type: object
-  handler.updatePostRequest:
-    properties:
-      content:
-        type: string
-    required:
-    - content
-    type: object
-  response.JSendResponse:
-    properties:
-      code:
-        type: integer
-      data: {}
-      message:
+        minLength: 10
         type: string
       status:
+        enum:
+        - draft
+        - published
+        type: string
+      title:
+        maxLength: 255
+        minLength: 3
+        type: string
+    required:
+    - content
+    - status
+    - title
+    type: object
+  entity.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+  entity.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  entity.LoginResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/entity.User'
+    type: object
+  entity.PostResponse:
+    properties:
+      author_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.UpdatePostRequest:
+    properties:
+      content:
+        minLength: 10
+        type: string
+      status:
+        enum:
+        - draft
+        - published
+        type: string
+      title:
+        maxLength: 255
+        minLength: 3
+        type: string
+    type: object
+  entity.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        maxLength: 255
+        minLength: 2
+        type: string
+      password:
+        minLength: 8
+        type: string
+    type: object
+  entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entity.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      success:
+        type: boolean
+      timestamp:
         type: string
     type: object
 host: localhost:8080
@@ -57,8 +139,7 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: Production-ready Go backend template using Fiber v2 framework with
-    Clean Architecture
+  description: Production-ready Go Fiber backend template with Clean Architecture
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -66,135 +147,206 @@ info:
   title: Go Fiber Skeleton API
   version: "1.0"
 paths:
-  /auth/login:
+  /api/v1/auth/login:
     post:
       consumes:
       - application/json
-      description: Authenticate user and return JWT token
+      description: Authenticate a user and return a JWT token
       parameters:
-      - description: Login credentials
+      - description: User login data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.loginRequest'
+          $ref: '#/definitions/entity.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Login successful with JWT token
+          description: OK
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.LoginResponse'
+              type: object
         "400":
-          description: Invalid request
+          description: Bad Request
           schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
-      summary: User login
-      tags:
-      - authentication
-  /auth/register:
-    post:
-      consumes:
-      - application/json
-      description: Create a new user account with username, email, and password
-      parameters:
-      - description: Registration details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handler.registerRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: User registered successfully
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
-      summary: Register a new user
-      tags:
-      - authentication
-  /posts:
-    post:
-      consumes:
-      - application/json
-      description: Create a new post in a thread (requires authentication)
-      parameters:
-      - description: Post details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handler.createPostRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Post created successfully
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "400":
-          description: Invalid request
-          schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+      summary: User login
+      tags:
+      - users
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User registration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Register a new user
+      tags:
+      - users
+  /api/v1/posts:
+    get:
+      description: Get a paginated list of all posts
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.PostResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List posts
+      tags:
+      - posts
+    post:
+      consumes:
+      - application/json
+      description: Create a new post with the provided details
+      parameters:
+      - description: Post data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.PostResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
       summary: Create a new post
       tags:
       - posts
-  /posts/{id}:
+  /api/v1/posts/{id}:
     delete:
-      description: Delete an existing post (requires authentication and ownership)
+      description: Delete a post by its ID (only author can delete)
       parameters:
-      - description: Post ID (UUID)
+      - description: Post ID
         in: path
         name: id
         required: true
         type: string
+      produces:
+      - application/json
       responses:
         "204":
-          description: Post deleted successfully
-        "400":
-          description: Invalid post ID
+          description: No Content
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
-      summary: Delete a post
+      summary: Delete post
       tags:
       - posts
     get:
-      description: Retrieve a single post by its ID
+      description: Get a post by its ID
       parameters:
-      - description: Post ID (UUID)
+      - description: Post ID
         in: path
         name: id
         required: true
@@ -203,90 +355,312 @@ paths:
       - application/json
       responses:
         "200":
-          description: Post retrieved successfully
+          description: OK
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.PostResponse'
+              type: object
         "400":
-          description: Invalid post ID
+          description: Bad Request
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
         "404":
-          description: Post not found
+          description: Not Found
           schema:
-            $ref: '#/definitions/response.JSendResponse'
-      summary: Get a post by ID
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get post by ID
       tags:
       - posts
     put:
       consumes:
       - application/json
-      description: Update an existing post (requires authentication and ownership)
+      description: Update a post by its ID (only author can update)
       parameters:
-      - description: Post ID (UUID)
+      - description: Post ID
         in: path
         name: id
         required: true
         type: string
-      - description: Updated post content
+      - description: Post update data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.updatePostRequest'
+          $ref: '#/definitions/entity.UpdatePostRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Post updated successfully
+          description: OK
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.PostResponse'
+              type: object
         "400":
-          description: Invalid request
+          description: Bad Request
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.JSendResponse'
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
-      summary: Update a post
+      summary: Update post
       tags:
       - posts
-  /users/{user_id}/posts:
+  /api/v1/posts/my:
     get:
-      description: Retrieve all posts created by a specific user
+      description: Get a paginated list of posts created by the current user
       parameters:
-      - description: User ID (UUID)
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.PostResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List current user's posts
+      tags:
+      - posts
+  /api/v1/users:
+    get:
+      description: Get a paginated list of users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.UserResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - users
+  /api/v1/users/{id}:
+    get:
+      description: Get a user by their ID
+      parameters:
+      - description: User ID
         in: path
-        name: user_id
+        name: id
         required: true
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Posts retrieved successfully
+          description: OK
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UserResponse'
+              type: object
         "400":
-          description: Invalid user ID
+          description: Bad Request
           schema:
-            $ref: '#/definitions/response.JSendResponse'
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
         "500":
-          description: Internal server error
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.JSendResponse'
-      summary: List posts by user
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
       tags:
-      - posts
-schemes:
-- http
-- https
+      - users
+  /api/v1/users/profile:
+    delete:
+      description: Delete the current user's account
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete user account
+      tags:
+      - users
+    get:
+      description: Get the current user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update the current user's profile
+      parameters:
+      - description: User update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

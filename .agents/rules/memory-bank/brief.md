@@ -1,38 +1,126 @@
-# **Project Brief: Go Fiber Template Repository**
+# **Project Brief: Go Fiber Production-Ready Template**
 
-## **1. The Foundation: Core Architecture**
+## **1. Template Purpose**
 
-We are building a backend template using **Go** and the **Fiber v2** framework. The foundational architecture will be a **Domain-Driven Clean Architecture** implemented within a **mono-repo structure**. This strategic choice emphasizes strict domain isolation and adherence to SOLID principles. The primary benefit is creating a highly maintainable and scalable codebase where each business domain (e.g., auth, posts) is a self-contained, independently testable module with zero dependencies on other domains. This separation of concerns is crucial for long-term project health and team collaboration.
+Production-ready **template repository** providing a complete Go backend foundation using **Fiber v2** with **Domain-Driven Clean Architecture**. Eliminates **80-90% of initial project setup** work, enabling developers to focus on business logic from day one.
 
-## **2. High-Level Overview: What We're Building**
+## **2. Value Proposition**
 
-The goal is to create a robust, production-ready template that significantly accelerates the development of new Go backend services. This template will serve as a comprehensive "skeleton" project, pre-configured with established best practices and a curated set of tools for handling common backend tasks like database interaction, configuration, and authentication. The ideal outcome is a developer experience where one can clone the repository, quickly add a new business domain by following a clear guide, and immediately focus on writing valuable business logic without getting bogged down in repetitive boilerplate setup.
+### **What Developers Get (80-90% Complete)**
+* ✅ Complete Clean Architecture implementation
+* ✅ Production-ready configuration management
+* ✅ Database integration with migrations + type-safe queries
+* ✅ JWT authentication system with password hashing
+* ✅ Comprehensive middleware stack
+* ✅ Development environment with Docker Compose
+* ✅ Testing framework with mocks and examples
+* ✅ Auto-generated API documentation
+* ✅ CI/CD foundation with health checks
+* ✅ Deployment-ready containerization
 
-## **3. Core Requirements and Goals**
+### **What Developers Add (10-20% Business Logic)**
+* Business-specific domains following reference pattern
+* Custom validation rules and business logic
+* Domain-specific database migrations
+* API endpoints for their use cases
+* Additional third-party integrations
 
-### **Key Technologies:**
+## **3. Core Technologies**
 
-* **Framework:** Go Fiber v2 - A high-performance, Express.js-inspired web framework for building APIs.  
-* **Dependency Injection:** Uber's fx - To manage dependencies and ensure a modular, loosely coupled application structure.  
-* **Configuration:** Viper - For robust configuration management that supports .env files, YAML, and environment variables with clear precedence rules.  
-* **Database Migrations:** golang-migrate/migrate - To handle database schema evolution with versioned, repeatable SQL migration files.  
-* **SQL Generation:** sqlc - For generating fully type-safe, idiomatic Go code directly from raw SQL queries, catching errors at compile-time.  
-* **Authentication:** golang-jwt - A standard library for creating and verifying JSON Web Tokens for secure, stateless authentication.  
-* **API Documentation:** swaggo/swag - To automatically generate interactive API documentation from comments in the Go source code.  
-* **Development:** Hot-reloading with Air - To improve the development feedback loop by automatically rebuilding and restarting the server on file changes.  
-* **Testing & Mocking:**  
-  * go.uber.org/mock/mockgen: For auto-generating mock implementations of interfaces using //go:generate annotations.  
-  * DATA-DOG/go-sqlmock: For mocking the SQL database layer to test data access logic without a real database.
+* **Framework:** Go Fiber v2 (high-performance web framework)
+* **Architecture:** Domain-Driven Clean Architecture
+* **Dependency Injection:** Samber's do (type-safe, generics-based)
+* **Database:** PostgreSQL + pgx driver + sqlc (type-safe SQL)
+* **Authentication:** golang-jwt + Argon2id password hashing
+* **Configuration:** Viper (environment-aware)
+* **Testing:** uber-go/mock + comprehensive examples
+* **Documentation:** swaggo/swag (auto-generated Swagger/OpenAPI)
+* **Development:** Air (hot-reloading) + Docker Compose
 
-### **Must-Have Features:**
+## **4. Reference Implementation**
 
-* **Project Structure:** A clear and scalable directory structure that intuitively separates domains, shared infrastructure (like database connections and middleware), and command entry points (/cmd, /internal/domains, /db, etc.).  
-* **Configuration Management:** A flexible and environment-aware config system that prioritizes runtime environment variables for production but falls back to a .env file for easy local development.  
-* **Database Tooling:** Integrated tools and scripts for running migrations to update the database schema and for generating type-safe Go queries, ensuring database operations are reliable and maintainable.  
-* **Authentication:** A pre-built and fully functional auth domain to serve as a practical example, demonstrating user registration with password hashing and stateless authentication using JSON Web Tokens (JWT).  
-* **Containerization:** A compose.yml file that allows developers to spin up a consistent, isolated development environment with a single command, including PostgreSQL and a Valkey (or Redis) cache.  
-* **Developer Experience:** A suite of helper scripts or make commands for executing common tasks, such as running the full test suite, linting the code for style consistency, building a production binary, and generating API documentation.  
-* **Comprehensive Testing Strategy:** The template must demonstrate a robust testing approach. This includes:  
-  * **Unit Testability:** Using go.uber.org/mock/mockgen with //go:generate annotations on all repositories and usecases interfaces to ensure business logic can be tested in complete isolation.
-  * **Repository Testing:** Providing examples of repositories tests that use DATA-DOG/go-sqlmock to simulate database queries and responses, ensuring data logic is correct without requiring a live database connection.
-* **Clear Instructions:** The process for adding a new business domain to the project must be simple, repeatable, and thoroughly documented to guide developers.
+Complete **user/auth domain** demonstrating all patterns:
+* Entity layer with proper domain modeling
+* Repository layer with PostgreSQL integration
+* Usecase layer with business logic and tests
+* Handler layer with HTTP endpoints and docs
+* 90%+ test coverage with proper mocking
+* Production-ready security practices
+
+## **5. Getting Started Workflow**
+
+### **5-Minute Setup**
+1. Clone repository
+2. Customize module name and configuration
+3. Run `make dev` - everything works out of the box
+4. Explore running application and API docs
+
+### **1-Hour Domain Addition**
+1. Follow `docs/ADDING_NEW_DOMAIN.md` guide
+2. Create domain structure following user pattern
+3. Implement business logic with tests
+4. Add routes - everything integrates automatically
+
+## **6. Template Benefits**
+
+### **For Development Teams**
+* **Time Savings:** Eliminate weeks of initial setup
+* **Consistency:** Standardized architecture across projects
+* **Quality:** Built-in best practices and code quality
+* **Scalability:** Proven patterns that grow with teams
+
+### **For Individual Developers**
+* **Speed:** Start building business logic immediately
+* **Learning:** Real-world Go best practices examples
+* **Confidence:** Production-ready foundation
+* **Growth:** Understanding of enterprise architecture
+
+### **For Organizations**
+* **Standardization:** Consistent patterns across teams
+* **Onboarding:** Faster team member integration
+* **Maintenance:** Reduced overhead with proven patterns
+* **Innovation:** More time for business logic
+
+## **7. Success Criteria**
+
+A developer should be able to:
+* ✅ Clone and run template in **under 5 minutes**
+* ✅ Understand architecture by reviewing user domain
+* ✅ Add new CRUD domain in **under 1 hour**
+* ✅ Deploy to production with minimal configuration
+* ✅ Maintain high code quality with built-in tooling
+* ✅ Scale application by adding more domains
+
+## **8. Target Audience**
+
+* **Development Teams** starting new Go backend projects
+* **Individual Developers** building production applications
+* **Organizations** standardizing on Go for microservices
+* **Startups** needing rapid development without quality sacrifice
+* **Developers** learning Go best practices with real examples
+
+## **9. Quality Standards**
+
+### **Enforced by Template**
+* **Architecture:** Strict Clean Architecture with domain isolation
+* **Testing:** Mock-based unit testing with 90%+ coverage target
+* **Security:** JWT authentication, password hashing, input validation
+* **Performance:** Connection pooling, caching, efficient queries
+* **Documentation:** Auto-generated Swagger docs for all endpoints
+* **Code Quality:** golangci-lint with comprehensive rules
+* **Type Safety:** sqlc for compile-time SQL validation
+
+### **Developer Experience**
+* No research needed - best practices built-in
+* No tooling setup - everything pre-configured
+* No boilerplate writing - reference implementation provided
+* No deployment configuration - Docker setup included
+* No authentication implementation - production-ready auth included
+
+## **10. Template Maintenance**
+
+* Regular dependency updates for security and features
+* Best practice improvements based on Go ecosystem evolution
+* Community feedback incorporation
+* Documentation updates and clarifications
+* New feature examples and patterns

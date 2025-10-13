@@ -1,0 +1,43 @@
+name: Setup Go Environment
+
+on:
+  workflow_call:
+    inputs:
+      install-tools:
+        description: 'Install additional Go tools (sqlc, swag, mockgen)'
+        required: false
+        type: boolean
+        default: false
+      run-codegen:
+        description: 'Run code generation (sqlc, swag, mockgen)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Install Go tools
+        if: inputs.install-tools
+        run: |
+          go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+          go install github.com/swaggo/swag/cmd/swag@latest
+          go install go.uber.org/mock/mockgen@latest
+
+      - name: Run code generation
+        if: inputs.run-codegen
+        run: |
+          go mod tidy
+          sqlc generate
+          swag init -g cmd/server/main.go --output ./docs
+          go generate ./...

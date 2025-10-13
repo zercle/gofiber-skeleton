@@ -1,115 +1,86 @@
-.PHONY: help fmt build run tidy test test-race test-coverage lint sqlc migrate migrate-up migrate-down migrate-create migrate-version generate-docs generate-mocks dev clean ci install-tools
+.PHONY: help build dev test clean migrate-up migrate-down docker-up docker-down docker-logs
 
-# Default target
-help:
-	@echo "Available commands:"
-	@echo "  make fmt              - Format Go code"
-	@echo "  make build            - Build the application"
-	@echo "  make run              - Build and run the application"
-	@echo "  make dev              - Run with hot-reloading (requires Air)"
-	@echo "  make tidy             - Tidy Go modules"
-	@echo "  make test             - Run tests"
-	@echo "  make test-race        - Run tests with race detector"
-	@echo "  make test-coverage    - Run tests with coverage report"
-	@echo "  make lint             - Run linter"
-	@echo "  make sqlc             - Generate sqlc code"
-	@echo "  make migrate-up       - Run database migrations"
-	@echo "  make migrate-down     - Rollback last migration"
-	@echo "  make migrate-create   - Create new migration (usage: make migrate-create name=create_users)"
-	@echo "  make migrate-version  - Show current migration version"
-	@echo "  make generate-docs    - Generate Swagger documentation"
-	@echo "  make generate-mocks   - Generate mock implementations"
-	@echo "  make clean            - Clean build artifacts"
-	@echo "  make ci               - Run CI pipeline"
-	@echo "  make install-tools    - Install required development tools"
+help: ## Show this help message
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Available targets:'
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-fmt:
-	@echo "Formatting Go code..."
-	@go fmt ./...
+setup: ## Setup the project (install dependencies and tools)
+	@echo "Setting up project..."
+	go mod download
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+	go install github.com/golang/mock/mockgen@latest
+	go install github.com/cosmtrek/air@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
-build:
-	@echo "Building application..."
-	@mkdir -p bin
-	@go build -o bin/server cmd/server/main.go
+clean: ## Clean build artifacts
+	rm -rf bin/
+	go clean -cache
 
-run: build
-	@echo "Running application..."
-	@./bin/server
+build: clean ## Build the application
+	CGO_ENABLED=0 go build -o bin/server cmd/server/main.go
 
-dev:
-	@echo "Starting development server with hot-reloading..."
-	@air
+build-prod: clean ## Build the application for production
+	CGO_ENABLED=0 go build -ldflags="-w -s" -o bin/server cmd/server/main.go
 
-tidy:
-	@echo "Tidying Go modules..."
-	@go mod tidy
+dev: ## Run the application in development mode with hot-reload
+	@echo "Starting development server..."
+	air
 
-test:
-	@echo "Running tests..."
-	@go test -v ./...
+run: ## Run the application
+	go run cmd/server/main.go
 
-test-race:
-	@echo "Running tests with race detector..."
-	@go test -v -race ./...
+test: ## Run tests
+	go test -v ./...
 
-test-coverage:
-	@echo "Running tests with coverage..."
-	@go test -v -coverprofile=coverage.out ./...
-	@go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
+test-coverage: ## Run tests with coverage
+	go test -v -race -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
 
-lint:
-	@echo "Running linter..."
-	@golangci-lint run --timeout=5m
+lint: ## Run linter
+	golangci-lint run
 
-sqlc:
-	@echo "Generating sqlc code..."
-	@sqlc generate
+lint-fix: ## Run linter with fixes
+	golangci-lint run --fix
 
-migrate-up:
-	@echo "Running database migrations..."
-	@migrate -path db/migrations -database "$(DATABASE_DSN)" up
+sqlc: ## Generate Go code from SQL queries
+	sqlc generate
 
-migrate-down:
-	@echo "Rolling back last migration..."
-	@migrate -path db/migrations -database "$(DATABASE_DSN)" down 1
+mocks: ## Generate mocks
+	go generate ./...
 
-migrate-create:
-	@if [ -z "$(name)" ]; then \
-		echo "Error: name parameter is required. Usage: make migrate-create name=create_users"; \
+swagger: ## Generate Swagger documentation
+	swag init -g cmd/server/main.go
+
+migrate-up: ## Run database migrations up
+	migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/gofiber_skeleton?sslmode=disable" up
+
+migrate-down: ## Run database migrations down
+	migrate -path db/migrations -database "postgres://postgres:postgres@localhost:5432/gofiber_skeleton?sslmode=disable" down
+
+migrate-create: ## Create new migration (usage: make migrate-create NAME=migration_name)
+	@if [ -z "$(NAME)" ]; then \
+		echo "Error: Migration name is required. Usage: make migrate-create NAME=migration_name"; \
 		exit 1; \
 	fi
-	@echo "Creating migration: $(name)"
-	@migrate create -ext sql -dir db/migrations -seq $(name)
+	@echo "Creating migration: $(NAME)"
+	migrate create -ext sql -dir db/migrations -seq $(NAME)
 
-migrate-version:
-	@echo "Current migration version:"
-	@migrate -path db/migrations -database "$(DATABASE_DSN)" version
+docker-up: ## Start Docker Compose services
+	docker-compose up -d
 
-generate-docs:
-	@echo "Generating Swagger documentation..."
-	@swag init -g cmd/server/main.go --output ./docs
+docker-down: ## Stop Docker Compose services
+	docker-compose down
 
-generate-mocks:
-	@echo "Generating mock implementations..."
-	@go generate ./...
+docker-logs: ## Show Docker Compose logs
+	docker-compose logs -f
 
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf bin/
-	@rm -rf tmp/
-	@rm -f coverage.out coverage.html
-	@echo "Clean complete"
+docker-build: ## Build Docker image
+	docker build -t gofiber-skeleton .
 
-ci: fmt sqlc generate-mocks lint test-race build generate-docs
-	@echo "CI pipeline complete"
+docker-run: ## Run Docker container
+	docker run -p 8080:8080 --env-file .env gofiber-skeleton
 
-install-tools:
-	@echo "Installing development tools..."
-	@go install github.com/cosmtrek/air@latest
-	@go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-	@go install github.com/swaggo/swag/cmd/swag@latest
-	@go install github.com/golang/mock/mockgen@latest
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-	@echo "Tools installed successfully"
+all: setup sqlc mocks swagger build test lint ## Run all setup and build tasks

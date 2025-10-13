@@ -4,52 +4,69 @@
 *.dll
 *.so
 *.dylib
-bin/
-dist/
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-coverage.html
-coverage.out
 
-# Dependency directories
-vendor/
+# Dependency directories (remove the comment below to include it)
+# vendor/
 
 # Go workspace file
 go.work
 
-# Environment variables
-.env
-
-# IDE specific files
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS specific files
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Air temporary files
+# Application specific
 tmp/
-
-# Log files
+bin/
 *.log
-build-errors.log
 
-# Database files
-*.db
+# Environment files
+.env
+.env.local
+.env.production
+
+# Database
 *.sqlite
 *.sqlite3
 
-# Generated documentation (optional - uncomment if you don't want to commit docs)
-# docs/
+# Air
+tmp/
+build-errors.log
 
-# Temporary files
-*_tmp
-*_temp
+# Coverage
+coverage.out
+coverage.html
+
+# Docker
+.dockerignore
+
+# Docs
+docs/swagger/docs.go
+docs/swagger/swagger.json
+docs/swagger/swagger.yaml
+
+# Sqlc
+internal/infrastructure/database/sqlc/db.go
+
+# Generated files
+*.pb.go
+*.generated.go
+*_mock.go
