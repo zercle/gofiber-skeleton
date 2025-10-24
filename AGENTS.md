@@ -1,121 +1,104 @@
 ---
-description: Memory Bank for Software Implementation
+description: Agentic AI Coder - Optimized Ruleset
 globs:
   - "**/*"
 alwaysApply: true
 ---
 
-# Agent Protocol: The Archivist Engineer
+## Core Philosophy
+Spec-Driven Development emphasizes intent-driven development where specifications define the "what" before the "how." Uses multi-step refinement rather than one-shot generation, with Memory Bank providing persistent context across sessions.
 
-## Rule 0: Foundational State
-- Agent is stateless with no memory between sessions
-- Primary knowledge source: Memory Bank files in `{project's root}/.agents/rules/memory-bank/`
-- Memory Bank may not exist in new projects - this is normal
+## Memory Bank Structure
+Location: `{project root}/.agents/rules/memory-bank`
 
-## Rule 1: Prime Directive
-- **First action**: Check Memory Bank accessibility in `{project's root}/.agents/rules/memory-bank/`
-- If accessible: ingest entire Memory Bank before processing
-- If missing/empty: offer initialization (see Rule 2.1)
+### Critical Workflow Rules
+1. **MANDATORY**: Read ALL memory bank files at start of EVERY task
+2. Indicate status with `[Memory Bank: Active]` or `[Memory Bank: Missing]`
+3. Briefly summarize project understanding for confirmation
+4. For significant changes: suggest updating memory bank
+5. At task completion: update `context.md` with current state
 
-## Rule 2: SOP - Response Header (Mandatory)
-**Every response must start with:**
-
-**Step 1: Memory Status** (one of):
-- Success: `[Memory Bank: Active - {X} files loaded]`
-- Missing: `[Memory Bank: Not Found - Ready to Initialize]`
-- Empty: `[Memory Bank: Empty - Ready to Initialize]`
-
-**Step 2a: If Memory Bank Missing/Empty:**
-- State: "No existing project context found."
-- Offer: "I can initialize the Memory Bank by analyzing your project. Would you like me to run `initialize memory bank`?"
-- Continue with request using available context (code files, user input)
-
-**Step 2b: If Memory Bank Active:**
-- **Synthesize**: Single-sentence project state summary from Memory Bank
-- **Plan**: Concise checklist (3-5 bullets) for current request
-
-## Rule 3: Commands
-
-**`initialize memory bank`:**
-- Create `{project's root}/.agents/rules/memory-bank/` directory if needed
-- Exhaustive project analysis (code, structure, docs, user requirements)
-- Apply clean architecture principles with domain driven design to the new project structure if not specify
-- Generate all core files (`brief.md`, `product.md`, `architecture.md`, `context.md`, `tech.md`) limit to 300-500 lines per file
-- Summarize findings and request user validation
-- Confirm Memory Bank is now active
-
-**`update memory bank`:**
-- Full project re-analysis
-- Update all relevant files (prioritize `context.md`, `architecture.md`)
-- Report what was updated and why
-
-**`add task: [Name]` or `store this as a task`:**
-- Create/update `tasks.md`
-- Document: files, steps, considerations
-
-## Rule 4: File Structure & Management
-
-### Core Files (Priority Order)
-
-**1. `brief.md`** (User-maintained, source of truth)
-- **Access:** Read-only, never edit
-- **Contains:** Core requirements, project scope, constraints
-- **Role:** Authoritative source for conflict resolution
-- **Agent Action:** Suggest updates, don't modify directly
-
-**2. `architecture.md`** (High-impact context)
-- **Access:** Update during full refresh or when directly impacted
-- **Contains:**
-  - System design and component relationships
-  - Source file/directory paths and structure
-  - Critical implementation details
-  - Design patterns and architectural decisions
-  - Module dependencies and data flow
-- **Role:** Technical blueprint for implementation decisions
-
-**3. `context.md`** (Current state, frequently updated)
-- **Access:** Update after significant task completion
-- **Contains:**
-  - Active work focus and current session goals
-  - Recent changes and modifications
-  - Immediate next steps and blockers
-  - Pending decisions or questions
-- **Role:** Session-to-session continuity
-
-**4. `product.md`** (Stable context)
-- **Contains:** Product purpose, user goals, workflows, success metrics
-- **Update Triggers:** Feature pivots, UX changes, scope adjustments
-
-**5. `tech.md`** (Reference context)
-- **Contains:** Technology stack, dependencies, environment setup, constraints
-- **Update Triggers:** Dependency changes, tooling updates
+### Core Files (Required)
+1. `brief.md` - Foundation document (user-maintained, don't edit directly)
+   - Core requirements and goals
+   - Source of truth for project scope
+2. `product.md` - Problem statement, UX goals, user personas
+3. `context.md` - Current work focus, recent changes, next steps, development phase
+4. `architecture.md` - System structure, component relationships, ADR format for decisions
+5. `tech.md` - Technology stack, dependencies, setup requirements
 
 ### Optional Files
-- `tasks.md`: Reusable workflows and procedures
-- Specialized files as needed (features, API docs, testing, deployment)
+- `specs.md` - Feature specifications, acceptance criteria, business rules
+- `experiments.md` - Alternative implementations and comparisons
+- `tasks.md` - Repetitive task workflows
+- Additional specialized files as needed
 
-### File Management Rules
-- **Conflict Resolution:** `brief.md` is authoritative
-- **Update Hierarchy:** User command → structural changes → task completion
-- **Token Efficiency:** Keep files under 500 lines, dense and precise
-- **Auto-create directories:** Create `{project's root}/.agents/rules/memory-bank/` as needed
+## Development Phases
+1. **0-to-1 Development**: Generate from scratch using high-level requirements
+2. **Creative Exploration**: Parallel implementations and diverse solutions
+3. **Iterative Enhancement**: Feature additions and legacy modernization
 
-## Rule 5: Operating Principles
+## Key Workflows
 
-**Graceful Degradation:**
-- Missing Memory Bank ≠ failure, offer initialization
-- Work with available context when Memory Bank absent
-- Always provide value, even without full context
+### Memory Bank Initialization (CRITICAL)
+When user requests `initialize memory bank`:
+- Perform exhaustive analysis of all project files
+- Create comprehensive initial memory bank
+- Each memory bank core file limit to 300-500 lines
+- Provide summary for user verification
+- Emphasize this foundation affects all future interactions
 
-**Proactive Maintenance:**
-- Detect significant changes → Ask: "Update memory bank?"
-- Context window nearing limit → Recommend Memory Bank update
+### Memory Bank Update
+Triggered by:
+1. User explicitly requests "update memory bank" (MUST review ALL files)
+2. Discovering new project patterns
+3. After implementing significant changes
+4. When context needs clarification
+5. When moving between development phases
 
-**Initialization Triggers:**
-- New project (no Memory Bank)
-- User explicitly requests it
-- Significant project changes detected
+Process:
+1. Review ALL project files
+2. Document current state and insights
+3. If requested with context source (e.g., "@/Makefile"), focus special attention
+4. Ensure alignment between specs.md and implementation
 
----
+### Task Documentation
+When user requests `add task` or for repetitive workflows:
+- Create/update `tasks.md` in memory bank folder
+- Document with:
+  - Task name and description
+  - Files to modify
+  - Step-by-step workflow
+  - Important considerations and gotchas
+  - Example implementation
+- Suggest documentation for potentially recurring tasks
 
-**Core Truth:** Memory Bank provides continuity when available. When missing, initialize gracefully and continue working.
+## Implementation Process
+1. **Specification Creation**:
+   - Start with requirements in brief.md
+   - Expand details in specs.md
+   - Define acceptance criteria
+   - Get confirmation before implementation
+
+2. **Implementation Planning**:
+   - Review specs.md and brief.md
+   - Plan steps in context.md
+   - Identify files to modify based on architecture.md
+   - Document new technical decisions in architecture.md
+
+3. **Validation and Refinement**:
+   - Validate against specs.md requirements
+   - Update context.md with current state
+   - Document any deviations from specifications
+   - Suggest memory bank update for significant changes
+
+## Context Window Management
+When context window fills:
+- Suggest updating memory bank to preserve state
+- Recommend starting fresh conversation
+- New sessions automatically reload memory bank for continuity
+
+## Priority Rules
+- Prioritize brief.md over conflicting information
+- If inconsistencies detected: note discrepancies to user
+- Memory Bank is only link between sessions - maintain precision
