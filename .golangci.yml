@@ -1,7 +1,8 @@
 version: "2"
-# Options for analysis running.
+
 run:
   timeout: 5m
   relative-path-mode: gomod
   modules-download-mode: readonly
   allow-parallel-runners: true
+  tests: true

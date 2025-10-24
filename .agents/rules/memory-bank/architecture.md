@@ -1,619 +1,355 @@
-# Architecture: Go Fiber Microservice Template
+# Architecture Document: Go Fiber Microservice Template
 
-## System Architecture Overview
+## System Overview
+
+This template implements Clean Architecture with Domain-Driven Design principles, creating a modular monolith that can easily transition to microservices. The architecture emphasizes clear separation of concerns, testability, and maintainability.
+
+## Architectural Principles
+
+### Core Principles
+1. **Dependency Inversion:** High-level modules don't depend on low-level modules; both depend on abstractions
+2. **Single Responsibility:** Each component has one reason to change
+3. **Open/Closed:** Components are open for extension, closed for modification
+4. **Interface Segregation:** Clients shouldn't depend on interfaces they don't use
+5. **Domain Centric:** Business logic lives in the domain layer, free of infrastructure concerns
+
+### Additional Principles
+- **SQL-First Development:** Database schema and queries drive data access layer design
+- **Container-Native Design:** Architecture optimized for container deployment and scaling
+- **Microservice-Ready:** Clear service boundaries with well-defined API contracts
+- **Test-Driven Infrastructure:** Comprehensive testing capabilities across all layers
+
+## Layer Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    HTTP Requests                            │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
+│                    Presentation Layer                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   HTTP Handlers │  │   Middleware    │  │   Swagger   │ │
+│  │   (Fiber)       │  │   (Auth, CORS)  │  │   Docs      │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Middleware Layer                                            │
-│ (Auth, CORS, Logging, Rate Limiting, Error Handling)      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
+│                    Application Layer                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Usecases      │  │   DTOs          │  │   Validators │ │
+│  │   (Business     │  │   (Request/     │  │   (Input     │ │
+│  │   Logic)        │  │   Response)     │  │   Validation)│ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Handler Layer (HTTP Interface)                              │
-│ - Route Handlers                                            │
-│ - Request Validation & DTOs                                │
-│ - Response Formatting (JSend)                              │
-│ - Swagger Annotations                                      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
+│                     Domain Layer                            │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Entities      │  │   Value Objects │  │   Domain    │ │
+│  │   (Core Models) │  │   (Business     │  │   Interfaces│ │
+│  │                 │  │   Rules)        │  │   (Contracts)│ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Usecase Layer (Business Logic)                              │
-│ - Core Business Rules                                       │
-│ - Orchestration & Transactions                              │
-│ - Domain Logic                                              │
-│ - Service-to-Service Calls                                  │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Repository Layer (Data Access)                              │
-│ - Database Queries (sqlc generated)                         │
-│ - Transaction Management                                    │
-│ - Data Persistence                                          │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│ Domain Models (Core Entities & Interfaces)                  │
+│                 Infrastructure Layer                        │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
+│  │   Repositories  │  │   External      │  │   Database  │ │
+│  │   (Data Access) │  │   Services      │  │   (SQLc)    │ │
+│  │   (SQLc +       │  │   (HTTP Clients)│  │   (Generated│ │
+│  │   Migrations)   │  │                 │  │   Code)     │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Layer Responsibilities
+## Directory Structure Deep Dive
 
-### Handler Layer (`internal/handler/`)
-**Purpose:** HTTP interface - convert HTTP requests to domain operations
-
-**Responsibilities:**
-- Define HTTP routes
-- Parse and validate incoming requests (DTOs)
-- Call usecases with validated data
-- Format responses in JSend format
-- Generate Swagger/OpenAPI documentation
-- Handle HTTP-specific concerns (headers, status codes)
-
-**Key Patterns:**
-- Each entity has a handler file (user.go, product.go, etc.)
-- Handlers inject usecases via dependency injection
-- Request validation happens before usecase call
-- Error handling via centralized error response formatter
-- Swagger annotations on all public functions
-
-**Example Structure:**
-```go
-// internal/handler/user.go
-type UserHandler struct {
-    userUsecase domain.UserUsecase
-}
-
-// @Summary Create user
-// @Router /users [post]
-func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-    var req CreateUserRequest
-    if err := c.BodyParser(&req); err != nil {
-        return err
-    }
-    // Validation, call usecase, format response
-}
+### Application Entry Points
+```
+cmd/service/
+├── main.go                    # Service bootstrap and application lifecycle
+├── config.go                  # Configuration loading and validation
+├── server.go                  # Fiber server setup and middleware
+└── app.go                     # Dependency injection container setup
 ```
 
-### Usecase Layer (`internal/usecase/`)
-**Purpose:** Business logic and orchestration
-
-**Responsibilities:**
-- Implement business rules
-- Orchestrate between repositories and external services
-- Handle transactions
-- Validate business constraints
-- Coordinate multiple data sources
-- Service-to-service communication logic
-
-**Key Patterns:**
-- Each feature has a usecase file (user.go, product.go, etc.)
-- Usecases inject repositories via dependency injection
-- No HTTP concerns (no fiber.Ctx, no HTTP status codes)
-- Pure business logic independent of delivery mechanism
-- All interfaces include //go:generate mock generation
-
-**Example Structure:**
-```go
-// internal/usecase/user.go
-type CreateUserUsecase interface {
-    Execute(ctx context.Context, input *CreateUserInput) (*User, error)
-}
-
-type createUserImpl struct {
-    userRepo  domain.UserRepository
-    txManager domain.TransactionManager
-}
-
-func (u *createUserImpl) Execute(ctx context.Context, input *CreateUserInput) (*User, error) {
-    // Business logic, validation, persistence
-}
+### Core Application Logic
+```
+internal/
+├── handlers/                  # HTTP Presentation Layer
+│   ├── user/                  # Domain-specific handlers
+│   │   ├── user_handler.go    # User-related HTTP endpoints
+│   │   ├── user_handler_test.go
+│   │   └── user_mock.go       # Generated mock (go:generate)
+│   ├── middleware/            # Cross-cutting HTTP concerns
+│   │   ├── auth.go            # JWT authentication middleware
+│   │   ├── cors.go            # CORS handling
+│   │   ├── logging.go         # Request/response logging
+│   │   └── recovery.go        # Panic recovery
+│   └── common/                # Shared handler utilities
+│       ├── response.go        # Standardized response formatting
+│       └── validation.go      # Input validation helpers
+├── usecases/                  # Application Business Logic Layer
+│   ├── user/                  # Domain-specific business logic
+│   │   ├── user_usecase.go    # User business operations
+│   │   ├── user_usecase_test.go
+│   │   └── user_mock.go       # Generated mock
+│   └── common/                # Shared usecase utilities
+│       ├── transaction.go     # Transaction management
+│       └── validation.go      # Business validation rules
+├── repositories/              # Data Access Layer
+│   ├── user/                  # Domain-specific data access
+│   │   ├── user_repository.go # User database operations
+│   │   ├── user_repository_test.go
+│   │   └── user_mock.go       # Generated mock
+│   └── common/                # Shared repository utilities
+│       ├── transaction.go     # Transaction handling via sqlc
+│       └── base_repository.go # Common repository patterns
+├── domains/                   # Domain Interface Definitions
+│   ├── user/                  # Domain-specific contracts
+│   │   ├── user.go            # User domain interfaces
+│   │   └── user_entities.go   # User domain entities
+│   └── common/                # Shared domain concepts
+│       ├── base.go            # Base interfaces and types
+│       └── errors.go          # Domain-specific error types
+├── models/                    # Domain Entities and Value Objects
+│   ├── user.go                # User entity definition
+│   ├── user_validation.go     # User business rules
+│   └── common/                # Shared models
+│       ├── base.go            # Base model behaviors
+│       └── pagination.go      # Pagination patterns
+└── infrastructure/            # External Infrastructure
+    ├── database/              # Database setup and management
+    │   ├── connection.go      # Database connection management
+    │   ├── migrations.go      # Migration runner
+    │   └── health.go          # Database health checks
+    ├── sqlc/                  # Generated SQL code
+    │   ├── user.sql.go        # Generated user queries
+    │   └── models.go          # Generated data models
+    ├── config/                # Configuration Management
+    │   ├── config.go          # Configuration structs
+    │   ├── env.go             # Environment variable loading
+    │   └── validation.go      # Config validation
+    └── errors/                # Error Handling Infrastructure
+        ├── errors.go          # Error type definitions
+        ├── http_errors.go     # HTTP error mapping
+        └── error_handlers.go  # Error handling middleware
 ```
 
-### Repository Layer (`internal/repository/`)
-**Purpose:** Data access abstraction
-
-**Responsibilities:**
-- Execute database queries (generated by sqlc)
-- Handle transactions and atomicity
-- Abstract database details from usecases
-- Convert between domain models and persistence models
-- Database connection management
-
-**Key Patterns:**
-- Each entity has a repository file
-- Repositories inject database transaction manager
-- All queries come from sqlc-generated code
-- Repositories implement domain interfaces
-- Support transaction handling (begin, rollback, commit)
-
-**Example Structure:**
-```go
-// internal/repository/user.go
-type UserRepository interface {
-    Create(ctx context.Context, user *User) (*User, error)
-    GetByID(ctx context.Context, id string) (*User, error)
-    // ... other operations
-}
-
-type userRepository struct {
-    db      *sql.DB
-    queries *sqlc.Queries
-}
-
-func (r *userRepository) Create(ctx context.Context, user *User) (*User, error) {
-    // Use sqlc-generated queries
-}
+### Shared Utilities
+```
+pkg/                           # Public API for external consumption
+├── response/                  # Standardized response formats
+│   ├── response.go            # Response struct definitions
+│   ├── error_response.go      # Error response formatting
+│   └── pagination.go          # Paginated response helpers
+├── validation/                # Input validation utilities
+│   ├── validator.go           # Validation framework setup
+│   └── rules.go               # Common validation rules
+├── logger/                    # Structured logging utilities
+│   ├── logger.go              # Logger configuration
+│   ├── context.go             # Context-aware logging
+│   └── middleware.go          # HTTP logging middleware
+└── utils/                     # General utility functions
+    ├── crypto.go              # Cryptographic helpers
+    ├── time.go                # Time utilities
+    └── strings.go             # String manipulation helpers
 ```
 
-### Middleware Layer (`internal/middleware/`)
-**Purpose:** Cross-cutting concerns
+## Database Architecture
 
-**Responsibilities:**
-- Authentication (JWT validation)
-- Authorization (permission checking)
-- Request logging and tracing
-- CORS configuration
-- Rate limiting
-- Panic recovery
-- Request/response modification
+### SQL-First Approach
+1. **Schema Definition:** Database schema defined in `/sql/migrations`
+2. **Query Development:** SQL queries written in `/sql/queries` with sqlc annotations
+3. **Code Generation:** `sqlc generate` creates type-safe Go code
+4. **Type Safety:** Generated code provides compile-time query validation
 
-**Key Middleware:**
-- AuthMiddleware: Validates JWT tokens
-- LoggingMiddleware: Structured logging with slog
-- ErrorHandlingMiddleware: Converts panics to error responses
-- RateLimitMiddleware: Prevents abuse
-- CORSMiddleware: Enables cross-origin requests
-
-### Domain Layer (`internal/domain/`)
-**Purpose:** Core business entities and interfaces
-
-**Responsibilities:**
-- Define core domain models (User, Product, etc.)
-- Define repository interfaces
-- Define usecase interfaces
-- Core business constants and types
-- No implementation details
-
-**Key Patterns:**
-- All interfaces defined here
-- Models represent real-world entities
-- No database implementation details
-- No HTTP framework dependencies
-- //go:generate annotations for mocks
-
-**Example Structure:**
-```go
-// internal/domain/user.go
-type User struct {
-    ID    string
-    Name  string
-    Email string
-}
-
-//go:generate mockgen -destination=../mocks/mock_user_repository.go . UserRepository
-type UserRepository interface {
-    Create(ctx context.Context, user *User) (*User, error)
-    GetByID(ctx context.Context, id string) (*User, error)
-    Update(ctx context.Context, user *User) (*User, error)
-    Delete(ctx context.Context, id string) error
-    List(ctx context.Context) ([]*User, error)
-}
-
-//go:generate mockgen -destination=../mocks/mock_user_usecase.go . UserUsecase
-type UserUsecase interface {
-    CreateUser(ctx context.Context, input *CreateUserInput) (*User, error)
-    // ... other operations
-}
+### Migration Strategy
+```
+sql/
+├── migrations/                # Database version control
+│   ├── 000001_create_users.up.sql
+│   ├── 000001_create_users.down.sql
+│   └── schema.sql             # Current schema reference
+└── queries/                   # SQL queries for sqlc
+    ├── user.sql               # User-related queries
+    └── common.sql             # Common query patterns
 ```
 
-### Package Layer (`pkg/`)
-**Purpose:** Shared utilities and common functions
+### Transaction Management
+- Repository layer handles transaction boundaries
+- Use `samber/do` for dependency injection of transaction contexts
+- Support for distributed transactions across multiple domains
 
-**Responsibilities:**
-- Response formatting utilities (JSend)
-- Error handling and custom error types
-- Database utilities
-- Validation helpers
-- Common constants and types
+## Dependency Injection Architecture
 
-**Key Utilities:**
-- `pkg/response/` - JSend response formatting
-- `pkg/errors/` - Custom error types and handling
-- `pkg/validation/` - Input validation helpers
-- `pkg/database/` - Connection and transaction management
-
-### Configuration Layer (`internal/config/`)
-**Purpose:** Application configuration and initialization
-
-**Responsibilities:**
-- Load environment variables via Viper
-- Validate configuration
-- Provide configuration to application
-- Secret management
-- Environment-specific settings
-
-**Example Structure:**
-```go
-// internal/config/config.go
-type Config struct {
-    Server ServerConfig
-    Database DatabaseConfig
-    Auth   AuthConfig
-    Logging LogConfig
-}
-
-func Load() (*Config, error) {
-    // Load from env via Viper
-    // Validate
-    // Return Config
-}
+### Container Structure
+```
+app/
+├── container.go               # DI container definition
+├── providers/                 # Dependency providers
+│   ├── database_provider.go   # Database connection provider
+│   ├── config_provider.go     # Configuration provider
+│   ├── logger_provider.go     # Logger provider
+│   └── repository_provider.go # Repository layer providers
+└── wire/                      # Wire-generated injection code
+    └── wire_gen.go
 ```
 
-## Dependency Injection Pattern
+### Provider Patterns
+- **Singleton:** Database connections, configuration, logger
+- **Scoped:** HTTP handlers, use cases per request
+- **Transient:** Value objects, DTOs
 
-### DI Container (samber/do v2)
-- Central injection point in main.go
-- All dependencies registered at startup
-- Constructor injection for all layers
-- Service locator pattern for services
+## Security Architecture
 
-**Example:**
-```go
-// cmd/api/main.go
-func setupDI(container *do.Injector) {
-    // Register repositories
-    do.ProvideValue(container, userRepository)
-
-    // Register usecases
-    do.Provide(container, func(i *do.Injector) (UserUsecase, error) {
-        repo := do.MustInvoke[UserRepository](i)
-        return NewCreateUserUsecase(repo), nil
-    })
-
-    // Register handlers
-    do.Provide(container, func(i *do.Injector) (UserHandler, error) {
-        uc := do.MustInvoke[UserUsecase](i)
-        return NewUserHandler(uc), nil
-    })
-}
+### Authentication & Authorization
+```
+security/
+├── jwt/                       # JWT implementation
+│   ├── token.go               # Token generation/validation
+│   ├── claims.go              # Custom claim definitions
+│   └── middleware.go          # JWT middleware
+├── auth/                      # Authentication interfaces
+│   ├── auth_service.go        # Authentication business logic
+│   └── auth_provider.go       # External auth integration
+└── rbac/                      # Role-based access control
+    ├── permissions.go         # Permission definitions
+    └── middleware.go          # RBAC middleware
 ```
 
-## Error Handling Strategy
+### Security Layers
+1. **Network Layer:** TLS/HTTPS, rate limiting
+2. **Application Layer:** Input validation, authentication
+3. **Domain Layer:** Business rule authorization
+4. **Data Layer:** Row-level security, encryption
 
-### Error Types
-1. **Domain Errors:** Business logic validation failures
-2. **Repository Errors:** Database access failures
-3. **External Errors:** Third-party API failures
-4. **Validation Errors:** Input validation failures
-5. **Authorization Errors:** Permission/auth failures
-6. **Technical Errors:** Infrastructure/system failures
+## Monitoring & Observability
 
-### Error Response Format (JSend)
+### Health Check Architecture
+```
+health/
+├── checker.go                 # Health check interface
+├── database_health.go         # Database health check
+├── external_service_health.go # External service health checks
+└── middleware.go              # Health check HTTP endpoints
+```
+
+### Observability Stack
+- **Logging:** Structured logging with correlation IDs
+- **Metrics:** Prometheus-compatible metrics
+- **Tracing:** OpenTelemetry integration hooks
+- **Health Checks:** Liveness, readiness, startup probes
+
+## Configuration Architecture
+
+### Environment-Based Configuration
+```
+config/
+├── types.go                   # Configuration type definitions
+├── loader.go                  # Environment variable loading
+├── validation.go              # Configuration validation
+└── defaults.go                # Default values
+```
+
+### Configuration Hierarchy
+1. **Environment Variables:** Runtime configuration
+2. **Configuration Files:** Environment-specific configs
+3. **Default Values:** Built-in sensible defaults
+
+## Error Handling Architecture
+
+### Structured Error Types
+```
+errors/
+├── domain_errors.go           # Domain-specific error types
+├── infrastructure_errors.go   # Infrastructure error types
+├── http_errors.go             # HTTP error mapping
+└── error_handlers.go          # Global error handlers
+```
+
+### Error Response Format
 ```json
 {
-    "status": "error",
-    "message": "User not found",
+  "error": {
     "code": "USER_NOT_FOUND",
+    "message": "User not found",
     "details": {
-        "user_id": "123"
+      "user_id": "123",
+      "timestamp": "2024-01-01T12:00:00Z"
     }
-}
-```
-
-### Error Handling Flow
-1. Handler validates input → returns validation error
-2. Usecase checks business rules → returns domain error
-3. Repository executes query → returns database error
-4. Middleware catches all errors → formats JSend response
-5. HTTP layer returns appropriate status code
-
-## Transaction Management
-
-### Transaction Scope
-- Transactions span usecase layer only (no cross-service transactions)
-- Repositories handle low-level transaction operations
-- Usecases coordinate transaction lifecycle
-
-**Example:**
-```go
-func (u *createUserUsecase) Execute(ctx context.Context, input *CreateUserInput) (*User, error) {
-    tx := u.txManager.Begin(ctx)
-    defer tx.Rollback()
-
-    user, err := u.userRepo.Create(ctx, newUser)
-    if err != nil {
-        return nil, err // Rollback on defer
-    }
-
-    // More operations
-
-    return user, tx.Commit()
+  }
 }
 ```
 
 ## Testing Architecture
 
-### Unit Testing
-- **Handler Tests:** Mock usecases, test HTTP response/request mapping
-- **Usecase Tests:** Mock repositories, test business logic
-- **Repository Tests:** Use go-sqlmock, test DB queries
-
-### Integration Testing
-- **API Tests:** HTTP endpoints with in-memory test database
-- **Database Tests:** Full DB integration with test fixtures
-- **Middleware Tests:** Auth, logging, error handling verification
-
-### Mock Generation
-```go
-// Interface definition with generate directive
-//go:generate mockgen -destination=../mocks/mock_user_repository.go . UserRepository
-
-// Usage in tests
-func TestCreateUser(t *testing.T) {
-    mockRepo := NewMockUserRepository(ctrl)
-    mockRepo.EXPECT().
-        Create(gomock.Any(), gomock.Any()).
-        Return(&User{}, nil)
-
-    uc := NewCreateUserUsecase(mockRepo)
-    result, err := uc.Execute(ctx, input)
-}
+### Test Organization
 ```
+tests/
+├── integration/               # Integration tests
+├── e2e/                       # End-to-end tests
+├── fixtures/                  # Test data fixtures
+├── mocks/                     # Generated mocks
+└── testutils/                 # Testing utilities
+```
+
+### Testing Strategy
+1. **Unit Tests:** Fast, isolated tests for business logic
+2. **Integration Tests:** Database and external service integration
+3. **Contract Tests:** API contract validation
+4. **Performance Tests:** Load and stress testing
+
+## Deployment Architecture
+
+### Container Strategy
+- **Multi-stage builds:** Optimized for production
+- **Health checks:** Built-in container health checks
+- **Configuration:** Environment-based runtime configuration
+- **Security:** Non-root user, minimal attack surface
+
+### Scaling Considerations
+- **Horizontal Scaling:** Stateless service design
+- **Database Scaling:** Connection pooling, read replicas
+- **Caching:** Application-level caching strategies
+- **Load Balancing:** Multiple instance support
 
 ## Architecture Decision Records (ADRs)
 
-### ADR-001: Layered Architecture Over Hexagonal/Onion
+### ADR-001: Fiber Framework Selection
 **Status:** Accepted
+**Decision:** Use Fiber v2 as the HTTP framework
+**Rationale:** 
+- Express.js-like API reduces learning curve
+- Superior performance characteristics
+- Excellent middleware ecosystem
+- Active community and maintenance
 
-**Context:**
-Template needs to be approachable for developers of varying experience levels while remaining scalable for small-to-medium services.
-
-**Decision:**
-Use explicit layered architecture (Handler → Usecase → Repository → Domain) instead of hexagonal or onion architecture.
-
-**Rationale:**
-- Simpler to understand for developers new to architecture patterns
-- Clearer folder structure reduces cognitive load
-- Still provides good separation of concerns
-- Easier to navigate in smaller services
-- Better for template use case where clarity > sophistication
-
-**Consequences:**
-- Less suitable for extremely complex domain logic
-- Domain layer is thinner than in DDD-heavy approaches
-- Easier for beginners to violate layering than in hexagonal architecture
-
----
-
-### ADR-002: DI Container (samber/do) Over Wire or Manual
+### ADR-002: SQL-First Database Access
 **Status:** Accepted
-
-**Context:**
-Dependency injection is essential for testability and separation of concerns. Need to choose between manual injection, Wire (code generation), or container-based approaches.
-
-**Decision:**
-Use samber/do v2 for centralized dependency injection container.
-
+**Decision:** Use sqlc with SQL-first approach
 **Rationale:**
-- Lightweight compared to heavyweight containers
-- Type-safe at compile-time
-- Zero runtime cost compared to reflection-based containers
-- Simpler than Wire for small services
-- Clear DI setup in one location (main.go)
+- Type safety at compile time
+- Clear separation of data access logic
+- Excellent database optimization visibility
+- Migration-friendly approach
 
-**Consequences:**
-- Developers must understand DI patterns
-- Debugging DI issues can be tricky
-- Slightly more verbose than manual injection
-
----
-
-### ADR-003: sqlc for Type-Safe SQL Over ORM
+### ADR-003: Clean Architecture Implementation
 **Status:** Accepted
-
-**Context:**
-Need balance between type safety and simplicity. ORM adds abstraction, but sqlc is lighter-weight.
-
-**Decision:**
-Use sqlc for type-safe SQL code generation instead of ORM or raw sql.Rows.
-
+**Decision:** Implement Clean Architecture with DDD principles
 **Rationale:**
-- Compile-time SQL verification
-- Prevents SQL injection automatically
-- Developers control exact SQL for optimization
-- Generated code is lightweight and fast
-- No ORM learning curve for new developers
+- Clear separation of concerns
+- Excellent testability
+- Framework-agnostic business logic
+- Easy refactoring and maintenance
 
-**Consequences:**
-- Developers must write and maintain SQL
-- Migration management separate from Go code
-- Less abstraction over database details
-
----
-
-### ADR-004: Middleware-Based Error Handling Over Exception-Like Panics
+### ADR-004: Dependency Injection with samber/do
 **Status:** Accepted
-
-**Context:**
-Go doesn't have exceptions. Need consistent error handling across all endpoints.
-
-**Decision:**
-Use middleware to catch and format all errors consistently, with explicit error returns in handlers and usecases.
-
+**Decision:** Use samber/do for dependency injection
 **Rationale:**
-- Centralized error formatting (JSend)
-- Consistent HTTP status code mapping
-- Middleware can handle panics as safety net
-- Clear error propagation path
+- Type-safe dependency resolution
+- Excellent performance characteristics
+- Simple API without code generation
+- Go-idiomatic approach
 
-**Consequences:**
-- Requires discipline to return errors properly
-- Panic recovery is safety net, not primary pattern
-- Error formatting logic lives in middleware
-
----
-
-### ADR-005: JWT for Primary Authentication Over Session-Based
-**Status:** Accepted
-
-**Context:**
-Stateless microservice needs authentication that works across service boundaries.
-
-**Decision:**
-Use JWT tokens for authentication with OIDC as alternative for enterprise scenarios.
-
-**Rationale:**
-- Stateless (fits microservice architecture)
-- Works across service boundaries
-- No session storage required
-- Standard and well-understood
-- OIDC available for companies with SSO needs
-
-**Consequences:**
-- Token revocation requires additional mechanism
-- No server-side session visibility
-- Token size can impact performance
-
----
-
-### ADR-006: Structured Logging (slog) Over Printf-Style
-**Status:** Accepted
-
-**Context:**
-Logging needs to be machine-parseable for log aggregation and monitoring.
-
-**Decision:**
-Use slog with structured JSON logging and context propagation.
-
-**Rationale:**
-- Built-in Go library (1.21+)
-- Structured logging is industry standard
-- Context propagation for request tracing
-- Machine-parseable JSON for log aggregation
-- Minimal performance impact
-
-**Consequences:**
-- Logs are JSON (less human-readable in terminal)
-- Need to use tools to view logs in development
-- Context must be propagated through calls
-
----
-
-### ADR-007: Handler → Usecase → Repository Flow with Explicit Error Returns
-**Status:** Accepted
-
-**Context:**
-Error handling must be explicit but not verbose. Need balance between clarity and ergonomics.
-
-**Decision:**
-All functions return errors explicitly. No hidden side effects. Errors propagate up the stack.
-
-**Rationale:**
-- Explicit error handling prevents hidden failures
-- Clear error flow from database up to HTTP response
-- Middleware can add context to errors
-- Easy to track error origin
-
-**Consequences:**
-- More error checks in code
-- Slightly more verbose than exception-like approaches
-- Requires discipline to handle all errors
-
----
-
-## Component Interactions
-
-### Creating a New User (Happy Path)
-
-```
-1. HTTP POST /users
-   ↓
-2. Handler.CreateUser() validates request
-   ↓
-3. Usecase.CreateUser() implements business logic
-   ↓
-4. Repository.Create() executes SQL INSERT
-   ↓
-5. Database returns inserted record
-   ↓
-6. Repository returns User domain model
-   ↓
-7. Usecase returns User with business context
-   ↓
-8. Handler formats JSend response
-   ↓
-9. HTTP 201 Created response
-```
-
-### Error Handling (User Already Exists)
-
-```
-1. Repository.Create() executes INSERT
-   ↓
-2. Database returns duplicate key error
-   ↓
-3. Repository wraps as DomainError
-   ↓
-4. Usecase receives error, returns to handler
-   ↓
-5. Handler doesn't catch, error propagates
-   ↓
-6. Middleware catches error
-   ↓
-7. Middleware maps to HTTP 409 Conflict with JSend error response
-   ↓
-9. HTTP 409 response with error details
-```
-
-## Scaling Considerations
-
-### Horizontal Scaling
-- **Stateless Design:** No session state on servers
-- **Database:** External (shared across instances)
-- **Transactions:** Scoped to single request (no cross-request transactions)
-- **Caching:** Application-level, not per-instance state
-
-### Vertical Scaling
-- **Single Service:** Can handle multiple concerns initially
-- **Split Point:** When domain becomes too complex, split into separate services
-- **Shared Libraries:** Common patterns extracted to separate module
-
-### Multi-Service Coordination
-- **Event-Driven:** Services communicate via message queues
-- **Synchronous:** REST calls with circuit breaker pattern
-- **Transaction Saga:** Distributed transaction handling for multi-service operations
-
-## Security Architecture
-
-### Authentication Layer
-1. JWT token in Authorization header
-2. Middleware validates signature and expiry
-3. Token claims added to request context
-4. Handlers access user info from context
-
-### Authorization Layer
-1. Role-based access control (RBAC)
-2. Checked in usecase or middleware
-3. Returns 403 Forbidden if unauthorized
-4. Audit logging for auth events
-
-### Input Validation
-1. Handler validates request shape
-2. Usecase validates business rules
-3. Repository validates data constraints
-4. Database enforces data integrity
-
-### Rate Limiting
-1. Middleware applies per-IP/per-user rate limits
-2. Returns 429 Too Many Requests
-3. Configured via environment variables
-4. Can integrate with distributed systems (Redis)
+This architecture document provides the foundation for understanding the system structure, component relationships, and the reasoning behind key architectural decisions. It serves as a guide for developers working with the template and for future architectural evolution.

@@ -9,7 +9,7 @@ alwaysApply: true
 Spec-Driven Development emphasizes intent-driven development where specifications define the "what" before the "how." Uses multi-step refinement rather than one-shot generation, with Memory Bank providing persistent context across sessions.
 
 ## Memory Bank Structure
-Location: `{project root}/.agents/rules/memory-bank`
+Location: `${workspaceFolder}/.agents/rules/memory-bank`
 
 ### Critical Workflow Rules
 1. **MANDATORY**: Read ALL memory bank files at start of EVERY task
@@ -50,7 +50,7 @@ When user requests `initialize memory bank`:
 
 ### Memory Bank Update
 Triggered by:
-1. User explicitly requests "update memory bank" (MUST review ALL files)
+1. User explicitly requests `update memory bank` (MUST review ALL files)
 2. Discovering new project patterns
 3. After implementing significant changes
 4. When context needs clarification

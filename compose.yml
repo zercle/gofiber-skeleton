@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-fiber-app
+    ports:
+      - "3000:3000"
+    environment:
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "3000"
+      SERVER_ENV: "development"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_USER: "root"
+      DB_PASSWORD: "password"
+      DB_NAME: "template_go_fiber"
+      DB_DRIVER: "mysql"
+      JWT_SECRET: "dev-secret-key-change-in-production"
+      LOG_LEVEL: "info"
+      LOG_FORMAT: "json"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - .:/app
+    command: go run ./cmd/service
+
+  db:
+    image: mariadb:11
+    container_name: go-fiber-db
+    environment:
+      MARIADB_ROOT_PASSWORD: "password"
+      MARIADB_DATABASE: "template_go_fiber"
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 3s
+      retries: 5
+      interval: 10s
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./sql/migrations:/docker-entrypoint-initdb.d
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,119 +1,119 @@
-# Product Definition: Go Fiber Microservice Template
+# Product Document: Go Fiber Microservice Template
 
 ## Problem Statement
 
-**Current State:** Backend developers building Go microservices face a choice: start from scratch (reinventing common patterns) or adopt a heavy framework (adding unnecessary complexity). Either path introduces friction and potential inconsistencies.
+**Core Problem:** Developers frequently need to create microservices but struggle with establishing a consistent, production-ready foundation that balances simplicity with enterprise requirements. Many templates are either overly complex (requiring extensive setup) or too simplistic (lacking essential production features).
 
-**User Pain Points:**
-1. Repetitive setup of layered architecture components across projects
-2. Inconsistent error handling, logging, and configuration patterns
-3. Uncertainty about best practices for security, testing, and code organization
-4. Time wasted on boilerplate instead of business logic
-5. Difficulty maintaining consistent code quality across team projects
-6. Lack of clear examples for common patterns (JWT auth, database transactions, etc.)
+**Specific Pain Points:**
+1. **Inconsistent Architecture:** Teams often start with ad-hoc structures that don't scale well
+2. **Missing Production Essentials:** Templates lack critical features like authentication, monitoring, and graceful shutdown
+3. **Developer Experience Overhead:** Complex setup processes slow down initial development
+4. **Poor Testing Infrastructure:** Inadequate mocking and testing patterns lead to low coverage
+5. **Container Deployment Complexity:** Templates not optimized for modern container orchestration
 
-## Target Users & Personas
+## Solution Vision
 
-### Primary Persona: Backend Developer (Startup/Scale-up)
-- **Profile:** Mid-level Go engineer at a growing company
-- **Goals:** Ship features quickly without compromising code quality
-- **Pain Points:**
-  - Needs consistency across multiple microservices
-  - Must balance speed-to-market with maintainability
-  - Limited time for architecture design
-- **Success Metrics:** Can clone template and start building business logic in <15 minutes
+A lightweight, opinionated microservice template that provides immediate value while maintaining flexibility for customization. The template should feel natural to Go developers while introducing modern best practices without overwhelming complexity.
 
-### Secondary Persona: Tech Lead/Architect
-- **Profile:** Senior engineer establishing engineering standards
-- **Goals:** Set team standards, reduce code review friction, ensure security
-- **Pain Points:**
-  - Multiple implementations of the same patterns across team
-  - Difficulty enforcing code quality standards
-  - Need to document architecture decisions
-- **Success Metrics:** Team can reference single template for consistency, clear ADRs guide decisions
+## Target Audience & User Personas
 
-### Tertiary Persona: Learner/Junior Developer
-- **Profile:** Early-career engineer learning Go/microservices
-- **Goals:** Understand industry-standard patterns and best practices
-- **Pain Points:**
-  - Overwhelmed by too many choices
-  - Unclear which patterns are essential vs. optional
-  - Need clear examples with explanations
-- **Success Metrics:** Can understand and extend template, learns testing/DI patterns
+### Primary Users
+**Backend Developers & DevOps Engineers**
+- Go language proficiency (intermediate to advanced)
+- Building microservices or APIs
+- Need production-ready foundations
+- Value performance and simplicity
+- Working in containerized environments
+
+### Secondary Users
+**Technical Leads & Architects**
+- Establishing team standards
+- Need consistent service templates
+- Focus on maintainability and scalability
+- Require comprehensive documentation
+
+**Learning/Personal Projects**
+- Developers learning microservice patterns
+- Educational purposes
+- Proof-of-concept development
 
 ## User Experience Goals
 
-### Onboarding Experience
-- **Zero Friction Setup:** Clone, run `make` commands, start coding
-- **Clear Navigation:** Obvious where to add handlers, usecases, repositories
-- **Learning by Example:** Example implementation guides new developers
-- **Runnable State:** Template is immediately runnable (even if minimal)
+### Primary Goals
+1. **Immediate Productivity:** Template setup should take minutes, not hours
+2. **Intuitive Structure:** Clear separation of concerns following standard Go conventions
+3. **Zero-Confusion Deployment:** Docker-native with sensible defaults
+4. **Self-Documenting Code:** Code should explain itself through clear patterns and comprehensive documentation
 
-### Development Workflow
-- **Quick Iteration:** Add new endpoints without architectural decisions
-- **Type Safety:** Compiler catches errors early (sqlc, interfaces)
-- **Clear Contracts:** Handlers → Usecases → Repositories define clear boundaries
-- **Testing Built-in:** Mock generation and database mocking setup ready to use
-- **Code Quality:** Linting errors caught immediately, not in PR review
+### Performance Goals
+1. **Fast Startup:** Services should start quickly for development and scaling
+2. **Low Memory Footprint:** Efficient resource utilization for microservice environments
+3. **High Throughput:** Leverage Fiber's performance characteristics
+4. **Graceful Degradation:** Handle failures gracefully without service disruption
 
-### Production Readiness
-- **Observable:** Structured logging and health checks built-in
-- **Secure:** Auth, rate limiting, input validation examples included
-- **Scalable:** Stateless design supports horizontal scaling
-- **Deployable:** Docker and graceful shutdown patterns ready
-- **Maintainable:** Clear structure makes onboarding new team members fast
+### Developer Experience Goals
+1. **Low Cognitive Load:** Simple, predictable patterns throughout the codebase
+2. **Excellent Tooling:** Integrated linting, testing, and documentation generation
+3. **Clear Errors:** Meaningful error messages with proper context
+4. **Hot Reload:** Development workflow should support rapid iteration
 
-## Value Proposition
+## Success Metrics
 
-### Time Savings
-- **Development:** Skip architecture design phase (weeks → hours)
-- **Testing:** Mock generation and fixtures already configured
-- **Deployment:** Dockerfile and graceful shutdown patterns ready
-- **Onboarding:** New team members understand structure immediately
+### Technical Metrics
+- Service startup time: < 2 seconds
+- Memory usage: < 50MB base footprint
+- Test coverage: > 80% across all layers
+- Build time: < 30 seconds for container image
+- API response time: < 100ms for simple endpoints
 
-### Quality Improvements
-- **Consistency:** All services follow same patterns
-- **Type Safety:** sqlc + interface-driven design catch errors at compile-time
-- **Testing:** High coverage encouraged by structure
-- **Security:** Best practices baked into patterns (rate limiting, input validation)
-
-### Business Value
-- **Faster Feature Delivery:** Engineers spend time on business logic, not infrastructure
-- **Reduced Risk:** Proven patterns reduce architectural mistakes
-- **Lower Maintenance:** Consistent patterns reduce code review friction
-- **Team Growth:** Clear structure accelerates onboarding of new developers
-
-## Success Criteria
-
-### Template Adoption Success
-1. **Usability:** Developers can add new endpoints following pattern without guidance
-2. **Quality:** Generated code passes golangci-lint v2 with zero errors
-3. **Documentation:** Architecture decisions documented in ADRs
-4. **Performance:** Template meets Fiber performance characteristics
-5. **Security:** Authentication, rate limiting, input validation working by default
-
-### Developer Satisfaction
-1. **Ease of Use:** <2 hours to create first custom endpoint
-2. **Understanding:** Developers can explain layered architecture choice
-3. **Extensibility:** Can add features (new DB drivers, auth methods) without breaking core
-4. **Testing:** Comfortable writing tests using provided mocking patterns
+### Adoption Metrics
+- Developer setup time: < 15 minutes from clone to running service
+- Documentation completeness: All APIs documented with Swagger
+- Code quality: 0 golangci-lint violations
+- Template consistency: Standardized structure across team projects
 
 ## Key Differentiators
 
-| Aspect | Template-Go-Fiber | Generic Boilerplate | Heavy Framework |
-|--------|------|----------|----------|
-| **Setup Time** | <5 minutes | 15-30 minutes | Varies widely |
-| **Code Clarity** | Clean, obvious | Can be opaque | Feature-rich, complex |
-| **Performance** | Fiber's speed | Varies | Can be bloated |
-| **Learning Curve** | Minimal | Moderate | Steep |
-| **Flexibility** | High | Moderate | Limited |
-| **Out-of-box Features** | Essential only | More complete | Everything included |
-| **Code Review** | Quick (patterns) | Lengthy | Long (more code) |
+1. **Fiber Framework Choice:** Utilizes Fiber's Express.js-like API for developers familiar with Node.js patterns
+2. **SQL-First Development:** Emphasizes SQL queries first, then generates Go code via sqlc
+3. **Microservice-Specific:** Designed specifically for microservice patterns, not monolithic applications
+4. **Container-Native:** Optimized from the ground up for container deployment
+5. **Testing Infrastructure:** Comprehensive mocking and testing setup out of the box
 
 ## Non-Goals
 
-1. **Framework Replacement:** Not attempting to replace specialized frameworks
-2. **One-size-fits-all:** Assumes RESTful microservice pattern, not all service types
-3. **Heavy Abstraction:** Values clarity over maximum DRY principle
-4. **Built-in Persistence:** Expects developers to design own domain models
-5. **Infrastructure as Code:** Focus is application layer, not infra provisioning
+1. **Monolithic Application Support:** Focus remains on microservice patterns
+2. **Multiple Frameworks:** Opinionated about Fiber as the HTTP framework
+3. **Legacy Database Support:** Modern database focus (no legacy system integration)
+4. **UI Components:** Backend-only template (no frontend frameworks)
+5. **Complex Authentication:** JWT/OIDC focus, no OAuth2 provider functionality
+
+## Quality Standards
+
+### Code Quality
+- All code must pass golangci-lint v2 with strict rules
+- Comprehensive test coverage across all architectural layers
+- Generated mocks for all interfaces via go:generate
+- Swagger documentation for all HTTP endpoints
+
+### Performance Standards
+- Follow goperf.dev optimization patterns
+- Implement connection pooling and resource management
+- Graceful shutdown with proper resource cleanup
+- Memory-efficient implementations
+
+### Security Standards
+- Rate limiting on all public endpoints
+- Input validation and sanitization
+- Structured error handling without information leakage
+- HTTPS enforcement for production deployments
+
+## Future Roadmap Considerations
+
+1. **Advanced Patterns:** Circuit breakers, distributed tracing, service mesh integration
+2. **Multiple Database Support:** Enhanced support for different database types
+3. **Event Streaming:** Integration patterns for event-driven architectures
+4. **Advanced Authentication:** Multiple auth providers and token types
+5. **Performance Optimization:** Advanced caching strategies and query optimization
+
+This product document serves as the foundation for understanding the "why" behind technical decisions and ensuring the template meets user needs while maintaining focus on core objectives.
